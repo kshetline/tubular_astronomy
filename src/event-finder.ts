@@ -81,8 +81,8 @@ export class AstroEvent {
 export interface LunarPhasesHtmlOptions {
   tableClass?: string;
   headers?: string[];
-  formatYear?: (number) => string;
-  formatDateTime?: (AstroEvent) => string;
+  formatYear?: (n: number) => string;
+  formatDateTime?: (ae: AstroEvent) => string;
 }
 
 export interface EquinoxSolsticeHtmlOptions extends LunarPhasesHtmlOptions {
@@ -94,15 +94,15 @@ export interface RiseAndSetHtmlOptions {
   headers?: string[];
   unseenAllDay?: string;
   visibleAllDay?: string;
-  formatDate?: (AstroEvent) => string;
-  formatDay?: (AstroEvent) => string;
-  formatTime?: (AstroEvent) => string;
+  formatDate?: (ae: AstroEvent) => string;
+  formatDay?: (ae: AstroEvent) => string;
+  formatTime?: (ae: AstroEvent) => string;
 }
 
 export interface GalileanMoonsHtmlOptions {
   tableClass?: string;
-  formatDateTime?: (AstroEvent) => string;
-  formatTime?: (AstroEvent) => string;
+  formatDateTime?: (ae: AstroEvent) => string;
+  formatTime?: (ae: AstroEvent) => string;
 }
 
 function esc(s: string): string {
