@@ -1,5 +1,5 @@
 /*
-  Copyright © 2017 Kerry Shetline, kerry@shetline.com
+  Copyright © 2017-2019 Kerry Shetline, kerry@shetline.com
 
   MIT license: https://opensource.org/licenses/MIT
 
@@ -31,14 +31,20 @@ import {
 } from 'ks-math';
 import { DateTimeField, getISOFormatDate, GregorianChange, KsCalendar, KsDateTime, KsTimeZone, YMDDate } from 'ks-date-time-zone';
 import { ISkyObserver } from './i-sky-observer';
-import * as _ from 'lodash';
+import escape from 'lodash/escape';
+import findIndex from 'lodash/findIndex';
+import flatten from 'lodash/flatten';
+import isNil from 'lodash/isNil';
+import isNumber from 'lodash/isNumber';
+import isString from 'lodash/isString';
+import isUndefined from 'lodash/isUndefined';
 import { JupiterInfo } from './jupiter-info';
 import { JupitersMoons } from './jupiter-moons';
 
 export class AstroEvent {
-  private _eventType: number;
-  private _eventText: string;
-  private _value: number;
+  readonly _eventType: number;
+  readonly _eventText: string;
+  readonly _value: number;
 
   eventTime: KsDateTime;
 
@@ -73,8 +79,8 @@ export class AstroEvent {
 
   public toString(): string {
     return this._eventType + '; ' + this._eventText + '; ' + this.eventTime.toYMDhmString() +
-      (_.isUndefined(this.value) ? '' : '; ' + this.value) +
-      (_.isString(this.miscInfo) ? '; ' + this.miscInfo : '');
+      (isUndefined(this.value) ? '' : '; ' + this.value) +
+      (isString(this.miscInfo) ? '; ' + this.miscInfo : '');
   }
 }
 
@@ -106,7 +112,7 @@ export interface GalileanMoonsHtmlOptions {
 }
 
 function esc(s: string): string {
-  return _.escape(s).replace(/\n/g, '<br>');
+  return escape(s).replace(/\n/g, '<br>');
 }
 
 export class EventFinder {
@@ -591,14 +597,14 @@ export class EventFinder {
     if (!zone)
       zone = KsTimeZone.UT_ZONE;
 
-    if (_.isNil(targetAltitude)) {
+    if (isNil(targetAltitude)) {
       targetAltitude = -REFRACTION_AT_HORIZON;
 
       if (body === SUN || body === MOON)
         targetAltitude -= AVG_SUN_MOON_RADIUS;
     }
 
-    if (_.isNil(doTwilight))
+    if (isNil(doTwilight))
       doTwilight = (body === SUN && targetAltitude <= MAX_ALT_FOR_TWILIGHT);
 
     const results: AstroEvent[] = [];
@@ -819,7 +825,7 @@ export class EventFinder {
     const missing = dateTime.getMissingDateRange(year, month);
     let doTwilight = false;
 
-    if (_.isNil(targetAltitude)) {
+    if (isNil(targetAltitude)) {
       targetAltitude = -REFRACTION_AT_HORIZON;
 
       if (body === SUN || body === MOON)
@@ -864,7 +870,7 @@ export class EventFinder {
 
         Array.prototype.push.apply(eventsForOneDay, this.getRiseAndSetTimes(body, ymd.y, ymd.m, ymd.d, observer, zone, gregorianChange, 0, null, false));
 
-        if (body === SUN && !_.isNil(twilightAltitude))
+        if (body === SUN && !isNil(twilightAltitude))
           Array.prototype.push.apply(eventsForOneDay, this.getRiseAndSetTimes(body, ymd.y, ymd.m, ymd.d, observer, zone, gregorianChange, 0, twilightAltitude, true));
 
         Array.prototype.push.apply(eventsForOneDay, this.getTransitTimes(body, ymd.y, ymd.m, ymd.d, observer, zone, gregorianChange));
@@ -899,7 +905,7 @@ export class EventFinder {
                                    zone?: KsTimeZone, gregorianChange?: GregorianChange, twilightAltitude?: number, options?: RiseAndSetHtmlOptions): Promise<string> {
     return this.getRiseAndSetEvents(body, year, month, day, dayCount, observer, zone, gregorianChange, twilightAltitude).then(daysOfEvents => {
       const results: string[] = [];
-      const doTwilight = (body === SUN && !_.isNil(twilightAltitude));
+      const doTwilight = (body === SUN && !isNil(twilightAltitude));
 
       if (options && options.tableClass)
         results.push(`<table class="${options.tableClass}">\n`);
@@ -918,7 +924,7 @@ export class EventFinder {
       let extraColumn = false;
 
       if (!doTwilight)
-        extraColumn = _.findIndex(_.flatten(daysOfEvents), {eventType: VISIBLE_ALL_DAY}) >= 0;
+        extraColumn = findIndex(flatten(daysOfEvents), {eventType: VISIBLE_ALL_DAY}) >= 0;
 
       if (extraColumn && headers.length === 3)
         headers.push('\u00A0');
@@ -1157,7 +1163,7 @@ export class EventFinder {
           let targetAlt: number = undefined;
 
           if (eventType === TWILIGHT_BEGINS || eventType === TWILIGHT_ENDS) {
-            if (!_.isNumber(argument))
+            if (!isNumber(argument))
               targetAlt = NAUTICAL_TWILIGHT;
             else if (<number> argument < 0)
               targetAlt = <number> argument;

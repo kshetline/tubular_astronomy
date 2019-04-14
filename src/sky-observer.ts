@@ -1,5 +1,5 @@
 /*
-  Copyright © 2017 Kerry Shetline, kerry@shetline.com
+  Copyright © 2017-2019 Kerry Shetline, kerry@shetline.com
 
   MIT license: https://opensource.org/licenses/MIT
 
@@ -26,7 +26,7 @@ import { refractedAltitude, unrefractedAltitude } from './astronomy-util';
 import { SolarSystem } from './solar-system';
 import { TDB_to_UT, UT_to_TDB } from './ut-converter';
 import { ABERRATION, EARTH_RADIUS_KM, EARTH_RADIUS_POLAR_KM, KM_PER_AU, NUTATION, REFRACTION, SUN, TOPOCENTRIC } from './astro-constants';
-import * as _ from 'lodash';
+import isNumber from 'lodash/isNumber';
 
 const A90_1SEC = 1.5707915;
 const A90_2SEC = 1.5707866;
@@ -36,8 +36,9 @@ SolarSystem.createSkyObserver = (longitude, latitude) => new SkyObserver(longitu
 export class SkyObserver implements ISkyObserver {
   private static solarSystem: SolarSystem;
 
-  private _longitude: Angle;
-  private _latitude: Angle;
+  readonly _longitude: Angle;
+  readonly _latitude: Angle;
+
   private elevation = 0;
   private rho_sin_gcl: number;
   private rho_cos_gcl: number;
@@ -78,12 +79,12 @@ export class SkyObserver implements ISkyObserver {
       this._latitude = (<SphericalPosition> longitudeOrLatLong).latitude;
     }
     else {
-      if (_.isNumber(longitudeOrLatLong))
+      if (isNumber(longitudeOrLatLong))
         this._longitude = new Angle(<number> longitudeOrLatLong, Unit.DEGREES);
       else
         this._longitude = <Angle> longitudeOrLatLong;
 
-      if (_.isNumber(latitude))
+      if (isNumber(latitude))
         this._latitude = new Angle(<number> latitude, Unit.DEGREES);
       else
         this._latitude = <Angle> latitude;

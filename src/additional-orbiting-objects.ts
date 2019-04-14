@@ -1,5 +1,5 @@
 /*
-  Copyright © 2017 Kerry Shetline, kerry@shetline.com
+  Copyright © 2017-2019 Kerry Shetline, kerry@shetline.com
 
   MIT license: https://opensource.org/licenses/MIT
 
@@ -25,7 +25,8 @@ import {
   abs, Angle, atan, cos, cos_deg, cosh, HALF_PI, interpolate, interpolateModular, log, max, min, mod, PI, pow, sign, signZP,
   sin, sin_deg, sinh, SphericalPosition, SphericalPosition3D, sqrt, tan, to_radian, TWO_PI
 } from 'ks-math';
-import * as _ from 'lodash';
+import isNil from 'lodash/isNil';
+import isNumber from 'lodash/isNumber';
 import { Ecliptic } from './ecliptic';
 import { compareCaseSecondary, compareStrings, padLeft, replace } from 'ks-util';
 
@@ -143,6 +144,7 @@ export class AdditionalOrbitingObjects {
     });
   }
 
+  // noinspection JSMethodCanBeStatic
   public getObjectCount(): number {
     return AdditionalOrbitingObjects.objectIds.length;
   }
@@ -203,11 +205,13 @@ export class AdditionalOrbitingObjects {
     return names;
   }
 
+  // noinspection JSMethodCanBeStatic
   public getAsteroidCount(): number
   {
     return AdditionalOrbitingObjects.lastAsteroidId - ASTEROID_BASE;
   }
 
+  // noinspection JSMethodCanBeStatic
   public getCometCount(): number
   {
     return AdditionalOrbitingObjects.lastCometId - COMET_BASE;
@@ -225,7 +229,7 @@ export class AdditionalOrbitingObjects {
   public getObjectByName(name: string): number {
     name = name.toLowerCase();
 
-    const matchId = _.find(AdditionalOrbitingObjects.objectIds, id => {
+    const matchId = AdditionalOrbitingObjects.objectIds.find(id => {
       const oia = AdditionalOrbitingObjects.objects[id];
 
       if (oia.length > 0)
@@ -240,6 +244,7 @@ export class AdditionalOrbitingObjects {
       return NO_MATCH;
   }
 
+  // noinspection JSMethodCanBeStatic
   protected getObjectInfo(bodyID: number, time_JDE?: number): ObjectInfo {
     if (!AdditionalOrbitingObjects.properlyInitialized)
       return undefined;
@@ -340,10 +345,10 @@ export class AdditionalOrbitingObjects {
   public getHeliocentricPosition(objectInfoOrBodyId: ObjectInfo | number, time_JDE: number, doNotConverge = false): SphericalPosition3D {
     let oi: ObjectInfo;
 
-    if (_.isNumber(objectInfoOrBodyId)) {
+    if (isNumber(objectInfoOrBodyId)) {
       oi = this.getObjectInfo(<number> objectInfoOrBodyId, time_JDE);
 
-      if (_.isNil(oi))
+      if (isNil(oi))
         return null;
     }
     else

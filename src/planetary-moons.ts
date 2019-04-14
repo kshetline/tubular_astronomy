@@ -1,5 +1,5 @@
 /*
-  Copyright © 2017 Kerry Shetline, kerry@shetline.com
+  Copyright © 2017-2019 Kerry Shetline, kerry@shetline.com
 
   MIT license: https://opensource.org/licenses/MIT
 
@@ -18,7 +18,8 @@
 */
 
 import { SolarSystem } from './solar-system';
-import * as _ from 'lodash';
+import clone from 'lodash/clone';
+import isUndefined from 'lodash/isUndefined';
 import { UT_to_TDB } from './ut-converter';
 import { floor, max, min, sqrt } from 'ks-math';
 import { FIRST_JUPITER_MOON, NO_MATCH } from './astro-constants';
@@ -91,7 +92,7 @@ export abstract class PlanetaryMoons {
   // done minute-by-minute.
   protected v_max: number[]; // planet radii per minute
 
-  constructor() {
+  protected constructor() {
     this.cachedTimes[0] = [];
     this.cachedTimes[1] = [];
     this.cachedMoons[0] = [];
@@ -103,7 +104,7 @@ export abstract class PlanetaryMoons {
 
     for (const moon of moons) {
       if (moon.moonIndex === moonIndex)
-        return _.clone(moon);
+        return clone(moon);
     }
 
     return undefined;
@@ -114,7 +115,7 @@ export abstract class PlanetaryMoons {
     let moons: MoonInfo[];
 
     for (let i = 0; i < CACHE_SIZE; ++i) {
-      if (time_JDE === this.cachedTimes[index][i] && !_.isUndefined(this.cachedMoons[index][i])) {
+      if (time_JDE === this.cachedTimes[index][i] && !isUndefined(this.cachedMoons[index][i])) {
         moons = this.cachedMoons[index][i];
         break;
       }
@@ -139,7 +140,7 @@ export abstract class PlanetaryMoons {
     const result: MoonInfo[] = [];
 
     for (const moon of moons)
-      result.push(_.clone(moon));
+      result.push(clone(moon));
 
     return result;
   }

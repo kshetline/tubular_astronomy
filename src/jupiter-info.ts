@@ -1,5 +1,5 @@
 /*
-  Copyright © 2017 Kerry Shetline, kerry@shetline.com
+  Copyright © 2017-2019 Kerry Shetline, kerry@shetline.com
 
   MIT license: https://opensource.org/licenses/MIT
 
@@ -66,7 +66,7 @@ export class JupiterInfo {
       let line;
 
       while ((line = reader.readAnsiLine(true)) !== null) {
-        const parts = line.split(/-|,/);
+        const parts = line.split(/[-,]/);
 
         if (parts.length === 4) {
           const Y = parts[0];

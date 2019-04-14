@@ -1,5 +1,5 @@
 /*
-  Copyright © 2017 Kerry Shetline, kerry@shetline.com
+  Copyright © 2017-2019 Kerry Shetline, kerry@shetline.com
 
   MIT license: https://opensource.org/licenses/MIT
 
@@ -25,7 +25,7 @@ import {
   abs, Angle, asin, atan2, cos, cos_deg, HALF_PI, limitNeg1to1, PI, sin, sin_deg, SphericalPosition, SphericalPosition3D,
   sqrt, Unit
 } from 'ks-math';
-import * as _ from 'lodash';
+import isNumber from 'lodash/isNumber';
 
 export interface Nutation {
   deltaPsi: Angle;
@@ -169,7 +169,7 @@ export class Ecliptic {
                                   finalEpoch?: number): SphericalPosition {
     let initialEpoch;
 
-    if (_.isNumber(finalEpoch))
+    if (isNumber(finalEpoch))
       initialEpoch = initialOrFinalEpoch;
     else {
       initialEpoch = JD_J2000;
@@ -224,7 +224,7 @@ export class Ecliptic {
                                   finalEpoch?: number): SphericalPosition {
     let initialEpoch;
 
-    if (_.isNumber(finalEpoch))
+    if (isNumber(finalEpoch))
       initialEpoch = initialOrFinalEpoch;
     else {
       initialEpoch = JD_J2000;
