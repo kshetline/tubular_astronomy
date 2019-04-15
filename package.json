@@ -1,6 +1,6 @@
 {
   "name": "ks-astronomy",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Astronomical calculations for planetary positions, moon phases, eclipses, rise, transit, and set times, and more.",
   "main": "dist/index.js",
   "typings": "dist/index",
@@ -33,7 +33,7 @@
     "array-buffer-reader": "^1.0.3",
     "ks-date-time-zone": "^1.6.0",
     "ks-math": "^1.1.6",
-    "ks-util": "^1.4.2",
+    "ks-util": "^1.4.3",
     "lodash": "^4.17.11"
   },
   "devDependencies": {
