@@ -5,6 +5,7 @@
   ],
   "jsRules": {},
   "rules": {
+    "arrow-parens": false,
     "curly": false,
     "indent": [
       true,
@@ -15,6 +16,7 @@
       true,
       200
     ],
+    "member-access": [true, "no-public"],
     "no-angle-bracket-type-assertion": false,
     "no-bitwise": false,
     "no-console": [
@@ -35,7 +37,8 @@
     "quotemark": [
       true,
       "single"
-    ]
+    ],
+    "trailing-comma": false
   },
   "rulesDirectory": []
 }
