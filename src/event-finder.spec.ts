@@ -1,13 +1,10 @@
-import { EventFinder } from './event-finder';
 import { KsDateTime, KsTimeZone } from 'ks-date-time-zone';
-import {
-  FIRST_QUARTER, FULL_MOON, GREATEST_ELONGATION, GRS_TRANSIT_EVENT, JUPITER, MOON, RISE_EVENT, SET_EVENT, SOLAR_ECLIPSE,
-  SUN, VENUS
-} from './astro-constants';
-import { SkyObserver } from './sky-observer';
-import {AsteroidCometInfo, EclipseInfo} from './solar-system';
+import { FIRST_QUARTER, FULL_MOON, GREATEST_ELONGATION, GRS_TRANSIT_EVENT, JUPITER, MOON, RISE_EVENT, SET_EVENT, SOLAR_ECLIPSE, SUN, VENUS } from './astro-constants';
+import { EventFinder } from './event-finder';
 import { IAstroDataService } from './i-astro-data.service';
-import {JupiterInfo} from "./jupiter-info";
+import { JupiterInfo } from './jupiter-info';
+import { SkyObserver } from './sky-observer';
+import { AsteroidCometInfo, EclipseInfo } from './solar-system';
 
 const grsTestData = new Uint8ClampedArray(
 `3.9

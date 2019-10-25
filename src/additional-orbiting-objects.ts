@@ -18,49 +18,51 @@
 */
 
 import { KsDateTime, KsTimeZone, parseISODate } from 'ks-date-time-zone';
-import { IAstroDataService } from './i-astro-data.service';
-import { AsteroidCometElements, AsteroidCometInfo, OrbitalElements } from './solar-system';
-import { ASTEROID_BASE, COMET_BASE, K_DEG, K_RAD, NO_MATCH } from './astro-constants';
 import {
   abs, Angle, atan, cos, cos_deg, cosh, HALF_PI, interpolate, interpolateModular, log, max, min, mod, PI, pow, sign, signZP,
   sin, sin_deg, sinh, SphericalPosition, SphericalPosition3D, sqrt, tan, to_radian, TWO_PI
 } from 'ks-math';
+import { compareCaseSecondary, compareStrings, padLeft, replace } from 'ks-util';
 import isNil from 'lodash/isNil';
 import isNumber from 'lodash/isNumber';
+import { ASTEROID_BASE, COMET_BASE, K_DEG, K_RAD, NO_MATCH } from './astro-constants';
 import { Ecliptic } from './ecliptic';
-import { compareCaseSecondary, compareStrings, padLeft, replace } from 'ks-util';
+import { IAstroDataService } from './i-astro-data.service';
+import { AsteroidCometElements, AsteroidCometInfo, OrbitalElements } from './solar-system';
 
 const NEAR_PARABOLIC_E_LOW  = 0.98;
 const NEAR_PARABOLIC_E_HIGH = 1.1;
 
 export class ObjectInfo {
-  public name: string;
-  public menuName: string;
-  public id: number;
-  public epoch: number;
-  public hasMag: boolean;
-  public asteroid: boolean;
-  public a: number;  // semi-major axis
-  public q: number;  // perihelion distance
-  public e: number;  // eccentricity
-  public i: number;  // inclination;
-  public w: number;  // argument of the perihelion
-  public L: number;  // longitude of the ascending node
-  public Tp: number; // time of perihelion passage
-  public n: number;  // mean daily motion (degrees/day)
-  public H: number;  // absolute visual magnitude
-  public G: number;  // slope parameter for magnitude
+  name: string;
+  menuName: string;
+  id: number;
+  epoch: number;
+  hasMag: boolean;
+  asteroid: boolean;
+  a: number;  // semi-major axis
+  q: number;  // perihelion distance
+  e: number;  // eccentricity
+  i: number;  // inclination;
+  w: number;  // argument of the perihelion
+  L: number;  // longitude of the ascending node
+  // tslint:disable-next-line:variable-name
+  Tp: number; // time of perihelion passage
+  n: number;  // mean daily motion (degrees/day)
+  H: number;  // absolute visual magnitude
+  G: number;  // slope parameter for magnitude
 
-  public convergenceFails: boolean;
-  public cfMin = Number.MAX_VALUE;
-  public cfMax = -Number.MAX_VALUE;
-  public prev: ObjectInfo;
-  public next: ObjectInfo;
+  convergenceFails: boolean;
+  cfMin = Number.MAX_VALUE;
+  cfMax = -Number.MAX_VALUE;
+  prev: ObjectInfo;
+  next: ObjectInfo;
 
-  public toString(): string {
+  toString(): string {
     const tEpoch = new KsDateTime(KsDateTime.millisFromJulianDay(this.epoch), KsTimeZone.UT_ZONE);
     const epoch = tEpoch.toYMDhmString();
     const tTp = new KsDateTime(KsDateTime.millisFromJulianDay(this.Tp), KsTimeZone.UT_ZONE);
+    // tslint:disable-next-line:variable-name
     const Tp = tTp.toYMDhmString();
 
     return `${this.name}: epoch=${epoch}, a=${this.a}, q=${this.q}, e=${this.e}, i=${this.i}, w=${this.w}, ` +
@@ -76,7 +78,7 @@ export class AdditionalOrbitingObjects {
   private static objects: {[id: number]: ObjectInfo[]} = {};
   private static objectIds: number[] = [];
 
-  public static getAdditionalOrbitingObjects(astroDataService: IAstroDataService): Promise<AdditionalOrbitingObjects> {
+  static getAdditionalOrbitingObjects(astroDataService: IAstroDataService): Promise<AdditionalOrbitingObjects> {
     if (this.properlyInitialized)
       return Promise.resolve(new AdditionalOrbitingObjects());
     else if (this.properlyInitialized === false)
@@ -145,11 +147,11 @@ export class AdditionalOrbitingObjects {
   }
 
   // noinspection JSMethodCanBeStatic
-  public getObjectCount(): number {
+  getObjectCount(): number {
     return AdditionalOrbitingObjects.objectIds.length;
   }
 
-  public getObjectNames(forMenu = false): string[] {
+  getObjectNames(forMenu = false): string[] {
     let names: string[] = [];
 
     AdditionalOrbitingObjects.objectIds.forEach((id: number) => {
@@ -206,18 +208,18 @@ export class AdditionalOrbitingObjects {
   }
 
   // noinspection JSMethodCanBeStatic
-  public getAsteroidCount(): number
+  getAsteroidCount(): number
   {
     return AdditionalOrbitingObjects.lastAsteroidId - ASTEROID_BASE;
   }
 
   // noinspection JSMethodCanBeStatic
-  public getCometCount(): number
+  getCometCount(): number
   {
     return AdditionalOrbitingObjects.lastCometId - COMET_BASE;
   }
 
-  public getObjectName(bodyID: number): string {
+  getObjectName(bodyID: number): string {
     const oi = this.getObjectInfo(bodyID);
 
     if (oi)
@@ -226,7 +228,7 @@ export class AdditionalOrbitingObjects {
       return undefined;
   }
 
-  public getObjectByName(name: string): number {
+  getObjectByName(name: string): number {
     name = name.toLowerCase();
 
     const matchId = AdditionalOrbitingObjects.objectIds.find(id => {
@@ -311,7 +313,7 @@ export class AdditionalOrbitingObjects {
     return undefined;
   }
 
-  public getMagnitudeParameters(bodyID: number): number[] {
+  getMagnitudeParameters(bodyID: number): number[] {
     const oi = this.getObjectInfo(bodyID);
 
     if (oi == null || !oi.hasMag)
@@ -320,7 +322,7 @@ export class AdditionalOrbitingObjects {
       return [oi.H, oi.G];
   }
 
-  public getOrbitalElements(bodyID: number, time_JDE: number): OrbitalElements {
+  getOrbitalElements(bodyID: number, time_JDE: number): OrbitalElements {
     const oi = this.getObjectInfo(bodyID, time_JDE);
 
     if (!oi)
@@ -342,7 +344,7 @@ export class AdditionalOrbitingObjects {
   }
 
   /* tslint:disable:no-shadowed-variable */
-  public getHeliocentricPosition(objectInfoOrBodyId: ObjectInfo | number, time_JDE: number, doNotConverge = false): SphericalPosition3D {
+  getHeliocentricPosition(objectInfoOrBodyId: ObjectInfo | number, time_JDE: number, doNotConverge = false): SphericalPosition3D {
     let oi: ObjectInfo;
 
     if (isNumber(objectInfoOrBodyId)) {

@@ -17,11 +17,11 @@
   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import { IAstroDataService } from './i-astro-data.service';
 import { ArrayBufferReader } from 'array-buffer-reader';
 import { abs, cos, mod, PI, sign, sin, sin_deg, SphericalPosition, tan, to_radian, Unit } from 'ks-math';
 import { ABERRATION, JD_J2000, NO_PRECESSION, NUTATION, OBLIQUITY_J2000, UNKNOWN_MAGNITUDE } from './astro-constants';
 import { Ecliptic, NMode } from './ecliptic';
+import { IAstroDataService } from './i-astro-data.service';
 import { ISkyObserver } from './i-sky-observer';
 import { UT_to_TDB } from './ut-converter';
 
@@ -472,29 +472,29 @@ export class StarCatalog {
     this.properlyInitialized = true;
   }
 
-  public isProperlyInitialized(): boolean {
+  isProperlyInitialized(): boolean {
     return this.properlyInitialized;
   }
 
-  public getStarCount(): number {
+  getStarCount(): number {
     return (this.stars ? this.stars.length : 0);
   }
 
-  public getName(starIndex: number, skipDuplicates = false): string {
+  getName(starIndex: number, skipDuplicates = false): string {
     if (starIndex < 0 || starIndex >= this.stars.length || (skipDuplicates && this.stars[starIndex].duplicateName))
       return null;
 
     return this.stars[starIndex].name;
   }
 
-  public getCodedName(starIndex: number): string {
+  getCodedName(starIndex: number): string {
     if (starIndex < 0 || starIndex >= this.stars.length)
       return null;
 
     return this.stars[starIndex].codedName;
   }
 
-  public getExpandedName(starIndex: number): string {
+  getExpandedName(starIndex: number): string {
     let name, fullName;
     const codedName = this.getCodedName(starIndex);
 
@@ -517,28 +517,28 @@ export class StarCatalog {
     return name;
   }
 
-  public getMagnitude(starIndex: number): number {
+  getMagnitude(starIndex: number): number {
     if (starIndex < 0 || starIndex >= this.stars.length)
       return -1.0E6;
 
     return this.stars[starIndex].vmag;
   }
 
-  public getFK5Number(starIndex: number): number {
+  getFK5Number(starIndex: number): number {
     if (starIndex < 0 || starIndex >= this.stars.length)
       return 0;
 
     return this.stars[starIndex].fk5Num;
   }
 
-  public getBSCNumber(starIndex: number): number {
+  getBSCNumber(starIndex: number): number {
     if (starIndex < 0 || starIndex >= this.stars.length)
       return 0;
 
     return this.stars[starIndex].bscNum;
   }
 
-  public isDeepSkyObject(starIndex: number): boolean {
+  isDeepSkyObject(starIndex: number): boolean {
     if (starIndex < 0 || starIndex >= this.stars.length)
       return false;
 
@@ -547,60 +547,60 @@ export class StarCatalog {
     return (star.messierNum !== 0 || star.ngcIcNum !== 0);
   }
 
-  public getMessierNumber(starIndex: number): number {
+  getMessierNumber(starIndex: number): number {
     if (starIndex < 0 || starIndex >= this.stars.length)
       return 0;
 
     return this.stars[starIndex].messierNum;
   }
 
-  public getNGCNumber(starIndex: number): number {
+  getNGCNumber(starIndex: number): number {
     if (starIndex < 0 || starIndex >= this.stars.length || this.stars[starIndex].ngcIcNum <= 0)
       return 0;
 
     return this.stars[starIndex].ngcIcNum;
   }
 
-  public getICNumber(starIndex: number): number {
+  getICNumber(starIndex: number): number {
     if (starIndex < 0 || starIndex >= this.stars.length || this.stars[starIndex].ngcIcNum >= 0)
       return 0;
 
     return -this.stars[starIndex].ngcIcNum;
   }
 
-  public getBayerRank(starIndex: number): number {
+  getBayerRank(starIndex: number): number {
     if (starIndex < 0 || starIndex >= this.stars.length)
       return 0;
 
     return this.stars[starIndex].bayerRank;
   }
 
-  public getConstellationOfStar(starIndex: number): number {
+  getConstellationOfStar(starIndex: number): number {
     if (starIndex < 0 || starIndex >= this.stars.length)
       return 0;
 
     return this.stars[starIndex].constellation;
   }
 
-  public getConstellationCount(): number {
+  getConstellationCount(): number {
     return this.constellations.length;
   }
 
-  public getConstellationName(constellationIndex: number): string {
+  getConstellationName(constellationIndex: number): string {
     if (constellationIndex < 0 || constellationIndex >= this.constellations.length)
       return null;
 
     return this.constellations[constellationIndex].name;
   }
 
-  public getConstellationCode(constellationIndex: number): string {
+  getConstellationCode(constellationIndex: number): string {
     if (constellationIndex < 0 || constellationIndex >= this.constellations.length)
       return null;
 
     return this.constellations[constellationIndex].code;
   }
 
-  public getConstellationDrawingStars(constellationIndex: number): number[] {
+  getConstellationDrawingStars(constellationIndex: number): number[] {
     if (constellationIndex < 0 || constellationIndex >= this.constellations.length)
       return null;
 
@@ -611,7 +611,7 @@ export class StarCatalog {
   // to either pole, but no stars in the star catalogs that I'm using get close enough
   // to cause a problem over the time period of years -5999 to 9999.
   //
-  public getEquatorialPosition(starIndex: number, time_JDE: number, cacheTolerance = 0, flags = 0): SphericalPosition {
+  getEquatorialPosition(starIndex: number, time_JDE: number, cacheTolerance = 0, flags = 0): SphericalPosition {
     if (starIndex < 0 || starIndex >= this.stars.length)
       return null;
 
@@ -676,7 +676,7 @@ export class StarCatalog {
     return pos;
   }
 
-  public getEclipticPosition(starIndex: number, time_JDE: number, cacheTolerance = 0, flags = 0): SphericalPosition {
+  getEclipticPosition(starIndex: number, time_JDE: number, cacheTolerance = 0, flags = 0): SphericalPosition {
     if (starIndex < 0 || starIndex >= this.stars.length)
       return null;
 
@@ -712,8 +712,8 @@ export class StarCatalog {
   // Note: cacheTolerance applies to the equatorial position of a star. Horizontal coordinates
   //    themselves are not cached.
   //
-  public getHorizontalPosition(starIndex: number, time_JDU: number, observer: ISkyObserver,
-      cacheTolerance: number, flags = 0): SphericalPosition {
+  getHorizontalPosition(starIndex: number, time_JDU: number, observer: ISkyObserver,
+                        cacheTolerance: number, flags = 0): SphericalPosition {
     if (starIndex < 0 || starIndex >= this.stars.length)
       return null;
 

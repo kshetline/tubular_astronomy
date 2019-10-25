@@ -17,20 +17,18 @@
   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import { IAstroDataService } from './i-astro-data.service';
-import { Angle, asin_deg, cos_deg, interpolateTabular, limitNeg1to1, sign, sin_deg, sqrt, squared, Unit } from 'ks-math';
 import { ArrayBufferReader } from 'array-buffer-reader';
 import { KsDateTime } from 'ks-date-time-zone';
+import { Angle, asin_deg, cos_deg, interpolateTabular, limitNeg1to1, sign, sin_deg, sqrt, squared, Unit } from 'ks-math';
 import { isNumber, isUndefined } from 'util';
 import { JD_J2000 } from './astro-constants';
+import { IAstroDataService } from './i-astro-data.service';
 import { TDB_to_UT } from './ut-converter';
 
 export enum DataQuality { GOOD = 1, FAIR, POOR }
 
 export class JupiterInfo {
   private static properlyInitialized: boolean = undefined;
-  private static imageGrsLat = -20.0;
-  private static imageGrsLong = 129.5;
   private static firstGRSDate: string;
   private static grsLongAtMinTime: number;
   private static grsLongAtMaxTime: number;
@@ -44,7 +42,7 @@ export class JupiterInfo {
   private static grsTimes: number[] = [];
   private static grsLongs: number[] = [];
 
-  public static readonly DEFAULT_GRS_LONG = new Angle(-93.0, Unit.DEGREES);
+  static readonly DEFAULT_GRS_LONG = new Angle(-93.0, Unit.DEGREES);
 
   protected cacheTime = Number.MAX_VALUE;
   protected fixedGRSLong: Angle;
@@ -104,7 +102,7 @@ export class JupiterInfo {
     }
   }
 
-  public static getJupiterInfo(astroDataService: IAstroDataService): Promise<JupiterInfo> {
+  static getJupiterInfo(astroDataService: IAstroDataService): Promise<JupiterInfo> {
     if (this.properlyInitialized)
       return Promise.resolve(new JupiterInfo());
     else if (this.properlyInitialized === false)
@@ -121,7 +119,7 @@ export class JupiterInfo {
     }
   }
 
-  public static grsDataQuality(time_JDU: number): DataQuality {
+  static grsDataQuality(time_JDU: number): DataQuality {
     if      (!this.properlyInitialized || time_JDU < this.minGRSTableTime - 730.0 || time_JDU > this.maxGRSTableTime + 730.0)
       return DataQuality.POOR;
     else if (time_JDU < this.minGRSTableTime - 365.0 || time_JDU > this.maxGRSTableTime + 365.0)
@@ -130,22 +128,22 @@ export class JupiterInfo {
       return DataQuality.GOOD;
   }
 
-  public static getFirstGRSDate(): string {
+  static getFirstGRSDate(): string {
     return this.firstGRSDate;
   }
 
-  public static getLastGRSDate(): string {
+  static getLastGRSDate(): string {
     return this.lastGRSDate;
   }
 
-  public static getLastKnownGRSLongitude(): Angle {
+  static getLastKnownGRSLongitude(): Angle {
     return this.grsLongAtMaxTimeAngle;
   }
 
   private constructor() {
   }
 
-  public getSystemILongitude(time_JDE: number): Angle {
+  getSystemILongitude(time_JDE: number): Angle {
     if (this.cacheTime !== time_JDE) {
       this.calculateLongitudes(time_JDE);
       this.cacheTime = time_JDE;
@@ -154,7 +152,7 @@ export class JupiterInfo {
     return this.sys1Long;
   }
 
-  public getSystemIILongitude(time_JDE: number): Angle {
+  getSystemIILongitude(time_JDE: number): Angle {
     if (this.cacheTime !== time_JDE) {
       this.calculateLongitudes(time_JDE);
       this.cacheTime = time_JDE;
@@ -163,7 +161,7 @@ export class JupiterInfo {
     return this.sys2Long;
   }
 
-  public getGRSLongitude(time_JDE: number): Angle {
+  getGRSLongitude(time_JDE: number): Angle {
     if (this.fixedGRSLong)
       return this.fixedGRSLong;
     else if (!JupiterInfo.properlyInitialized)
@@ -176,7 +174,7 @@ export class JupiterInfo {
     return this.grsLong;
   }
 
-  public getGRSCMOffset(time_JDE: number): Angle {
+  getGRSCMOffset(time_JDE: number): Angle {
     if (this.cacheTime !== time_JDE) {
       this.calculateLongitudes(time_JDE);
       this.cacheTime = time_JDE;
@@ -185,7 +183,7 @@ export class JupiterInfo {
     return this.grsCMOffset;
   }
 
-  public setFixedGRSLongitude(longitude: number | Angle): void {
+  setFixedGRSLongitude(longitude: number | Angle): void {
     if (isNumber(longitude))
       this.fixedGRSLong = new Angle(<number> longitude, Unit.DEGREES);
     else
@@ -194,11 +192,11 @@ export class JupiterInfo {
     this.cacheTime = Number.MAX_VALUE;
   }
 
-  public getFixedGRSLongitude(): Angle {
+  getFixedGRSLongitude(): Angle {
     return this.fixedGRSLong;
   }
 
-  public getEffectiveFixedGRSLongitude(): Angle {
+  getEffectiveFixedGRSLongitude(): Angle {
     if (this.fixedGRSLong)
       return this.fixedGRSLong;
     else if (JupiterInfo.properlyInitialized && JupiterInfo.minGRSTableTime === JupiterInfo.maxGRSTableTime &&
@@ -208,7 +206,7 @@ export class JupiterInfo {
       return JupiterInfo.DEFAULT_GRS_LONG;
   }
 
-  public clearFixedGRSLongitude(): void {
+  clearFixedGRSLongitude(): void {
     this.fixedGRSLong = undefined;
     this.cacheTime = Number.MAX_VALUE;
   }

@@ -17,7 +17,7 @@
   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import { Angle, Unit, SphericalPosition } from 'ks-math';
+import { Angle, SphericalPosition, Unit } from 'ks-math';
 
 export const JD_J2000 = 2451545.0;    // Julian date for the J2000.0 epoch.
 export const JD_B1950 = 2433282.4235; // Julian date for the B1950 epoch.
@@ -170,4 +170,3 @@ export const SOLAR_SYSTEM_MAX = COMET_MAX;
 
 export const CONSTELLATION_BASE = 100000;
 export const CONSTELLATION_MAX  = 100999;
-

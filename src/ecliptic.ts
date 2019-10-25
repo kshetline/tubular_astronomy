@@ -20,12 +20,12 @@
   by Jean Meeus in _Astronomical Algorithms, 2nd Ed._
 */
 
-import { JD_J2000, OBLIQUITY_J2000 } from './astro-constants';
 import {
   abs, Angle, asin, atan2, cos, cos_deg, HALF_PI, limitNeg1to1, PI, sin, sin_deg, SphericalPosition, SphericalPosition3D,
   sqrt, Unit
 } from 'ks-math';
 import isNumber from 'lodash/isNumber';
+import { JD_J2000, OBLIQUITY_J2000 } from './astro-constants';
 
 export interface Nutation {
   deltaPsi: Angle;
@@ -39,11 +39,11 @@ export enum NMode { NUTATED,        // Return nutation in longitude, and nutatio
                     ANTI_NUTATED }  // Remove nutation from an already-nutated set of coordinates.
 
 interface NutationTerm {
-  fD:  number;
-  fM:  number;
+  fD: number;
+  fM: number;
   fM1: number;
-  fF:  number;
-  fQ:  number;
+  fF: number;
+  fQ: number;
   cs0: number;
   cs1: number;
   cc0: number;
@@ -165,8 +165,8 @@ export class Ecliptic {
   private cachedMode = NMode.NUTATED;
   private cachedNutation: Nutation = null;
 
-  public static precessEquatorial(pos: SphericalPosition, initialOrFinalEpoch: number,
-                                  finalEpoch?: number): SphericalPosition {
+  static precessEquatorial(pos: SphericalPosition, initialOrFinalEpoch: number,
+                           finalEpoch?: number): SphericalPosition {
     let initialEpoch;
 
     if (isNumber(finalEpoch))
@@ -213,15 +213,15 @@ export class Ecliptic {
     return new SphericalPosition(RA, dec);
   }
 
-  public static precessEquatorial3D(pos: SphericalPosition3D, initialOrFinalEpoch: number,
-                                    finalEpoch?: number): SphericalPosition3D {
+  static precessEquatorial3D(pos: SphericalPosition3D, initialOrFinalEpoch: number,
+                             finalEpoch?: number): SphericalPosition3D {
     const pos2 = Ecliptic.precessEquatorial(pos, initialOrFinalEpoch, finalEpoch);
 
     return new SphericalPosition3D(pos2.longitude, pos2.latitude, pos.radius);
   }
 
-  public static precessEcliptical(pos: SphericalPosition, initialOrFinalEpoch: number,
-                                  finalEpoch?: number): SphericalPosition {
+  static precessEcliptical(pos: SphericalPosition, initialOrFinalEpoch: number,
+                           finalEpoch?: number): SphericalPosition {
     let initialEpoch;
 
     if (isNumber(finalEpoch))
@@ -261,14 +261,14 @@ export class Ecliptic {
     return new SphericalPosition(L, B);
   }
 
-  public static precessEcliptical3D(pos: SphericalPosition3D, initialOrFinalEpoch: number,
-                                    finalEpoch?: number): SphericalPosition3D {
+  static precessEcliptical3D(pos: SphericalPosition3D, initialOrFinalEpoch: number,
+                             finalEpoch?: number): SphericalPosition3D {
     const pos2 = Ecliptic.precessEcliptical(pos, initialOrFinalEpoch, finalEpoch);
 
     return new SphericalPosition3D(pos2.longitude, pos2.latitude, pos.radius);
   }
 
-  public getNutation(time_JDE: number, mode: NMode = NMode.NUTATED): Nutation {
+  getNutation(time_JDE: number, mode: NMode = NMode.NUTATED): Nutation {
     if (this.cachedTime === time_JDE && this.cachedMode === mode)
       return this.cachedNutation;
 
@@ -333,7 +333,7 @@ export class Ecliptic {
     return this.cachedNutation;
   }
 
-  public nutateEclipticPosition(pos: SphericalPosition, time_JDE: number, mode = NMode.NUTATED): SphericalPosition {
+  nutateEclipticPosition(pos: SphericalPosition, time_JDE: number, mode = NMode.NUTATED): SphericalPosition {
     if (mode === NMode.J2000)
       return pos;
 
@@ -345,14 +345,14 @@ export class Ecliptic {
     return new SphericalPosition(pos.longitude.add_nonneg(nutation), pos.latitude);
   }
 
-  public nutateEclipticPosition3D(pos: SphericalPosition3D, time_JDE: number, mode = NMode.NUTATED): SphericalPosition3D {
+  nutateEclipticPosition3D(pos: SphericalPosition3D, time_JDE: number, mode = NMode.NUTATED): SphericalPosition3D {
     if (mode === NMode.J2000)
       return pos;
 
     return SphericalPosition3D.from2D(this.nutateEclipticPosition(pos, time_JDE, mode), pos.radius);
   }
 
-  public nutateEquatorialPosition(pos: SphericalPosition, time_JDE: number, mode = NMode.NUTATED): SphericalPosition {
+  nutateEquatorialPosition(pos: SphericalPosition, time_JDE: number, mode = NMode.NUTATED): SphericalPosition {
     if (mode === NMode.J2000)
       return pos;
 
@@ -363,14 +363,14 @@ export class Ecliptic {
     return this.eclipticToEquatorial(eclipticPosition, time_JDE, mode);
   }
 
-  public nutateEquatorialPosition3D(pos: SphericalPosition3D, time_JDE: number, mode = NMode.NUTATED): SphericalPosition3D {
+  nutateEquatorialPosition3D(pos: SphericalPosition3D, time_JDE: number, mode = NMode.NUTATED): SphericalPosition3D {
     if (mode === NMode.J2000)
       return pos;
 
     return SphericalPosition3D.from2D(this.nutateEquatorialPosition(pos, time_JDE, mode), pos.radius);
   }
 
-  public eclipticToEquatorial(pos: SphericalPosition, time_JDE = JD_J2000, mode = NMode.J2000): SphericalPosition {
+  eclipticToEquatorial(pos: SphericalPosition, time_JDE = JD_J2000, mode = NMode.J2000): SphericalPosition {
     const nutation = this.getNutation(time_JDE, mode);
     const L = pos.rightAscension;
     const B = pos.declination;
@@ -381,11 +381,11 @@ export class Ecliptic {
                   Angle.asin(limitNeg1to1(B.sin * E.cos + B.cos * E.sin * L.sin)));
   }
 
-  public eclipticToEquatorial3D(pos: SphericalPosition3D, time_JDE = JD_J2000, mode = NMode.J2000): SphericalPosition3D {
+  eclipticToEquatorial3D(pos: SphericalPosition3D, time_JDE = JD_J2000, mode = NMode.J2000): SphericalPosition3D {
     return SphericalPosition3D.from2D(this.eclipticToEquatorial(pos, time_JDE, mode), pos.radius);
   }
 
-  public equatorialToEcliptic(pos: SphericalPosition, time_JDE = JD_J2000, mode = NMode.J2000): SphericalPosition {
+  equatorialToEcliptic(pos: SphericalPosition, time_JDE = JD_J2000, mode = NMode.J2000): SphericalPosition {
     const nutation = this.getNutation(time_JDE, mode);
     const RA = pos.rightAscension;
     const dec = pos.declination;
@@ -396,7 +396,7 @@ export class Ecliptic {
                   Angle.asin(limitNeg1to1(dec.sin * E.cos - dec.cos * E.sin * RA.sin)));
   }
 
-  public equatorialToEcliptic3D(pos: SphericalPosition3D, time_JDE = JD_J2000, mode = NMode.J2000): SphericalPosition3D {
+  equatorialToEcliptic3D(pos: SphericalPosition3D, time_JDE = JD_J2000, mode = NMode.J2000): SphericalPosition3D {
     return SphericalPosition3D.from2D(this.equatorialToEcliptic(pos, time_JDE, mode), pos.radius);
   }
 }

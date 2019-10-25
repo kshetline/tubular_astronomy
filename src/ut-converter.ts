@@ -17,8 +17,8 @@
   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import { JD_J2000 } from './astro-constants';
 import { floor, squared } from 'ks-math';
+import { JD_J2000 } from './astro-constants';
 
 const historicDeltaT = [
 // Values to smooth transition from polynomial used for earlier years.

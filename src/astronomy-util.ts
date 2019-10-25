@@ -26,11 +26,11 @@
 //
 
 import { Angle, floor, interpolate, limitNeg1to1, max, min, pow, round, SphericalPosition, sqrt, tan_deg, Unit } from 'ks-math';
-import { ISkyObserver } from './i-sky-observer';
-import { GALACTIC_ASCENDING_NODE_B1950, GALACTIC_NORTH_B1950, JD_B1950, JD_J2000, LOW_PRECISION, MOON, QUICK_SUN, SUN } from './astro-constants';
-import { SolarSystem } from './solar-system';
 import { blendColors } from 'ks-util';
+import { GALACTIC_ASCENDING_NODE_B1950, GALACTIC_NORTH_B1950, JD_B1950, JD_J2000, LOW_PRECISION, MOON, QUICK_SUN, SUN } from './astro-constants';
 import { Ecliptic } from './ecliptic';
+import { ISkyObserver } from './i-sky-observer';
+import { SolarSystem } from './solar-system';
 
 export const COLOR_NIGHT                 = 'black';
 export const COLOR_ASTRONOMICAL_TWILIGHT = '#000044';
@@ -202,7 +202,6 @@ export function equatorialToGalactic(pos: SphericalPosition, time_JDE = JD_J2000
 }
 
 export function galacticToEquatorial(pos: SphericalPosition, time_JDE = JD_J2000): SphericalPosition {
-
   const l_an2 = pos.rightAscension.subtract(AN2);
   const b = pos.declination;
 

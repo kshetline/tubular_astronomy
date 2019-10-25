@@ -17,20 +17,10 @@
   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import { EclipseInfo, SolarSystem } from './solar-system';
-import {
-  APHELION, AVG_SUN_MOON_RADIUS, FALL_EQUINOX, FIRST_QUARTER, FULL_MOON, GALILEAN_MOON_EVENT, GREATEST_ELONGATION, GRS_TRANSIT_EVENT, HALF_MINUTE,
-  INFERIOR_CONJUNCTION, LAST_QUARTER, LUNAR_ECLIPSE, MARS, MAX_ALT_FOR_TWILIGHT, MEAN_JUPITER_SYS_II, MEAN_SYNODIC_MONTH, MERCURY, MINUTE, MOON,
-  NAUTICAL_TWILIGHT, NEPTUNE, NEW_MOON, NON_EVENT, OPPOSITION, PERIHELION, PHASE_EVENT_BASE, QUADRATURE, QUICK_PLANET, REFRACTION_AT_HORIZON, RISE_EVENT, SET_EVENT,
-  SET_EVENT_MINUS_1_MIN, SIGNED_HOUR_ANGLE, SOLAR_ECLIPSE, SPRING_EQUINOX, SUMMER_SOLSTICE, SUN, SUPERIOR_CONJUNCTION, TRANSIT_EVENT, TWILIGHT_BEGINS,
-  TWILIGHT_ENDS, UNSEEN_ALL_DAY, URANUS, VENUS, VISIBLE_ALL_DAY, WINTER_SOLSTICE
-} from './astro-constants';
-import { UT_to_TDB } from './ut-converter';
+import { DateTimeField, getISOFormatDate, GregorianChange, KsCalendar, KsDateTime, KsTimeZone, YMDDate } from 'ks-date-time-zone';
 import {
   abs, Angle, div_rd, floor, FMT_DD, FMT_MINS, max, min, MinMaxFinder, mod, mod2, round, sign, sin_deg, Unit, ZeroFinder
 } from 'ks-math';
-import { DateTimeField, getISOFormatDate, GregorianChange, KsCalendar, KsDateTime, KsTimeZone, YMDDate } from 'ks-date-time-zone';
-import { ISkyObserver } from './i-sky-observer';
 import escape from 'lodash/escape';
 import findIndex from 'lodash/findIndex';
 import flatten from 'lodash/flatten';
@@ -38,8 +28,18 @@ import isNil from 'lodash/isNil';
 import isNumber from 'lodash/isNumber';
 import isString from 'lodash/isString';
 import isUndefined from 'lodash/isUndefined';
+import {
+  APHELION, AVG_SUN_MOON_RADIUS, FALL_EQUINOX, FIRST_QUARTER, FULL_MOON, GALILEAN_MOON_EVENT, GREATEST_ELONGATION, GRS_TRANSIT_EVENT, HALF_MINUTE,
+  INFERIOR_CONJUNCTION, LAST_QUARTER, LUNAR_ECLIPSE, MARS, MAX_ALT_FOR_TWILIGHT, MEAN_JUPITER_SYS_II, MEAN_SYNODIC_MONTH, MERCURY, MINUTE, MOON,
+  NAUTICAL_TWILIGHT, NEPTUNE, NEW_MOON, NON_EVENT, OPPOSITION, PERIHELION, PHASE_EVENT_BASE, QUADRATURE, QUICK_PLANET, REFRACTION_AT_HORIZON, RISE_EVENT, SET_EVENT,
+  SET_EVENT_MINUS_1_MIN, SIGNED_HOUR_ANGLE, SOLAR_ECLIPSE, SPRING_EQUINOX, SUMMER_SOLSTICE, SUN, SUPERIOR_CONJUNCTION, TRANSIT_EVENT, TWILIGHT_BEGINS,
+  TWILIGHT_ENDS, UNSEEN_ALL_DAY, URANUS, VENUS, VISIBLE_ALL_DAY, WINTER_SOLSTICE
+} from './astro-constants';
+import { ISkyObserver } from './i-sky-observer';
 import { JupiterInfo } from './jupiter-info';
 import { JupitersMoons } from './jupiter-moons';
+import { EclipseInfo, SolarSystem } from './solar-system';
+import { UT_to_TDB } from './ut-converter';
 
 export class AstroEvent {
   readonly _eventType: number;
@@ -48,7 +48,7 @@ export class AstroEvent {
 
   eventTime: KsDateTime;
 
-  public miscInfo: any;
+  miscInfo: any;
 
   constructor(eventType: number, eventText: string, year: number, month: number, day: number, hourOffset: number,
               zone: KsTimeZone, gregorianChange?: GregorianChange, value?: number) {
@@ -77,7 +77,7 @@ export class AstroEvent {
   get value(): number { return this._value; }
   get ut(): number { return KsDateTime.julianDay(this.eventTime.utcTimeMillis); }
 
-  public toString(): string {
+  toString(): string {
     return this._eventType + '; ' + this._eventText + '; ' + this.eventTime.toYMDhmString() +
       (isUndefined(this.value) ? '' : '; ' + this.value) +
       (isString(this.miscInfo) ? '; ' + this.miscInfo : '');
@@ -87,8 +87,8 @@ export class AstroEvent {
 export interface LunarPhasesHtmlOptions {
   tableClass?: string;
   headers?: string[];
-  formatYear?: (n: number) => string;
-  formatDateTime?: (ae: AstroEvent) => string;
+  formatYear?: (year: number) => string;
+  formatDateTime?: (event: AstroEvent) => string;
 }
 
 export interface EquinoxSolsticeHtmlOptions extends LunarPhasesHtmlOptions {
@@ -100,15 +100,15 @@ export interface RiseAndSetHtmlOptions {
   headers?: string[];
   unseenAllDay?: string;
   visibleAllDay?: string;
-  formatDate?: (ae: AstroEvent) => string;
-  formatDay?: (ae: AstroEvent) => string;
-  formatTime?: (ae: AstroEvent) => string;
+  formatDate?: (event: AstroEvent) => string;
+  formatDay?: (event: AstroEvent) => string;
+  formatTime?: (event: AstroEvent) => string;
 }
 
 export interface GalileanMoonsHtmlOptions {
   tableClass?: string;
-  formatDateTime?: (ae: AstroEvent) => string;
-  formatTime?: (ae: AstroEvent) => string;
+  formatDateTime?: (event: AstroEvent) => string;
+  formatTime?: (event: AstroEvent) => string;
 }
 
 function esc(s: string): string {
@@ -122,7 +122,7 @@ export class EventFinder {
   constructor(private jupiterInfo?: JupiterInfo) {
   }
 
-  public getLunarPhaseEvent(year: number, month: number, day: number, zone?: KsTimeZone, gregorianChange?: GregorianChange): AstroEvent {
+  getLunarPhaseEvent(year: number, month: number, day: number, zone?: KsTimeZone, gregorianChange?: GregorianChange): AstroEvent {
     if (!zone)
       zone = KsTimeZone.UT_ZONE;
 
@@ -180,7 +180,7 @@ export class EventFinder {
                            year, month, day, eventTime, zone);
   }
 
-  public getLunarPhasesByYear(startYear: number, endYear: number, zone?: KsTimeZone, gregorianChange?: GregorianChange, addPaddingMonths = false): Promise<AstroEvent[]> {
+  getLunarPhasesByYear(startYear: number, endYear: number, zone?: KsTimeZone, gregorianChange?: GregorianChange, addPaddingMonths = false): Promise<AstroEvent[]> {
     if (!zone)
       zone = KsTimeZone.UT_ZONE;
 
@@ -224,7 +224,7 @@ export class EventFinder {
       }
     };
 
-    return new Promise<AstroEvent[]>((resolve, reject) => {
+    return new Promise<AstroEvent[]>((resolve) => {
       const loop = () => {
         calculate();
 
@@ -265,8 +265,8 @@ export class EventFinder {
     return months[month - 1] + ' ' + (day < 10 ? ' ' : '') + day + ' ' + EventFinder.formatEventTime(event);
   }
 
-  public getLunarPhasesByYearAsHtml(startYear: number, endYear: number, zone?: KsTimeZone, gregorianChange?: GregorianChange,
-                                    options?: LunarPhasesHtmlOptions): Promise<string> {
+  getLunarPhasesByYearAsHtml(startYear: number, endYear: number, zone?: KsTimeZone, gregorianChange?: GregorianChange,
+                             options?: LunarPhasesHtmlOptions): Promise<string> {
     return this.getLunarPhasesByYear(startYear, endYear, zone, gregorianChange).then(events => {
       const results: string[] = [];
       let headers = ['New', 'First Quarter', 'Full', 'Last Quarter'];
@@ -349,7 +349,7 @@ export class EventFinder {
     });
   }
 
-  public getLunarPhasesForMonth(year: number, month: number, zone?: KsTimeZone, gregorianChange?: GregorianChange): AstroEvent[] {
+  getLunarPhasesForMonth(year: number, month: number, zone?: KsTimeZone, gregorianChange?: GregorianChange): AstroEvent[] {
     if (!zone)
       zone = KsTimeZone.UT_ZONE;
 
@@ -383,7 +383,7 @@ export class EventFinder {
     return results;
   }
 
-  public getEquinoxSolsticeEvent(year: number, month: number, day: number, zone?: KsTimeZone, gregorianChange?: GregorianChange): AstroEvent {
+  getEquinoxSolsticeEvent(year: number, month: number, day: number, zone?: KsTimeZone, gregorianChange?: GregorianChange): AstroEvent {
     if (month % 3 !== 0 && year > -500 && year < 2700)
       return null;
 
@@ -443,8 +443,7 @@ export class EventFinder {
                            year, month, day, eventTime, zone, gregorianChange);
   }
 
-  public getEquinoxesAndSolsticesForOneYear(year: number, zone?: KsTimeZone, gregorianChange?: GregorianChange): AstroEvent[]
-  {
+  getEquinoxesAndSolsticesForOneYear(year: number, zone?: KsTimeZone, gregorianChange?: GregorianChange): AstroEvent[] {
     const results: AstroEvent[] = [];
 
     const dateTime = new KsDateTime(null, zone ? zone : KsTimeZone.UT_ZONE, gregorianChange);
@@ -475,8 +474,7 @@ export class EventFinder {
     return results;
   }
 
-  public getEquinoxesAndSolsticesByYear(startYear: number, endYear: number, zone?: KsTimeZone, gregorianChange?: GregorianChange): Promise<AstroEvent[]>
-  {
+  getEquinoxesAndSolsticesByYear(startYear: number, endYear: number, zone?: KsTimeZone, gregorianChange?: GregorianChange): Promise<AstroEvent[]> {
     const results: AstroEvent[] = [];
     const dateTime = new KsDateTime(null, zone ? zone : KsTimeZone.UT_ZONE, gregorianChange);
     const lastMonthYear = (endYear + 1) * 12;
@@ -511,7 +509,7 @@ export class EventFinder {
       }
     };
 
-    return new Promise<AstroEvent[]>((resolve, reject) => {
+    return new Promise<AstroEvent[]>((resolve) => {
       const loop = () => {
         calculate();
 
@@ -525,9 +523,8 @@ export class EventFinder {
     });
   }
 
-
-  public getEquinoxesAndSolsticesByYearAsHtml(startYear: number, endYear: number, zone?: KsTimeZone, gregorianChange?: GregorianChange,
-                                              options?: EquinoxSolsticeHtmlOptions): Promise<string> {
+  getEquinoxesAndSolsticesByYearAsHtml(startYear: number, endYear: number, zone?: KsTimeZone, gregorianChange?: GregorianChange,
+                                       options?: EquinoxSolsticeHtmlOptions): Promise<string> {
     return this.getEquinoxesAndSolsticesByYear(startYear, endYear, zone, gregorianChange).then(events => {
       const results: string[] = [];
       let headers = ['Spring\nEquinox', 'Summer\nSolstice', 'Fall\nEquinox', 'Winter\nSolstice'];
@@ -591,9 +588,9 @@ export class EventFinder {
   // start/end times). Situations such as no rising, no setting, no rising or setting, or
   // even two risings or two settings during a single day are handled.
   //
-  public getRiseAndSetTimes(body: number, year: number, month: number, day: number, observer: ISkyObserver,
-                            zone?: KsTimeZone, gregorianChange?: GregorianChange,
-                            minutesBefore = 0, targetAltitude?: number, doTwilight?: boolean): AstroEvent[] {
+  getRiseAndSetTimes(body: number, year: number, month: number, day: number, observer: ISkyObserver,
+                     zone?: KsTimeZone, gregorianChange?: GregorianChange,
+                     minutesBefore = 0, targetAltitude?: number, doTwilight?: boolean): AstroEvent[] {
     if (!zone)
       zone = KsTimeZone.UT_ZONE;
 
@@ -709,8 +706,8 @@ export class EventFinder {
     return results;
   }
 
-  public getTransitTimes(body: number, year: number, month: number, day: number, observer: ISkyObserver,
-                         zone?: KsTimeZone, gregorianChange?: GregorianChange): AstroEvent[] {
+  getTransitTimes(body: number, year: number, month: number, day: number, observer: ISkyObserver,
+                  zone?: KsTimeZone, gregorianChange?: GregorianChange): AstroEvent[] {
     if (!zone)
       zone = KsTimeZone.UT_ZONE;
 
@@ -768,8 +765,8 @@ export class EventFinder {
     return results;
   }
 
-  public getMinutesOfDaylight(year: number, month: number, day: number, observer: ISkyObserver,
-                              zone?: KsTimeZone, gregorianChange?: GregorianChange): number {
+  getMinutesOfDaylight(year: number, month: number, day: number, observer: ISkyObserver,
+                       zone?: KsTimeZone, gregorianChange?: GregorianChange): number {
     const sunEvents = this.getRiseAndSetTimes(SUN, year, month, day, observer, zone, gregorianChange);
 
     if (sunEvents.length === 1 && sunEvents[0].eventType === UNSEEN_ALL_DAY)
@@ -803,8 +800,8 @@ export class EventFinder {
     return min(round(total * 1440), minutesInDay);
   }
 
-  public getMonthOfEvents(body: number, year: number, month: number, observer: ISkyObserver,
-                          zone?: KsTimeZone, gregorianChange?: GregorianChange, targetAltitude?: number): AstroEvent[] {
+  getMonthOfEvents(body: number, year: number, month: number, observer: ISkyObserver,
+                   zone?: KsTimeZone, gregorianChange?: GregorianChange, targetAltitude?: number): AstroEvent[] {
     const monthsEvents: AstroEvent[] = [];
     const eAndSList = this.getEquinoxesAndSolsticesForOneYear(year, zone, gregorianChange);
     const dateTime = new KsDateTime(null, zone ? zone : KsTimeZone.UT_ZONE, gregorianChange);
@@ -854,8 +851,8 @@ export class EventFinder {
     return monthsEvents;
   }
 
-  public getRiseAndSetEvents(body: number, year: number, month: number, day: number, dayCount: number, observer: ISkyObserver,
-                             zone?: KsTimeZone, gregorianChange?: GregorianChange, twilightAltitude?: number): Promise<AstroEvent[][]> {
+  getRiseAndSetEvents(body: number, year: number, month: number, day: number, dayCount: number, observer: ISkyObserver,
+                      zone?: KsTimeZone, gregorianChange?: GregorianChange, twilightAltitude?: number): Promise<AstroEvent[][]> {
     const results: AstroEvent[][] = [];
     const calendar = new KsCalendar(gregorianChange);
 
@@ -887,7 +884,7 @@ export class EventFinder {
       }
     };
 
-    return new Promise<AstroEvent[][]>((resolve, reject) => {
+    return new Promise<AstroEvent[][]>((resolve) => {
       const loop = () => {
         calculate();
 
@@ -901,8 +898,8 @@ export class EventFinder {
     });
   }
 
-  public getRiseAndSetEventsAsHtml(body: number, year: number, month: number, day: number, dayCount: number, observer: ISkyObserver,
-                                   zone?: KsTimeZone, gregorianChange?: GregorianChange, twilightAltitude?: number, options?: RiseAndSetHtmlOptions): Promise<string> {
+  getRiseAndSetEventsAsHtml(body: number, year: number, month: number, day: number, dayCount: number, observer: ISkyObserver,
+                            zone?: KsTimeZone, gregorianChange?: GregorianChange, twilightAltitude?: number, options?: RiseAndSetHtmlOptions): Promise<string> {
     return this.getRiseAndSetEvents(body, year, month, day, dayCount, observer, zone, gregorianChange, twilightAltitude).then(daysOfEvents => {
       const results: string[] = [];
       const doTwilight = (body === SUN && !isNil(twilightAltitude));
@@ -1046,7 +1043,7 @@ export class EventFinder {
     });
   }
 
-  public getGalileanMoonEvents(startJdu: number, endJdu: number, includeGrsTransits: boolean, zone?: KsTimeZone, gregorianChange?: GregorianChange): Promise<AstroEvent[]> {
+  getGalileanMoonEvents(startJdu: number, endJdu: number, includeGrsTransits: boolean, zone?: KsTimeZone, gregorianChange?: GregorianChange): Promise<AstroEvent[]> {
     const results: AstroEvent[] = [];
 
     let t = floor(startJdu * 1440.0) / 1440.0;
@@ -1069,7 +1066,7 @@ export class EventFinder {
       } while (t < endJdu && Date.now() < startTick + 50);
     };
 
-    return new Promise<AstroEvent[]>((resolve, reject) => {
+    return new Promise<AstroEvent[]>((resolve) => {
       const loop = () => {
         calculate();
 
@@ -1083,8 +1080,8 @@ export class EventFinder {
     });
   }
 
-  public getGalileanMoonEventsAsHtml(startJdu: number, endJdu: number, includeGrsTransits: boolean, zone?: KsTimeZone,
-                                     gregorianChange?: GregorianChange, options?: GalileanMoonsHtmlOptions): Promise<string> {
+  getGalileanMoonEventsAsHtml(startJdu: number, endJdu: number, includeGrsTransits: boolean, zone?: KsTimeZone,
+                              gregorianChange?: GregorianChange, options?: GalileanMoonsHtmlOptions): Promise<string> {
     return this.getGalileanMoonEvents(startJdu, endJdu, includeGrsTransits, zone, gregorianChange).then(events => {
       const results: string[] = [];
       let lastDay = -1;
@@ -1126,9 +1123,9 @@ export class EventFinder {
     });
   }
 
-  public findEvent(planet: number, eventType: number, originalTime: number,
-                   observer: ISkyObserver, zone?: KsTimeZone, gregorianChange?: GregorianChange,
-                   doPrevious = false, argument?: any): AstroEvent {
+  findEvent(planet: number, eventType: number, originalTime: number,
+            observer: ISkyObserver, zone?: KsTimeZone, gregorianChange?: GregorianChange,
+            doPrevious = false, argument?: any): AstroEvent {
     if (!zone)
       zone = KsTimeZone.UT_ZONE;
 
@@ -1160,7 +1157,7 @@ export class EventFinder {
             ymd = dateTime.addDaysToDate(delta, ymd);
 
           let minsBefore = 0;
-          let targetAlt: number = undefined;
+          let targetAlt: number;
 
           if (eventType === TWILIGHT_BEGINS || eventType === TWILIGHT_ENDS) {
             if (!isNumber(argument))
@@ -1176,7 +1173,7 @@ export class EventFinder {
             events = this.getTransitTimes(planet, ymd.y, ymd.m, ymd.d, observer, zone, gregorianChange);
           else
             events = this.getRiseAndSetTimes(planet, ymd.y, ymd.m, ymd.d, observer, zone, gregorianChange, eventType === SET_EVENT_MINUS_1_MIN ? 1 : 0);
-        break;
+          break;
 
         case SPRING_EQUINOX:
         case SUMMER_SOLSTICE:
@@ -1188,7 +1185,7 @@ export class EventFinder {
             return null;
 
           events = this.getEquinoxesAndSolsticesForOneYear(ymd.y, zone, gregorianChange);
-        break;
+          break;
 
         case NEW_MOON:
         case FIRST_QUARTER:
@@ -1202,7 +1199,7 @@ export class EventFinder {
 
           if (event)
             events.push(event);
-        break;
+          break;
 
         case OPPOSITION:
         case SUPERIOR_CONJUNCTION:
@@ -1229,11 +1226,11 @@ export class EventFinder {
             case INFERIOR_CONJUNCTION:
               resolution = 1.0 / 1440.0; // minutes
               seekZero = true;
-            break;
+              break;
 
             case GREATEST_ELONGATION:
               seekMax = true;
-            break;
+              break;
 
             case PERIHELION:
               eventPeriod = SolarSystem.getMeanOrbitalPeriod(planet) * 1.25;
@@ -1242,7 +1239,7 @@ export class EventFinder {
                 divisions = 20;
 
               seekMin = true;
-            break;
+              break;
 
             case APHELION:
               eventPeriod = SolarSystem.getMeanOrbitalPeriod(planet) * 1.25;
@@ -1251,7 +1248,7 @@ export class EventFinder {
                 divisions = 20;
 
               seekMax = true;
-            break;
+              break;
 
             case LUNAR_ECLIPSE:
             case SOLAR_ECLIPSE:
@@ -1259,18 +1256,18 @@ export class EventFinder {
               resolution = 1.0 / 1440.0; // minutes
               divisions = 30;
               seekMin = true;
-            break;
+              break;
 
             case QUADRATURE:
               resolution = 1.0 / 1440.0; // minutes
               seekMax = true;
-            break;
+              break;
 
             case GRS_TRANSIT_EVENT:
               eventPeriod = MEAN_JUPITER_SYS_II * 1.25;
               resolution = 1.0 / 1440.0; // minutes
               seekZero = true;
-            break;
+              break;
           }
 
           const eventTimes: number[] = [];
@@ -1383,7 +1380,7 @@ export class EventFinder {
           }
 
           testTime += eventPeriod * delta * 0.95;
-        break;
+          break;
 
         case GALILEAN_MOON_EVENT:
           minEventGap = 0.49;
@@ -1399,7 +1396,7 @@ export class EventFinder {
           }
 
           testTime += (delta * mevents.searchDeltaT + 0.1) / 1440.0;
-        break;
+          break;
 
         default:
           return null;

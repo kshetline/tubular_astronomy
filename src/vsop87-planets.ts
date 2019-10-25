@@ -24,8 +24,8 @@
   VSOP87D series.
 */
 
-import { JD_J2000, MERCURY, NEPTUNE, SUN } from './astro-constants';
 import { abs, Angle, cos, PI, SphericalPosition3D, Unit } from 'ks-math';
+import { JD_J2000, MERCURY, NEPTUNE, SUN } from './astro-constants';
 
 interface VsopTerm {
   A: number;
@@ -2618,7 +2618,7 @@ export class Vsop87Planets {
   private cachedPrecision: number[][] = [];
   private cachedPositions: SphericalPosition3D[][] = [];
 
-  public static convertVsopToF5k(pos: SphericalPosition3D, time_JDE: number): SphericalPosition3D {
+  static convertVsopToF5k(pos: SphericalPosition3D, time_JDE: number): SphericalPosition3D {
     const L = pos.longitude;
     const B = pos.latitude;
     const T = (time_JDE - JD_J2000) / 36525.0;
@@ -2640,7 +2640,7 @@ export class Vsop87Planets {
     }
   }
 
-  public getHeliocentricPosition(planet: number, time_JDE: number, precisionInArcseconds = 0): SphericalPosition3D {
+  getHeliocentricPosition(planet: number, time_JDE: number, precisionInArcseconds = 0): SphericalPosition3D {
     const pIndex = planet - MERCURY;
 
     if (planet === SUN)

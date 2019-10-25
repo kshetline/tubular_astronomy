@@ -210,7 +210,7 @@ export class MeeusMoon {
     this.cachedPositions.fill(null, 0, CACHE_SIZE);
   }
 
-  public getEclipticPosition(time_JDE: number): SphericalPosition3D {
+  getEclipticPosition(time_JDE: number): SphericalPosition3D {
     for (let i = 0; i < CACHE_SIZE; ++i) {
       if (this.cachedPositions[i] !== null && this.cachedTimes[i] === time_JDE)
         return this.cachedPositions[i];

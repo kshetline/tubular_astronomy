@@ -20,10 +20,10 @@
   by Gérard Dourneau, as presented by Jean Meeus.
 */
 
-import { MoonInfo, PlanetaryMoons } from './planetary-moons';
-import { DELAYED_TIME, FIRST_SATURN_MOON, JD_B1950, LAST_SATURN_MOON, SATURN, SATURN_FLATTENING } from './astro-constants';
 import { abs, asin_deg, atan2, atan2_deg, cos, cos_deg, sin, sin_deg, SphericalPosition3D, sqrt, squared, to_degree } from 'ks-math';
+import { DELAYED_TIME, FIRST_SATURN_MOON, JD_B1950, LAST_SATURN_MOON, SATURN, SATURN_FLATTENING } from './astro-constants';
 import { Ecliptic } from './ecliptic';
+import { MoonInfo, PlanetaryMoons } from './planetary-moons';
 
 const s1 = sin_deg(28.0817);
 const c1 = cos_deg(28.0817);
@@ -121,7 +121,7 @@ export class SaturnMoons extends PlanetaryMoons {
           gamma = 1.563;
           OMEGA = 54.5 - 365.072 * t2;
           K = 20947.0;
-        break;
+          break;
 
         case 1: // II, Enceladus
           L = 200.317 + 262.7319002 * t1 + 0.25667 *  sin_deg(W1) + 0.20883 * sin_deg(W2);
@@ -133,7 +133,7 @@ export class SaturnMoons extends PlanetaryMoons {
           gamma = 0.0262;
           OMEGA = 348.0 - 151.95 * t2;
           K = 23715.0;
-        break;
+          break;
 
         case 2: // III, Tethys
           lambda = 285.306 + 190.69791226 * t1 + 2.063 * sin_deg(W0)
@@ -142,7 +142,7 @@ export class SaturnMoons extends PlanetaryMoons {
           gamma = 1.0976;
           OMEGA = 111.33 - 72.2441 * t2;
           K = 26382.0;
-        break;
+          break;
 
         case 3: // IV, Dione
           L = 254.712 + 131.53493193 * t1 - 0.0215 * sin_deg(W1) - 0.01733 * sin_deg(W2);
@@ -154,7 +154,7 @@ export class SaturnMoons extends PlanetaryMoons {
           gamma = 0.0139;
           OMEGA = 232.0 - 30.27 * t2;
           K = 29876.0;
-        break;
+          break;
 
         case 4: // Outer moons
         case 5:
@@ -182,7 +182,7 @@ export class SaturnMoons extends PlanetaryMoons {
               a = 8.725924;
               // Not used: M = lambda1 - p;
               K = 35313.0;
-            break;
+              break;
 
             case 5: // VI, Titan
               L = 261.1582 + 22.57697855 * t4 + 0.074025 * sin_deg(W3);
@@ -214,7 +214,7 @@ export class SaturnMoons extends PlanetaryMoons {
               OMEGA = OMEGA1 + 0.031843 * s * sin_deg(u) / sin_deg(i1);
               a = 20.216193;
               K = 53800.0;
-            break;
+              break;
 
             case 6: // VII, Hyperion
               eta = 92.39 + 0.5621071 * t6;
@@ -247,7 +247,7 @@ export class SaturnMoons extends PlanetaryMoons {
               OMEGA = 168.6812 + 1.40136 * cos_deg(chi) + 0.68599 * sin_deg(W3)
                     - 0.0392 * sin_deg(cs) + 0.0366 * sin_deg(theta1);
               K = 59222.0;
-            break;
+              break;
 
             case 7: // VII, Iapetus
               L = 261.1582 + 22.57697855 * t4;
@@ -288,7 +288,7 @@ export class SaturnMoons extends PlanetaryMoons {
                    + 0.00358 * sin_deg(u2 + phi);
               OMEGA = OMEGA1 + w1 / sin_deg(i1);
               K = 91820.0;
-            break;
+              break;
           }
 
           M = lambda1 - p;
@@ -298,7 +298,7 @@ export class SaturnMoons extends PlanetaryMoons {
           gamma = omi.gamma;
           OMEGA = omi.w;
           r = omi.r;
-        break;
+          break;
       }
 
       u = lambda - OMEGA;

@@ -20,12 +20,12 @@
   as presented by Jean Meeus.
 */
 
-import { MoonEvents, MoonInfo, PlanetaryMoons } from './planetary-moons';
-import { DELAYED_TIME, FIRST_JUPITER_MOON, JUPITER, JUPITER_FLATTENING, LAST_JUPITER_MOON, MEAN_JUPITER_SYS_II } from './astro-constants';
 import { abs, atan2, atan_deg, cos, cos_deg, floor, max, min, sin, sin_deg, SphericalPosition3D, sqrt, squared } from 'ks-math';
-import { SolarSystem } from './solar-system';
-import { JupiterInfo } from './jupiter-info';
 import { extendDelimited } from 'ks-util';
+import { DELAYED_TIME, FIRST_JUPITER_MOON, JUPITER, JUPITER_FLATTENING, LAST_JUPITER_MOON, MEAN_JUPITER_SYS_II } from './astro-constants';
+import { JupiterInfo } from './jupiter-info';
+import { MoonEvents, MoonInfo, PlanetaryMoons } from './planetary-moons';
+import { SolarSystem } from './solar-system';
 
 export class JupitersMoons extends PlanetaryMoons {
   private static initialized = false;
@@ -79,10 +79,12 @@ export class JupitersMoons extends PlanetaryMoons {
 
     const GAMMA = 0.33033 * sin_deg(163.679 + 0.0010512 * t)
                   + 0.03439 * sin_deg(34.486 - 0.0161713 * t);
+    // tslint:disable-next-line:variable-name
     const PHI_l = 199.6766 + 0.17379190 * t;
     const psi = 316.5182 - 0.00000208 * t;
     const G = 30.23756 + 0.0830925701 * t + GAMMA;
     const G1 = 31.97853 + 0.0334597339 * t;
+    // tslint:disable-next-line:variable-name
     const PIj = 13.469942;
 
     let S;
@@ -141,7 +143,7 @@ export class JupitersMoons extends PlanetaryMoons {
               - 0.0000066 * cos_deg(l1 + p3 - 2.0 * PIj - 2.0 * G));
 
           K = 17295.0;
-        break;
+          break;
 
         case 1: // II, Europa
           S = + 1.06476 * sin_deg(2.0 * (l2 - l3))
@@ -209,7 +211,7 @@ export class JupitersMoons extends PlanetaryMoons {
               - 0.0000091 * cos_deg(2.0 * (l1 - l3)));
 
           K = 21819.0;
-        break;
+          break;
 
         case 2: // III, Ganymede
           S = + 0.16490 * sin_deg(l3 - p3)
@@ -284,7 +286,7 @@ export class JupitersMoons extends PlanetaryMoons {
               - 0.0000051 * cos_deg(l3 + p3 - 2.0 * PIj - 2.0 * G));
 
           K = 27558.0;
-        break;
+          break;
 
         case 3: // IV, Callisto
           S = + 0.84287 * sin_deg(l4 - p4)
@@ -369,7 +371,7 @@ export class JupitersMoons extends PlanetaryMoons {
               + 0.0000048 * cos_deg(2.0 * (l4 - w4)));
 
           K = 36548.0;
-        break;
+          break;
       }
 
       // The precessional adjustment, P, made to both L and psi by Meeus, cancels out
@@ -461,7 +463,7 @@ export class JupitersMoons extends PlanetaryMoons {
     return moons;
   }
 
-  public getMoonEventsForOneMinuteSpan(time_JDU: number, longFormat = false, jupiterInfo?: JupiterInfo): MoonEvents {
+  getMoonEventsForOneMinuteSpan(time_JDU: number, longFormat = false, jupiterInfo?: JupiterInfo): MoonEvents {
     const events = super.getMoonEventsForOneMinuteSpan(time_JDU, longFormat);
 
     if (jupiterInfo) {

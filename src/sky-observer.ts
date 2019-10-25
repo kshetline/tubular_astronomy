@@ -17,16 +17,16 @@
   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import { ISkyObserver } from './i-sky-observer';
 import {
   abs, Angle, asin, atan, atan2, cos, HALF_PI, interpolate, limitNeg1to1, mod, PI, sign, sin, SphericalPosition, SphericalPosition3D,
   sqrt, tan, to_degree, to_radian, TWO_PI, Unit
 } from 'ks-math';
+import isNumber from 'lodash/isNumber';
+import { ABERRATION, EARTH_RADIUS_KM, EARTH_RADIUS_POLAR_KM, KM_PER_AU, NUTATION, REFRACTION, SUN, TOPOCENTRIC } from './astro-constants';
 import { refractedAltitude, unrefractedAltitude } from './astronomy-util';
+import { ISkyObserver } from './i-sky-observer';
 import { SolarSystem } from './solar-system';
 import { TDB_to_UT, UT_to_TDB } from './ut-converter';
-import { ABERRATION, EARTH_RADIUS_KM, EARTH_RADIUS_POLAR_KM, KM_PER_AU, NUTATION, REFRACTION, SUN, TOPOCENTRIC } from './astro-constants';
-import isNumber from 'lodash/isNumber';
 
 const A90_1SEC = 1.5707915;
 const A90_2SEC = 1.5707866;
@@ -97,7 +97,7 @@ export class SkyObserver implements ISkyObserver {
 
   get latitude(): Angle { return this._latitude; }
 
-  public getLocalHourAngle(time_JDU: number, apparent: boolean): Angle {
+  getLocalHourAngle(time_JDU: number, apparent: boolean): Angle {
     if (this.cachedHourAngle === null || this.cacheTimeHourAngle !== time_JDU || this.cacheApparentHourAngle === apparent) {
       let gst: number;
 
@@ -114,7 +114,7 @@ export class SkyObserver implements ISkyObserver {
     return this.cachedHourAngle;
   }
 
-  public getApparentSolarTime(time_JDU: number): Angle {
+  getApparentSolarTime(time_JDU: number): Angle {
     const lha = this.getLocalHourAngle(time_JDU, true);
     const time_JDE = UT_to_TDB(time_JDU);
     const sun =  SkyObserver.solarSystem.getEquatorialPosition(SUN, time_JDE, this).rightAscension;
@@ -130,7 +130,7 @@ export class SkyObserver implements ISkyObserver {
   // Note: If diurnal aberration is computed for coordinates near the poles, there is a
   // slight discontinuity within one arcsecond of each pole.
   //
-  public equatorialTopocentricAdjustment(pos: SphericalPosition3D, time_JDE: number, flags: number): SphericalPosition3D {
+  equatorialTopocentricAdjustment(pos: SphericalPosition3D, time_JDE: number, flags: number): SphericalPosition3D {
     const time_JDU = TDB_to_UT(time_JDE);
     const lha      = this.getLocalHourAngle(time_JDU, (flags & NUTATION) !== 0).radians;
     const distance = pos.radius;
@@ -169,7 +169,7 @@ export class SkyObserver implements ISkyObserver {
     return new SphericalPosition3D(RA + deltaRA, d1, distance);
   }
 
-  public equatorialToHorizontal(pos: SphericalPosition, time_JDU: number, flags = 0): SphericalPosition {
+  equatorialToHorizontal(pos: SphericalPosition, time_JDU: number, flags = 0): SphericalPosition {
     // Calculations are faster if nutation isn't calculated into the position of the planet,
     // because then nutation doesn't need to be figured into the hour angle either.
     const lha = this.getLocalHourAngle(time_JDU, (flags & NUTATION) !== 0).radians;
@@ -201,7 +201,7 @@ export class SkyObserver implements ISkyObserver {
       return new SphericalPosition(azimuth, altitude);
   }
 
-  public horizontalToEquatorial(pos: SphericalPosition, time_JDU: number, flags = 0): SphericalPosition {
+  horizontalToEquatorial(pos: SphericalPosition, time_JDU: number, flags = 0): SphericalPosition {
     const lha = this.getLocalHourAngle(time_JDU, (flags & NUTATION) !== 0).radians;
     let   altitude = pos.altitude.radians;
     const azimuth  = pos.azimuth.radians;

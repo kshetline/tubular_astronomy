@@ -108,7 +108,7 @@ export class Pluto {
   private cachedPosition: SphericalPosition3D = null;
   private cachedTime = 0;
 
-  public getHeliocentricPosition(time_JDE: number): SphericalPosition3D {
+  getHeliocentricPosition(time_JDE: number): SphericalPosition3D {
     if (this.cachedTime === time_JDE && this.cachedPosition !== null)
       return this.cachedPosition;
 

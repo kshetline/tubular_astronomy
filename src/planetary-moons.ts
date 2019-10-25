@@ -17,13 +17,13 @@
   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import { SolarSystem } from './solar-system';
+import { floor, max, min, sqrt } from 'ks-math';
+import { extendDelimited } from 'ks-util';
 import clone from 'lodash/clone';
 import isUndefined from 'lodash/isUndefined';
-import { UT_to_TDB } from './ut-converter';
-import { floor, max, min, sqrt } from 'ks-math';
 import { FIRST_JUPITER_MOON, NO_MATCH } from './astro-constants';
-import { extendDelimited } from 'ks-util';
+import { SolarSystem } from './solar-system';
+import { UT_to_TDB } from './ut-converter';
 
 export const AS_SEEN_FROM_EARTH = false;
 export const AS_SEEN_FROM_SUN   = true;
@@ -49,7 +49,6 @@ const moonEventsLong = ['{0} begins transit', '{0} ends transit', '{0} becomes o
                         '{0} becomes eclipsed', '{0} emerges from eclipse', 'Shadow of {0} appears', 'Shadow of {0} ends'];
 
 const CACHE_SIZE = 6;
-
 
 export interface MoonNameInfo {
   first: number;
@@ -99,7 +98,7 @@ export abstract class PlanetaryMoons {
     this.cachedMoons[1] = [];
   }
 
-  public getMoonPosition(moonIndex: number, time_JDE: number, sunPerspective = false): MoonInfo {
+  getMoonPosition(moonIndex: number, time_JDE: number, sunPerspective = false): MoonInfo {
     const moons = this.getMoonPositions(time_JDE, sunPerspective, false);
 
     for (const moon of moons) {
@@ -110,7 +109,7 @@ export abstract class PlanetaryMoons {
     return undefined;
   }
 
-  public getMoonPositions(time_JDE: number, sunPerspective = false, makeClones = true): MoonInfo[] {
+  getMoonPositions(time_JDE: number, sunPerspective = false, makeClones = true): MoonInfo[] {
     const index = (sunPerspective ? 1 : 0);
     let moons: MoonInfo[];
 
@@ -149,7 +148,7 @@ export abstract class PlanetaryMoons {
 
   // Note: The span considered is +/- 30 seconds of the specified time *in Universal Time*.
   //
-  public getMoonEventsForOneMinuteSpan(time_JDU: number, longFormat = false): MoonEvents {
+  getMoonEventsForOneMinuteSpan(time_JDU: number, longFormat = false): MoonEvents {
     const events = new MoonEvents();
     const t0 = UT_to_TDB(time_JDU - 0.5 / 1440.0);
     const t1 = UT_to_TDB(time_JDU + 0.5 / 1440.0);
@@ -170,7 +169,7 @@ export abstract class PlanetaryMoons {
       let d: number;
       let deltaT: number;
 
-    findSearchTime:
+      findSearchTime:
       for (let i = 0; i < nmoons; ++i) {
         for (let j = 0; j < 4; ++j) {
           let pos: MoonInfo[];
@@ -287,7 +286,7 @@ export abstract class PlanetaryMoons {
     return events;
   }
 
-  public static getMoonName(moonIndex: number, getShadow = MOON_ITSELF): string {
+  static getMoonName(moonIndex: number, getShadow = MOON_ITSELF): string {
     for (const mni of PlanetaryMoons.namesList) {
       if (mni.first <= moonIndex && moonIndex <= mni.last) {
         moonIndex -= mni.first;
@@ -299,7 +298,7 @@ export abstract class PlanetaryMoons {
     return undefined;
   }
 
-  public static getMoonNumber(moonIndex: number): string {
+  static getMoonNumber(moonIndex: number): string {
     moonIndex %= 1000;
 
     if (moonIndex <= 0 || moonIndex >= moonNumbers.length)
@@ -308,7 +307,7 @@ export abstract class PlanetaryMoons {
       return moonNumbers[moonIndex];
   }
 
-  public static getMoonByName(moonName: string): number {
+  static getMoonByName(moonName: string): number {
     moonName = moonName.toLowerCase();
 
     for (const mni of this.namesList) {
