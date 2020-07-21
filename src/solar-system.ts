@@ -252,9 +252,9 @@ export class SolarSystem {
       return 0;
   }
 
-  static getAsteroidAndCometNames(forMenu = false): string[] {
+  static getAsteroidAndCometNames(forMenu = false, shortMenuNames = true): string[] {
     if (this.sharedAdditionals)
-      return this.sharedAdditionals.getObjectNames(forMenu);
+      return this.sharedAdditionals.getObjectNames(forMenu, shortMenuNames);
     else
       return [];
   }

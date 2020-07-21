@@ -1,5 +1,5 @@
 /*
-  Copyright © 2017-2019 Kerry Shetline, kerry@shetline.com
+  Copyright © 2017-2020 Kerry Shetline, kerry@shetline.com
 
   MIT license: https://opensource.org/licenses/MIT
 
@@ -84,7 +84,7 @@ const historicDeltaT = [
 
 // From ftp://cddis.nasa.gov/products/iers/delta.data
   // 2020
-  69.36
+   69.36
 ];
 
 let calibration = 0;

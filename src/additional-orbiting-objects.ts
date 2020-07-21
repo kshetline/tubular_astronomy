@@ -36,6 +36,7 @@ const NEAR_PARABOLIC_E_HIGH = 1.1;
 export class ObjectInfo {
   name: string;
   menuName: string;
+  shortMenuName: string;
   id: number;
   epoch: number;
   hasMag: boolean;
@@ -99,13 +100,14 @@ export class AdditionalOrbitingObjects {
 
   private static readElements(data: AsteroidCometInfo[], asAsteroids: boolean): void {
     data.forEach((body: AsteroidCometInfo) => {
-      let name = body.body.name;
+      const name = body.body.name;
+      let shortName = name;
       const matches = /([^(]+) \([^()]+\)/.exec(name);
 
       if (matches)
-        name = matches[1];
+        shortName = matches[1];
 
-      const menuName = (asAsteroids ? 'Asteroid: ' : 'Comet: ') + name;
+      const menuNameBase = (asAsteroids ? 'Asteroid: ' : 'Comet: ');
       let id: number;
       const elements: ObjectInfo[] = [];
 
@@ -119,7 +121,8 @@ export class AdditionalOrbitingObjects {
         const ymd = parseISODate(<string> element.epoch);
 
         oi.name = name;
-        oi.menuName = menuName;
+        oi.menuName = menuNameBase + name;
+        oi.shortMenuName = menuNameBase + shortName;
         oi.id = id;
         oi.epoch = KsDateTime.julianDay_SGC(ymd.y, ymd.m, ymd.d, 0, 0, 0);
         oi.hasMag = asAsteroids;
@@ -151,14 +154,15 @@ export class AdditionalOrbitingObjects {
     return AdditionalOrbitingObjects.objectIds.length;
   }
 
-  getObjectNames(forMenu = false): string[] {
+  getObjectNames(forMenu = false, shortMenuNames = true): string[] {
     let names: string[] = [];
 
     AdditionalOrbitingObjects.objectIds.forEach((id: number) => {
       const oia = AdditionalOrbitingObjects.objects[id];
 
       if (oia.length > 0)
-        names.push(oia[0].name + (forMenu ? '\t' + oia[0].menuName : '')); // In menu form, sort asteroids as one group, comets as another.
+        names.push(oia[0].name + (forMenu ? '\t' +
+          (shortMenuNames ? oia[0].shortMenuName : oia[0].menuName) : '')); // In menu form, sort asteroids as one group, comets as another.
     });
 
     function adjustName(s: string): string {
