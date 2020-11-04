@@ -1,4 +1,5 @@
 import { KsDateTime, KsTimeZone } from 'ks-date-time-zone';
+import { processMillis } from 'ks-util';
 import { FIRST_QUARTER, FULL_MOON, GREATEST_ELONGATION, GRS_TRANSIT_EVENT, JUPITER, MOON, RISE_EVENT, SET_EVENT, SOLAR_ECLIPSE, SUN, VENUS } from './astro-constants';
 import { EventFinder } from './event-finder';
 import { IAstroDataService } from './i-astro-data.service';
@@ -56,6 +57,13 @@ describe('EventFinder', () => {
     const event = eventFinder.findEvent(SUN, RISE_EVENT, jdu, observer, zone);
     expect(event.eventTime.wallTime.hrs).toEqual(6);
     expect(event.eventTime.wallTime.min).toEqual(47);
+  });
+
+  it('should give up quickly looking for the next sunrise', () => {
+    const startTime = processMillis();
+    const event = eventFinder.findEvent(SUN, RISE_EVENT, jdu, new SkyObserver(0, 90), zone, null, false, null, 2);
+    expect(event).toBeFalsy();
+    expect(processMillis()).toBeLessThan(startTime + 250);
   });
 
   it('should find the next setting of the moon', () => {

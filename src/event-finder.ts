@@ -1125,7 +1125,7 @@ export class EventFinder {
 
   findEvent(planet: number, eventType: number, originalTime: number,
             observer: ISkyObserver, zone?: KsTimeZone, gregorianChange?: GregorianChange,
-            doPrevious = false, argument?: any): AstroEvent {
+            doPrevious = false, argument?: any, maxTries = Number.MAX_SAFE_INTEGER): AstroEvent {
     if (!zone)
       zone = KsTimeZone.UT_ZONE;
 
@@ -1153,7 +1153,9 @@ export class EventFinder {
         case TRANSIT_EVENT:
         case TWILIGHT_BEGINS:
         case TWILIGHT_ENDS:
-          if (tries > 0)
+          if (tries >= maxTries)
+            return;
+          else if (tries > 0)
             ymd = dateTime.addDaysToDate(delta, ymd);
 
           let minsBefore = 0;
