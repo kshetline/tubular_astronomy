@@ -1,5 +1,5 @@
 /*
-  Copyright © 2017-2019 Kerry Shetline, kerry@shetline.com
+  Copyright © 2017-2020 Kerry Shetline, kerry@shetline.com
 
   MIT license: https://opensource.org/licenses/MIT
 
@@ -45,9 +45,8 @@ export class ObjectInfo {
   q: number;  // perihelion distance
   e: number;  // eccentricity
   i: number;  // inclination;
-  w: number;  // argument of the perihelion
+  ω: number;  // argument of the perihelion
   L: number;  // longitude of the ascending node
-  // tslint:disable-next-line:variable-name
   Tp: number; // time of perihelion passage
   n: number;  // mean daily motion (degrees/day)
   H: number;  // absolute visual magnitude
@@ -63,10 +62,9 @@ export class ObjectInfo {
     const tEpoch = new KsDateTime(KsDateTime.millisFromJulianDay(this.epoch), KsTimeZone.UT_ZONE);
     const epoch = tEpoch.toYMDhmString();
     const tTp = new KsDateTime(KsDateTime.millisFromJulianDay(this.Tp), KsTimeZone.UT_ZONE);
-    // tslint:disable-next-line:variable-name
     const Tp = tTp.toYMDhmString();
 
-    return `${this.name}: epoch=${epoch}, a=${this.a}, q=${this.q}, e=${this.e}, i=${this.i}, w=${this.w}, ` +
+    return `${this.name}: epoch=${epoch}, a=${this.a}, q=${this.q}, e=${this.e}, i=${this.i}, w=${this.ω}, ` +
            `L=${this.L}, Tp=${Tp}, n=${this.n}` +
             (this.hasMag ? `, H=${this.H}, G=${this.G}` : '');
   }
@@ -83,18 +81,18 @@ export class AdditionalOrbitingObjects {
     if (this.properlyInitialized)
       return Promise.resolve(new AdditionalOrbitingObjects());
     else if (this.properlyInitialized === false)
-      return Promise.reject('Failed to initialize AdditionalOrbitingObjects');
+      return Promise.reject(new Error('Failed to initialize AdditionalOrbitingObjects'));
     else {
       return Promise.all([astroDataService.getAsteroidData(), astroDataService.getCometData()]).then((data: AsteroidCometInfo[][]) => {
-          this.readElements(data[0], true);
-          this.readElements(data[1], false);
-          this.properlyInitialized = true;
+        this.readElements(data[0], true);
+        this.readElements(data[1], false);
+        this.properlyInitialized = true;
 
-          return this.getAdditionalOrbitingObjects(astroDataService);
-        }).catch((reason: any) => {
-          this.properlyInitialized = false;
-          return Promise.reject('Failed to initialize AdditionalOrbitingObjects: ' + reason);
-        });
+        return this.getAdditionalOrbitingObjects(astroDataService);
+      }).catch((reason: any) => {
+        this.properlyInitialized = false;
+        return Promise.reject(new Error('Failed to initialize AdditionalOrbitingObjects: ' + reason));
+      });
     }
   }
 
@@ -118,7 +116,7 @@ export class AdditionalOrbitingObjects {
 
       body.elements.forEach((element: AsteroidCometElements) => {
         const oi = new ObjectInfo();
-        const ymd = parseISODate(<string> element.epoch);
+        const ymd = parseISODate(element.epoch as string);
 
         oi.name = name;
         oi.menuName = menuNameBase + name;
@@ -131,7 +129,7 @@ export class AdditionalOrbitingObjects {
         oi.q = element.q;
         oi.e = element.e;
         oi.i = element.i;
-        oi.w = element.w;
+        oi.ω = element.ω;
         oi.L = element.L;
         oi.Tp = element.Tp;
         oi.n = K_DEG / oi.a / sqrt(oi.a);
@@ -183,7 +181,7 @@ export class AdditionalOrbitingObjects {
         let possibleNumPart = s.substring(0, pos);
         const ch = possibleNumPart.charAt(0);
 
-        if ('0' <= ch && ch <= '9' && possibleNumPart.length < 6)
+        if (ch >= '0' && ch <= '9' && possibleNumPart.length < 6)
           possibleNumPart = padLeft(possibleNumPart, 6, '0');
 
         s = s.substring(pos + 1) + '/' + possibleNumPart;
@@ -212,14 +210,12 @@ export class AdditionalOrbitingObjects {
   }
 
   // noinspection JSMethodCanBeStatic
-  getAsteroidCount(): number
-  {
+  getAsteroidCount(): number {
     return AdditionalOrbitingObjects.lastAsteroidId - ASTEROID_BASE;
   }
 
   // noinspection JSMethodCanBeStatic
-  getCometCount(): number
-  {
+  getCometCount(): number {
     return AdditionalOrbitingObjects.lastCometId - COMET_BASE;
   }
 
@@ -288,7 +284,7 @@ export class AdditionalOrbitingObjects {
         oi.q = interpolate(ta, time_JDE, tb, a.q, b.q);
         oi.e  = interpolate(ta, time_JDE, tb, a.e, b.e);
         oi.i  = interpolateModular(ta, time_JDE, tb, a.i, b.i, 360.0, true);
-        oi.w  = interpolateModular(ta, time_JDE, tb, a.w, b.w, 360.0);
+        oi.w  = interpolateModular(ta, time_JDE, tb, a.ω, b.ω, 360.0);
         oi.L  = interpolateModular(ta, time_JDE, tb, a.L, b.L, 360.0);
 
         oi.a = oi.q / (1.0 - oi.e);
@@ -332,7 +328,7 @@ export class AdditionalOrbitingObjects {
     if (!oi)
       return undefined;
 
-    const oe = <OrbitalElements> {};
+    const oe = {} as OrbitalElements;
 
     // Handle precession of orbit
     const deltaL = Ecliptic.precessEcliptical(new SphericalPosition(), time_JDE).longitude.degrees;
@@ -340,19 +336,18 @@ export class AdditionalOrbitingObjects {
     oe.a = oi.a;
     oe.e = oi.e;
     oe.i = oi.i;
-    oe.OMEGA = mod(oi.L + deltaL, 360);
-    oe.pi = mod(oi.w + oi.L + deltaL, 360.0);
+    oe.Ω = mod(oi.L + deltaL, 360);
+    oe.pi = mod(oi.ω + oi.L + deltaL, 360.0);
     oe.partial = true;
 
     return oe;
   }
 
-  /* tslint:disable:no-shadowed-variable */
   getHeliocentricPosition(objectInfoOrBodyId: ObjectInfo | number, time_JDE: number, doNotConverge = false): SphericalPosition3D {
     let oi: ObjectInfo;
 
     if (isNumber(objectInfoOrBodyId)) {
-      oi = this.getObjectInfo(<number> objectInfoOrBodyId, time_JDE);
+      oi = this.getObjectInfo(objectInfoOrBodyId as number, time_JDE);
 
       if (isNil(oi))
         return null;
@@ -397,16 +392,14 @@ export class AdditionalOrbitingObjects {
     }
     else if (e > NEAR_PARABOLIC_E_HIGH || doNotConverge) { // hyperbolic orbit
       // Adapted from code by Robert D. Miller.
-      let sinhEA: number, coshEA: number;
-      let rsinv: number, rcosv: number;
 
       ea = AdditionalOrbitingObjects.keplerH(e, to_radian(meanA));
-      sinhEA = sinh(ea);
-      coshEA = cosh(ea);
+      const sinhEA = sinh(ea);
+      const coshEA = cosh(ea);
       ef = sqrt((e + 1.0) / (e - 1.0));
       v = 2.0 * atan(ef * tan(0.5 * ea));
-      rsinv = abs(a) * sqrt(e * e - 1.0) * sinhEA;
-      rcosv = abs(a) * (e - coshEA);
+      const rsinv = abs(a) * sqrt(e * e - 1.0) * sinhEA;
+      const rcosv = abs(a) * (e - coshEA);
       r = rsinv * rsinv + rcosv * rcosv;
     }
     else { // Near parabolic orbit, eccentricity [0.98, 1.1].
@@ -469,7 +462,6 @@ export class AdditionalOrbitingObjects {
             s1 = s;
             s = (2.0 * s * s * s / 3.0 + q3) / (s * s + 1.0);
           } while (abs(s - s1) > maxErr);
-
         } while (abs(s - s0) > maxErr);
 
         v = 2.0 * atan(s);
@@ -480,7 +472,7 @@ export class AdditionalOrbitingObjects {
     // Adapted from _Astronomical Algorithms, 2nd Ed._ by Jean Meeus, p. 233.
     const i = oi.i;
     const L = oi.L;
-    const u = to_radian(oi.w) + v;
+    const u = to_radian(oi.ω) + v;
     const cosi = cos_deg(i);
     const sini = sin_deg(i);
     const cosL = cos_deg(L);
@@ -497,7 +489,6 @@ export class AdditionalOrbitingObjects {
 
     return pos;
   }
-  /* tslint:enable:no-shadowed-variable */
 
   protected static failedToConverge(code: number, oi: ObjectInfo, time_JDE: number): void {
     oi.convergenceFails = true;
@@ -554,9 +545,9 @@ export class AdditionalOrbitingObjects {
     // Solver for hyperbolic form of Kepler's equation using the
     // Laguerre-Conway iteration scheme.
     const maxError = 1.0E-12;
-    let meanA: number, h: number, dh: number, f: number, f1: number, f2: number, sine: number, cose: number;
+    let h: number, dh: number, f: number, f1: number, f2: number, sine: number, cose: number;
 
-    meanA = abs(meanAnomaly);
+    const meanA = abs(meanAnomaly);
     h = log(2.0 * meanA / ecc + 1.85);
 
     do {

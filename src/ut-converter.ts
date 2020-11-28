@@ -20,6 +20,7 @@
 import { floor, squared } from 'ks-math';
 import { JD_J2000 } from './astro-constants';
 
+/* eslint-disable @typescript-eslint/indent, comma-spacing, space-infix-ops */
 const historicDeltaT = [
 // Values to smooth transition from polynomial used for earlier years.
   // 1600-1619
@@ -119,8 +120,6 @@ export function TDB_to_UT(time_JDE: number): number {
   return time_JDE - getDeltaTAtJulianDate(time_JDE) / 86400.0;
 }
 
-/* tslint:disable:whitespace */
-
 function deltaTAtStartOfYear(year: number): number {
   // Make the post-table approximations line up with the last tabular delta T.
   if (lastTableYear < 0) {
@@ -136,7 +135,7 @@ function deltaTAtStartOfYear(year: number): number {
   if (year < -500) {
     u = (year - 1820.0) / 100.0;
 
-    return - 20.0 + 32.0 * u*u;
+    return -20.0 + 32.0 * u*u;
   }
   else if (year < 500) {
     u = year / 100.0;

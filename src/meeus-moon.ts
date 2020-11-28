@@ -1,5 +1,5 @@
 /*
-  Copyright © 2017 Kerry Shetline, kerry@shetline.com
+  Copyright © 2017-2020 Kerry Shetline, kerry@shetline.com
 
   MIT license: https://opensource.org/licenses/MIT
 
@@ -171,7 +171,7 @@ const lat_table = [
 let termsLR: LongitudeTerm[];
 let termsB: LatitudeTerm[];
 
-(function(): void {
+(function (): void {
   termsLR = lon_table.map((line): LongitudeTerm => {
     const fields = line.split(' ');
 
@@ -201,7 +201,6 @@ let termsB: LatitudeTerm[];
 const CACHE_SIZE = 6;
 
 export class MeeusMoon {
-
   private cachedTimes: number[] = [];
   private cachedPositions: SphericalPosition3D[] = [];
 
@@ -277,6 +276,7 @@ export class MeeusMoon {
         B += term.cs * sin_deg(arg);
     }
 
+    // eslint-disable-next-line space-unary-ops
     B += - 2235.0 * sin_deg(L1)
          +  382.0 * sin_deg(A3)
          +  175.0 * sin_deg(A1 - F)

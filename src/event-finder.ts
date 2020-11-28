@@ -1,5 +1,5 @@
 /*
-  Copyright © 2017-2019 Kerry Shetline, kerry@shetline.com
+  Copyright © 2017-2020 Kerry Shetline, kerry@shetline.com
 
   MIT license: https://opensource.org/licenses/MIT
 
@@ -41,6 +41,8 @@ import { JupitersMoons } from './jupiter-moons';
 import { EclipseInfo, SolarSystem } from './solar-system';
 import { UT_to_TDB } from './ut-converter';
 
+/* eslint-disable no-case-declarations, yoda */
+
 export class AstroEvent {
   readonly _eventType: number;
   readonly _eventText: string;
@@ -55,7 +57,7 @@ export class AstroEvent {
     this._eventType = eventType;
     this._eventText = eventText;
     this._value = value;
-    this.eventTime = new KsDateTime({y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1}, zone, gregorianChange);
+    this.eventTime = new KsDateTime({ y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1 }, zone, gregorianChange);
 
     const minutesInDay = this.eventTime.getMinutesInDay(year, month, day);
     const minutesIntoDay = min(max(floor(hourOffset * 60), 0), minutesInDay - 1);
@@ -119,6 +121,7 @@ export class EventFinder {
   private ss = new SolarSystem();
   private jupitersMoons = new JupitersMoons();
 
+  // eslint-disable-next-line no-useless-constructor
   constructor(private jupiterInfo?: JupiterInfo) {
   }
 
@@ -126,7 +129,7 @@ export class EventFinder {
     if (!zone)
       zone = KsTimeZone.UT_ZONE;
 
-    const dateTime = new KsDateTime({y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1}, zone, gregorianChange);
+    const dateTime = new KsDateTime({ y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1 }, zone, gregorianChange);
     let startOfDay = KsDateTime.julianDay(dateTime.utcTimeMillis) - HALF_MINUTE;
     const minutesInDay = dateTime.getMinutesInDay(year, month, day);
 
@@ -299,6 +302,7 @@ export class EventFinder {
         const year = event.eventTime.wallTime.y;
         const formattedDate = formatDateTime(event);
 
+        // eslint-disable-next-line no-unmodified-loop-condition
         while (col > 0 && year > lastYear) {
           results.push('<td>&nbsp;</td>');
 
@@ -390,7 +394,7 @@ export class EventFinder {
     if (!zone)
       zone = KsTimeZone.UT_ZONE;
 
-    const dateTime = new KsDateTime({y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1}, zone, gregorianChange);
+    const dateTime = new KsDateTime({ y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1 }, zone, gregorianChange);
     let startOfDay = KsDateTime.julianDay(dateTime.utcTimeMillis) - HALF_MINUTE;
     const minutesInDay = dateTime.getMinutesInDay(year, month, day);
 
@@ -432,21 +436,19 @@ export class EventFinder {
 
         eventTime = (zeroFinder.getXAtZero() - startOfDay) * 24.0;
       }
-
     } while (eventIndex < 3 && !gotEvent);
 
     if (!gotEvent)
       return null;
 
     return new AstroEvent(SPRING_EQUINOX + eventIndex,
-                           ['vernal equinox', 'summer solstice', 'autumnal equinox', 'winter solstice'][eventIndex],
-                           year, month, day, eventTime, zone, gregorianChange);
+                          ['vernal equinox', 'summer solstice', 'autumnal equinox', 'winter solstice'][eventIndex],
+                          year, month, day, eventTime, zone, gregorianChange);
   }
 
   getEquinoxesAndSolsticesForOneYear(year: number, zone?: KsTimeZone, gregorianChange?: GregorianChange): AstroEvent[] {
     const results: AstroEvent[] = [];
-
-    const dateTime = new KsDateTime(null, zone ? zone : KsTimeZone.UT_ZONE, gregorianChange);
+    const dateTime = new KsDateTime(null, zone || KsTimeZone.UT_ZONE, gregorianChange);
     let firstMonth = 3;
     let step = 3;
 
@@ -476,7 +478,7 @@ export class EventFinder {
 
   getEquinoxesAndSolsticesByYear(startYear: number, endYear: number, zone?: KsTimeZone, gregorianChange?: GregorianChange): Promise<AstroEvent[]> {
     const results: AstroEvent[] = [];
-    const dateTime = new KsDateTime(null, zone ? zone : KsTimeZone.UT_ZONE, gregorianChange);
+    const dateTime = new KsDateTime(null, zone || KsTimeZone.UT_ZONE, gregorianChange);
     const lastMonthYear = (endYear + 1) * 12;
 
     let monthYear = startYear * 12;
@@ -605,7 +607,7 @@ export class EventFinder {
       doTwilight = (body === SUN && targetAltitude <= MAX_ALT_FOR_TWILIGHT);
 
     const results: AstroEvent[] = [];
-    const dateTime = new KsDateTime({y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1}, zone, gregorianChange);
+    const dateTime = new KsDateTime({ y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1 }, zone, gregorianChange);
     let startOfDay = KsDateTime.julianDay(dateTime.utcTimeMillis) - HALF_MINUTE;
     const minutesInDay = dateTime.getMinutesInDay(year, month, day);
 
@@ -667,8 +669,8 @@ export class EventFinder {
         // Is the target altitude in between the start and end altitudes?
         if ((startAltitude <= targetAltitude &&
              targetAltitude < endAltitude) ||
-            (endAltitude < targetAltitude && targetAltitude <= startAltitude))
-        {
+            (endAltitude < targetAltitude && targetAltitude <= startAltitude)
+        ) {
           if (startAltitude < endAltitude) {
             eventType = (doTwilight ? TWILIGHT_BEGINS : RISE_EVENT);
             eventText = (doTwilight ? 'twilight begins' : 'rise');
@@ -712,7 +714,7 @@ export class EventFinder {
       zone = KsTimeZone.UT_ZONE;
 
     const results: AstroEvent[] = [];
-    const dateTime = new KsDateTime({y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1}, zone, gregorianChange);
+    const dateTime = new KsDateTime({ y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1 }, zone, gregorianChange);
     const startOfDay = KsDateTime.julianDay(dateTime.utcTimeMillis) - HALF_MINUTE;
     const minutesInDay = dateTime.getMinutesInDay(year, month, day);
 
@@ -772,7 +774,7 @@ export class EventFinder {
     if (sunEvents.length === 1 && sunEvents[0].eventType === UNSEEN_ALL_DAY)
       return 0;
 
-    const dateTime = new KsDateTime({y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1}, zone, gregorianChange);
+    const dateTime = new KsDateTime({ y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1 }, zone, gregorianChange);
     const minutesInDay = dateTime.getMinutesInDay(year, month, day);
 
     if (sunEvents.length === 1 && sunEvents[0].eventType === VISIBLE_ALL_DAY)
@@ -804,7 +806,7 @@ export class EventFinder {
                    zone?: KsTimeZone, gregorianChange?: GregorianChange, targetAltitude?: number): AstroEvent[] {
     const monthsEvents: AstroEvent[] = [];
     const eAndSList = this.getEquinoxesAndSolsticesForOneYear(year, zone, gregorianChange);
-    const dateTime = new KsDateTime(null, zone ? zone : KsTimeZone.UT_ZONE, gregorianChange);
+    const dateTime = new KsDateTime(null, zone || KsTimeZone.UT_ZONE, gregorianChange);
 
     for (const event of eAndSList) {
       if (event.eventTime.wallTime.m === month) {
@@ -921,7 +923,7 @@ export class EventFinder {
       let extraColumn = false;
 
       if (!doTwilight)
-        extraColumn = findIndex(flatten(daysOfEvents), {eventType: VISIBLE_ALL_DAY}) >= 0;
+        extraColumn = findIndex(flatten(daysOfEvents), { eventType: VISIBLE_ALL_DAY }) >= 0;
 
       if (extraColumn && headers.length === 3)
         headers.push('\u00A0');
@@ -988,10 +990,12 @@ export class EventFinder {
             case TWILIGHT_BEGINS: col = 0; break;
             case UNSEEN_ALL_DAY:
               text = unseenAllDay;
+            // eslint-disable-next-line no-fallthrough
             case RISE_EVENT:      col = 1; break;
             case TRANSIT_EVENT:   col = 2; break;
             case VISIBLE_ALL_DAY:
               text = visibleAllDay;
+            // eslint-disable-next-line no-fallthrough
             case SET_EVENT:       col = 3; break;
             case TWILIGHT_ENDS:   col = 4; break;
           }
@@ -1026,7 +1030,7 @@ export class EventFinder {
             const text = row[i];
 
             if (!text)
-              results.push(`<td>&nbsp;</td>`);
+              results.push('<td>&nbsp;</td>');
             else if (text === unseenAllDay || text === visibleAllDay) {
               results.push(`<td colspan="2">${text}</td>`);
               skip = 1;
@@ -1162,10 +1166,10 @@ export class EventFinder {
           if (eventType === TWILIGHT_BEGINS || eventType === TWILIGHT_ENDS) {
             if (!isNumber(argument))
               targetAlt = NAUTICAL_TWILIGHT;
-            else if (<number> argument < 0)
-              targetAlt = <number> argument;
+            else if ((argument as number) < 0)
+              targetAlt = argument as number;
             else
-              minsBefore = (eventType === TWILIGHT_ENDS ? -<number> argument : <number> argument);
+              minsBefore = (eventType === TWILIGHT_ENDS ? -(argument as number) : argument as number);
 
             events = this.getRiseAndSetTimes(SUN, ymd.y, ymd.m, ymd.d, observer, zone, gregorianChange, minsBefore, targetAlt, true);
           }
@@ -1283,8 +1287,8 @@ export class EventFinder {
               continue;
 
             if (seekZero && ((eventValues[i - 1] <= 0.0 && 0.0 <  eventValues[i]) ||
-                             (eventValues[i - 1] >  0.0 && 0.0 >= eventValues[i])))
-            {
+                             (eventValues[i - 1] >  0.0 && 0.0 >= eventValues[i]))
+            ) {
               if (abs(eventValues[i - 1] - eventValues[i]) > 180.0)
                 continue;
 
@@ -1297,8 +1301,8 @@ export class EventFinder {
               eventTime = zeroFinder.getXAtZero();
             }
             else if (seekMin && eventValues[i - 2] > eventValues[i - 1] && eventValues[i - 1] < eventValues[i] ||
-                  seekMax && eventValues[i - 2] < eventValues[i - 1] && eventValues[i - 1] > eventValues[i])
-            {
+                  seekMax && eventValues[i - 2] < eventValues[i - 1] && eventValues[i - 1] > eventValues[i]
+            ) {
               const minMaxFinder = new MinMaxFinder((x: number) => {
                     return this.getEventSearchValue(planet, eventType, x);
                   }, 1E-10, 100,
@@ -1310,8 +1314,8 @@ export class EventFinder {
               continue;
 
             if ((planet === MERCURY || planet === VENUS) &&
-               (eventType === SUPERIOR_CONJUNCTION || eventType === INFERIOR_CONJUNCTION))
-            {
+               (eventType === SUPERIOR_CONJUNCTION || eventType === INFERIOR_CONJUNCTION)
+            ) {
               const inferior = this.isInferior(planet, eventTime);
 
               if (eventType === SUPERIOR_CONJUNCTION && inferior ||
@@ -1341,8 +1345,8 @@ export class EventFinder {
               if (j === -5 ||
                  seekZero && abs(bestValue) > abs(testValue) ||
                  seekMin && bestValue > testValue ||
-                 seekMax && bestValue < testValue)
-              {
+                 seekMax && bestValue < testValue
+              ) {
                 bestValue = testValue;
                 eventTime = testMoment;
               }
@@ -1468,9 +1472,9 @@ export class EventFinder {
         return this.ss.getSolarEclipseInfo(time_JDE).centerSeparation;
 
       case QUADRATURE:
-        const sinElong = sin_deg(this.ss.getSolarElongationInLongitude(planet, time_JDE));
+        const sinElongation = sin_deg(this.ss.getSolarElongationInLongitude(planet, time_JDE));
 
-        return sinElong * sinElong;
+        return sinElongation * sinElongation;
 
       case GRS_TRANSIT_EVENT:
         if (this.jupiterInfo)

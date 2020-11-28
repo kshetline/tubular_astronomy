@@ -1,5 +1,5 @@
 /*
-  Copyright © 2017 Kerry Shetline, kerry@shetline.com
+  Copyright © 2017-2020 Kerry Shetline, kerry@shetline.com
 
   MIT license: https://opensource.org/licenses/MIT
 
@@ -33,7 +33,7 @@ interface VsopTerm {
   C: number;
 }
 
-/* tslint:disable:whitespace */
+/* eslint-disable comma-spacing, object-curly-spacing, @typescript-eslint/indent */
 const terms: VsopTerm[][][][] = [
   // Mercury
 [[[
@@ -2606,13 +2606,12 @@ const terms: VsopTerm[][][][] = [
 ],[
 {A:1.66297E-6,B:4.55243893489,C:38.1330356378}
 ]]]];
-/* tslint:enable:whitespace */
+/* eslint-enable */
 
 const CACHE_SIZE = 6;
 
 export class Vsop87Planets {
-  private static meanDistance =
-    [0.0, 0.387, 0.723, 1.00, 1.52, 5.20, 9.55, 19.2, 30.1];
+  private static meanDistance = [0.0, 0.387, 0.723, 1.00, 1.52, 5.20, 9.55, 19.2, 30.1];
 
   private cachedTimes: number[][] = [];
   private cachedPrecision: number[][] = [];

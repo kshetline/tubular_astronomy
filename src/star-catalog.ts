@@ -1,5 +1,5 @@
 /*
-  Copyright © 2017 Kerry Shetline, kerry@shetline.com
+  Copyright © 2017-2020 Kerry Shetline, kerry@shetline.com
 
   MIT license: https://opensource.org/licenses/MIT
 
@@ -159,6 +159,7 @@ export const LABEL_ANCHOR = -2;
 export class StarCatalog {
   static readonly greekIndices =
     'Alp Bet Gam Del Eps Zet Eta The Iot Kap Lam Mu  Nu  Xi  Omi Pi  Rho Sig Tau Ups Phi Chi Psi Ome ';
+
   static readonly constellationCodes =
     'And Ant Aps Aql Aqr Ara Ari Aur Boo Cae Cam Cap Car Cas Cen Cep Cet Cha Cir CMa CMi Cnc Col Com ' +
     'CrA CrB Crt Cru Crv CVn Cyg Del Dor Dra Equ Eri For Gem Gru Her Hor Hya Hyi Ind Lac Leo Lep Lib ' +
@@ -262,7 +263,7 @@ export class StarCatalog {
           continue;
         }
 
-        const star = <StarInfo> {};
+        const star = {} as StarInfo;
         star.flamsteed = firstByte;
 
         star.bayerRank = reader.read();
@@ -365,7 +366,7 @@ export class StarCatalog {
 
     // Create look-up tables for star indices.
     for (let i = 0; i < this.stars.length; ++i) {
-      this.cachedPositions[i] = <CacheEntry> {};
+      this.cachedPositions[i] = {} as CacheEntry;
 
       const star = this.stars[i];
 
@@ -466,7 +467,7 @@ export class StarCatalog {
         }
       }
 
-      this.constellations.push({name: constName, code: constCode, starList: starList});
+      this.constellations.push({ name: constName, code: constCode, starList: starList });
     }
 
     this.properlyInitialized = true;
@@ -495,13 +496,13 @@ export class StarCatalog {
   }
 
   getExpandedName(starIndex: number): string {
-    let name, fullName;
+    let name;
     const codedName = this.getCodedName(starIndex);
 
     if (this.isDeepSkyObject(starIndex))
       name = codedName;
 
-    fullName = this.getName(starIndex, true);
+    const fullName = this.getName(starIndex, true);
 
     if (fullName) {
       if (!name) {

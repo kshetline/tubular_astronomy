@@ -1,5 +1,5 @@
 /*
-  Copyright © 2017-2019 Kerry Shetline, kerry@shetline.com
+  Copyright © 2017-2020 Kerry Shetline, kerry@shetline.com
 
   MIT license: https://opensource.org/licenses/MIT
 
@@ -28,8 +28,8 @@ import isNumber from 'lodash/isNumber';
 import { JD_J2000, OBLIQUITY_J2000 } from './astro-constants';
 
 export interface Nutation {
-  deltaPsi: Angle;
-  deltaEpsilon: Angle;
+  Δψ: Angle;
+  Δε: Angle;
   obliquity: Angle;
 }
 
@@ -52,8 +52,7 @@ interface NutationTerm {
 
 // From _Astronomical Algorithms, 2nd Ed._ by Jean Meeus
 // p. 147.
-const coeffs =
-  [-4680.93, -1.55, 1999.25, -51.38, -249.67, -39.05, 7.12, 27.87, 5.79, 2.45];
+const coeffs = [-4680.93, -1.55, 1999.25, -51.38, -249.67, -39.05, 7.12, 27.87, 5.79, 2.45];
 
 // From _Astronomical Algorithms, 2nd Ed._ by Jean Meeus
 // pp. 145-146, Table 22.A
@@ -124,7 +123,7 @@ const table = [
 
 let terms: NutationTerm[];
 
-(function(): void {
+(function (): void {
   terms = table.map((line): NutationTerm => {
     const fields = line.split(' ');
     const value = [0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -273,11 +272,11 @@ export class Ecliptic {
       return this.cachedNutation;
 
     const T = (time_JDE - JD_J2000) / 36525.0;
-    const result = <Nutation> {};
+    const result = {} as Nutation;
 
     if (mode === NMode.J2000) {
-      result.deltaPsi = new Angle(0);
-      result.deltaEpsilon = new Angle(0);
+      result.Δψ = new Angle(0);
+      result.Δε = new Angle(0);
       result.obliquity = new Angle(OBLIQUITY_J2000, Unit.DEGREES);
     }
     else {
@@ -292,8 +291,8 @@ export class Ecliptic {
       result.obliquity = new Angle(e, Unit.DEGREES);
 
       if (mode === NMode.MEAN_OBLIQUITY) {
-        result.deltaPsi = new Angle(0);
-        result.deltaEpsilon = new Angle(0);
+        result.Δψ = new Angle(0);
+        result.Δε = new Angle(0);
       }
       else {
         const T2 = T * T;
@@ -311,18 +310,18 @@ export class Ecliptic {
         const Q = 125.04452 - 1934.136261 * T + 0.0020708 * T2 + T3 / 450000.0;
 
         let arg;
-        let delta_psi = 0;
-        let delta_epsilon = 0;
+        let Δψ = 0;
+        let Δε = 0;
 
         for (const term of terms) {
           arg = D * term.fD + M * term.fM + M1 * term.fM1 + F * term.fF + Q * term.fQ;
-          delta_psi += sin_deg(arg) * (term.cs0 + term.cs1 * T);
-          delta_epsilon += cos_deg(arg) * (term.cc0 + term.cc1 * T);
+          Δψ += sin_deg(arg) * (term.cs0 + term.cs1 * T);
+          Δε += cos_deg(arg) * (term.cc0 + term.cc1 * T);
         }
 
-        result.deltaPsi     = new Angle(delta_psi     / 10000.0, Unit.ARC_SECONDS);
-        result.deltaEpsilon = new Angle(delta_epsilon / 10000.0, Unit.ARC_SECONDS);
-        result.obliquity    = result.obliquity.add(result.deltaEpsilon);
+        result.Δψ     = new Angle(Δψ     / 10000.0, Unit.ARC_SECONDS);
+        result.Δε = new Angle(Δε / 10000.0, Unit.ARC_SECONDS);
+        result.obliquity    = result.obliquity.add(result.Δε);
       }
     }
 
@@ -337,7 +336,7 @@ export class Ecliptic {
     if (mode === NMode.J2000)
       return pos;
 
-    let nutation = this.getNutation(time_JDE, mode === NMode.ANTI_NUTATED ? NMode.NUTATED : mode).deltaPsi;
+    let nutation = this.getNutation(time_JDE, mode === NMode.ANTI_NUTATED ? NMode.NUTATED : mode).Δψ;
 
     if (mode === NMode.ANTI_NUTATED)
       nutation = nutation.negate();

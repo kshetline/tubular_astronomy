@@ -1,5 +1,5 @@
 /*
-  Copyright © 2017-2019 Kerry Shetline, kerry@shetline.com
+  Copyright © 2017-2020 Kerry Shetline, kerry@shetline.com
 
   MIT license: https://opensource.org/licenses/MIT
 
@@ -40,8 +40,8 @@ export class SkyObserver implements ISkyObserver {
   readonly _latitude: Angle;
 
   private elevation = 0;
-  private rho_sin_gcl: number;
-  private rho_cos_gcl: number;
+  private ρ_sin_gcl: number;
+  private ρ_cos_gcl: number;
 
   private cachedHourAngle: Angle = null;
   private cacheTimeHourAngle = 0;
@@ -66,8 +66,8 @@ export class SkyObserver implements ISkyObserver {
     else
       u = atan(peRatio * this._latitude.tan);
 
-    this.rho_sin_gcl = peRatio * sin(u) + this.elevation / EARTH_RADIUS_KM / 1000.0 * this._latitude.sin;
-    this.rho_cos_gcl = cos(u) + this.elevation / EARTH_RADIUS_KM / 1000.0 * this._latitude.cos;
+    this.ρ_sin_gcl = peRatio * sin(u) + this.elevation / EARTH_RADIUS_KM / 1000.0 * this._latitude.sin;
+    this.ρ_cos_gcl = cos(u) + this.elevation / EARTH_RADIUS_KM / 1000.0 * this._latitude.cos;
   }
 
   constructor(longitudeOrLatLong: number | SphericalPosition | Angle, latitude?: number | Angle) {
@@ -75,19 +75,19 @@ export class SkyObserver implements ISkyObserver {
       SkyObserver.solarSystem = new SolarSystem();
 
     if (longitudeOrLatLong instanceof SphericalPosition) {
-      this._longitude = (<SphericalPosition> longitudeOrLatLong).longitude;
-      this._latitude = (<SphericalPosition> longitudeOrLatLong).latitude;
+      this._longitude = (longitudeOrLatLong as SphericalPosition).longitude;
+      this._latitude = (longitudeOrLatLong as SphericalPosition).latitude;
     }
     else {
       if (isNumber(longitudeOrLatLong))
-        this._longitude = new Angle(<number> longitudeOrLatLong, Unit.DEGREES);
+        this._longitude = new Angle(longitudeOrLatLong as number, Unit.DEGREES);
       else
-        this._longitude = <Angle> longitudeOrLatLong;
+        this._longitude = longitudeOrLatLong as Angle;
 
       if (isNumber(latitude))
-        this._latitude = new Angle(<number> latitude, Unit.DEGREES);
+        this._latitude = new Angle(latitude as number, Unit.DEGREES);
       else
-        this._latitude = <Angle> latitude;
+        this._latitude = latitude as Angle;
     }
 
     this.computeGeocentricValues();
@@ -140,10 +140,10 @@ export class SkyObserver implements ISkyObserver {
     const d    = pos.declination.radians;
     const H    = lha - RA;
 
-    let deltaRA = atan2(-this.rho_cos_gcl * sinp * sin(H),
-                        cos(d) - this.rho_cos_gcl * sinp * cos(H));
-    let d1      = atan2((sin(d) - this.rho_sin_gcl * sinp) * cos(deltaRA),
-                        cos(d) - this.rho_cos_gcl * sinp * cos(H));
+    let deltaRA = atan2(-this.ρ_cos_gcl * sinp * sin(H),
+                        cos(d) - this.ρ_cos_gcl * sinp * cos(H));
+    let d1      = atan2((sin(d) - this.ρ_sin_gcl * sinp) * cos(deltaRA),
+                        cos(d) - this.ρ_cos_gcl * sinp * cos(H));
 
     if ((flags & ABERRATION) !== 0) {
       RA += deltaRA;
@@ -186,7 +186,7 @@ export class SkyObserver implements ISkyObserver {
       altitude = to_radian(refractedAltitude(to_degree(altitude)));
 
     if (pos instanceof SphericalPosition3D) {
-      let distance = (<SphericalPosition3D> pos).radius;
+      let distance = (pos as SphericalPosition3D).radius;
 
       if ((flags & TOPOCENTRIC) !== 0) {
         const earthCtrDistance = EARTH_RADIUS_POLAR_KM +

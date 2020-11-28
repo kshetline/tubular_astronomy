@@ -19,7 +19,7 @@ const grsTestData = new Uint8ClampedArray(
 let promiseHelper;
 
 const grsPromise = new Promise<ArrayBuffer>((resolve, reject) => {
-  promiseHelper = {resolve, reject};
+  promiseHelper = { resolve, reject };
 });
 
 class MockAstroDataService implements IAstroDataService {
@@ -42,13 +42,13 @@ class MockAstroDataService implements IAstroDataService {
 
 let jupiterInfo: JupiterInfo;
 
-JupiterInfo.getJupiterInfo(new MockAstroDataService()).then(ji => jupiterInfo = ji );
-promiseHelper.resolve(grsTestData);
+JupiterInfo.getJupiterInfo(new MockAstroDataService()).then(ji => jupiterInfo = ji);
+promiseHelper && promiseHelper.resolve(grsTestData);
 
 describe('EventFinder', () => {
   const eventFinder = new EventFinder();
   const zone = KsTimeZone.getTimeZone('America/New_York');
-  const time = new KsDateTime({y: 2018, m: 2, d: 11, hrs: 20, min: 0, sec: 0}, zone);
+  const time = new KsDateTime({ y: 2018, m: 2, d: 11, hrs: 20, min: 0, sec: 0 }, zone);
   const jdu = KsDateTime.julianDay(time.utcTimeMillis);
   const observer = new SkyObserver(-71.48, 42.75);
 
@@ -79,8 +79,8 @@ describe('EventFinder', () => {
     expect(event.eventTime.wallTime.d).toEqual(15);
     expect(event.eventTime.wallTime.hrs).toEqual(15);
     expect(event.eventTime.wallTime.min).toEqual(51);
-    expect((<EclipseInfo> event.miscInfo).surfaceShadow.longitude.degrees).toBeCloseTo(0.80, 1);
-    expect((<EclipseInfo> event.miscInfo).surfaceShadow.latitude.degrees).toBeCloseTo(-70.95, 1);
+    expect((event.miscInfo as EclipseInfo).surfaceShadow.longitude.degrees).toBeCloseTo(0.80, 1);
+    expect((event.miscInfo as EclipseInfo).surfaceShadow.latitude.degrees).toBeCloseTo(-70.95, 1);
   });
 
   it('should find the next greatest elongation of Venus', () => {
@@ -104,7 +104,7 @@ describe('EventFinder', () => {
       expect(jupiterInfo).toBeDefined();
 
       const eventFinder2 = new EventFinder(jupiterInfo);
-      const time2 = new KsDateTime({y: 2017, m: 7, d: 1, hrs: 0, min: 0, sec: 0}, KsTimeZone.UT_ZONE);
+      const time2 = new KsDateTime({ y: 2017, m: 7, d: 1, hrs: 0, min: 0, sec: 0 }, KsTimeZone.UT_ZONE);
       const jdu2 = KsDateTime.julianDay(time2.utcTimeMillis);
       const event = eventFinder2.findEvent(JUPITER, GRS_TRANSIT_EVENT, jdu2, observer);
       expect(event.eventTime.wallTime.hrs).toEqual(2);

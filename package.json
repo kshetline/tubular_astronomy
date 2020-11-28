@@ -1,11 +1,12 @@
 {
   "name": "ks-astronomy",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Astronomical calculations for planetary positions, moon phases, eclipses, rise, transit, and set times, and more.",
   "main": "dist/index.js",
   "typings": "dist/index",
   "scripts": {
     "build": "tsc && npm run resources",
+    "lint": "eslint \"**/*.ts\"",
     "test": "karma start",
     "prepublishOnly": "npm run build",
     "watch:build": "tsc --watch",
@@ -31,14 +32,22 @@
   "license": "MIT",
   "dependencies": {
     "array-buffer-reader": "^1.0.4",
-    "ks-date-time-zone": "^1.7.0",
+    "ks-date-time-zone": "^1.8.0",
     "ks-math": "^1.2.1",
     "ks-util": "^1.11.3",
     "lodash": "^4.17.20"
   },
   "devDependencies": {
     "@types/jasmine": "^2.8.17",
-    "@types/lodash": "^4.14.162",
+    "@types/lodash": "^4.14.165",
+    "@typescript-eslint/eslint-plugin": "^4.8.2",
+    "@typescript-eslint/parser": "^4.8.2",
+    "eslint": "^7.14.0",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^5.0.0",
     "jasmine-core": "^2.99.1",
     "jasmine-spec-reporter": "^4.2.1",
     "karma": "^5.2.3",
@@ -47,7 +56,6 @@
     "karma-jasmine-html-reporter": "^0.2.2",
     "karma-typescript": "^5.2.0",
     "karma-typescript-es6-transform": "^4.1.1",
-    "tslint": "^5.20.1",
     "typescript": "^3.9.7"
   },
   "repository": "github:kshetline/ks-astronomy"

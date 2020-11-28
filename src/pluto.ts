@@ -1,5 +1,5 @@
 /*
-  Copyright © 2017 Kerry Shetline, kerry@shetline.com
+  Copyright © 2017-2020 Kerry Shetline, kerry@shetline.com
 
   MIT license: https://opensource.org/licenses/MIT
 
@@ -86,7 +86,7 @@ const table = [
 
 let terms: PlutoTerm[];
 
-(function(): void {
+(function (): void {
   terms = table.map((line): PlutoTerm => {
     const fields = line.split(' ');
 
