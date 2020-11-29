@@ -6,6 +6,7 @@ import { IAstroDataService } from './i-astro-data.service';
 import { JupiterInfo } from './jupiter-info';
 import { SkyObserver } from './sky-observer';
 import { AsteroidCometInfo, EclipseInfo } from './solar-system';
+import { processMillis } from 'ks-util';
 
 const grsTestData = new Uint8ClampedArray(
 `3.9
@@ -59,6 +60,13 @@ describe('EventFinder', () => {
     const event = eventFinder.findEvent(SUN, RISE_EVENT, jdu, observer, zone);
     expect(event.eventTime.wallTime.hrs).to.equal(6);
     expect(event.eventTime.wallTime.min).to.equal(47);
+  });
+
+  it('should give up quickly looking for the next sunrise', () => {
+    const startTime = processMillis();
+    const event = eventFinder.findEvent(SUN, RISE_EVENT, jdu, new SkyObserver(0, 90), zone, null, false, null, 2);
+    expect(!!event).to.be.false;
+    expect(processMillis()).to.be.lessThan(startTime + 250);
   });
 
   it('should find the next setting of the moon', () => {

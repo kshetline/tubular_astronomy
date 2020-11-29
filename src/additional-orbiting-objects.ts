@@ -181,7 +181,7 @@ export class AdditionalOrbitingObjects {
         let possibleNumPart = s.substring(0, pos);
         const ch = possibleNumPart.charAt(0);
 
-        if (ch >= '0' && ch <= '9' && possibleNumPart.length < 6)
+        if (('0' <= ch && ch <= '9') && possibleNumPart.length < 6)
           possibleNumPart = padLeft(possibleNumPart, 6, '0');
 
         s = s.substring(pos + 1) + '/' + possibleNumPart;
