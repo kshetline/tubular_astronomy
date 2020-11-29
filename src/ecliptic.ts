@@ -30,7 +30,7 @@ import { JD_J2000, OBLIQUITY_J2000 } from './astro-constants';
 export interface Nutation {
   Δψ: Angle;
   Δε: Angle;
-  obliquity: Angle;
+  ε: Angle;
 }
 
 export enum NMode { NUTATED,        // Return nutation in longitude, and nutation-adjusted true obliquity.
@@ -183,22 +183,21 @@ export class Ecliptic {
     const RA0 = pos.rightAscension.radians;
     const dec0 = pos.declination.radians;
 
-    let zeta = (2306.2181 + 1.39656 * T - 0.000139 * T2) * t
-             + (0.30188 - 0.000344 * T) * t2 + 0.017998 * t3;
-    let z    = (2306.2181 + 1.39656 * T - 0.000139 * T2) * t
-             + (1.09468 + 0.000066 * T) * t2 + 0.018203 * t3;
-    let theta = (2004.3109 - 0.85330 * T - 0.000217 * T2) * t
-              - (0.42665 + 0.000217 * T) * t2 - 0.041833 * t3;
+    let ζ = (2306.2181 + 1.39656 * T - 0.000139 * T2) * t
+            + (0.30188 - 0.000344 * T) * t2 + 0.017998 * t3;
+    let z   = (2306.2181 + 1.39656 * T - 0.000139 * T2) * t
+            + (1.09468 + 0.000066 * T) * t2 + 0.018203 * t3;
+    let θ = (2004.3109 - 0.85330 * T - 0.000217 * T2) * t
+            - (0.42665 + 0.000217 * T) * t2 - 0.041833 * t3;
 
     // For convenience, convert the above arcsecond values to radians.
-    zeta  *= PI / 648000.0;
-    z     *= PI / 648000.0;
-    theta *= PI / 648000.0;
+    ζ *= PI / 648000.0;
+    z *= PI / 648000.0;
+    θ *= PI / 648000.0;
 
-    const A = cos(dec0) * sin(RA0 + zeta);
-    const B = cos(theta) * cos(dec0) * cos(RA0 + zeta) - sin(theta) * sin(dec0);
-    const C = sin(theta) * cos(dec0) * cos(RA0 + zeta) + cos(theta) * sin(dec0);
-
+    const A = cos(dec0) * sin(RA0 + ζ);
+    const B = cos(θ) * cos(dec0) * cos(RA0 + ζ) - sin(θ) * sin(dec0);
+    const C = sin(θ) * cos(dec0) * cos(RA0 + ζ) + cos(θ) * sin(dec0);
     const RA = atan2(A, B) + z;
     let dec;
 
@@ -238,21 +237,21 @@ export class Ecliptic {
     const L0 = pos.longitude.radians;
     const B0 = pos.latitude.radians;
 
-    let eta = (47.0029 - 0.06603 * T + 0.000598 * T2) * t
-            + (-0.03302 + 0.000598 * T) * t2 + 0.000060 * t3;
-    let P1  = (174.876384 * 3600.0) + 3289.4789 * T + 0.60622 * T2
-            - (869.8089 + 0.50491 * T) * t + 0.03536 * t2;
-    let p   = (5029.0966 + 2.22226 * T - 0.000042 * T2) * t
-            + (1.11113 - 0.000042 * T) * t2 - 0.000006 * t3;
+    let η  = (47.0029 - 0.06603 * T + 0.000598 * T2) * t
+           + (-0.03302 + 0.000598 * T) * t2 + 0.000060 * t3;
+    let P1 = (174.876384 * 3600.0) + 3289.4789 * T + 0.60622 * T2
+           - (869.8089 + 0.50491 * T) * t + 0.03536 * t2;
+    let p  = (5029.0966 + 2.22226 * T - 0.000042 * T2) * t
+           + (1.11113 - 0.000042 * T) * t2 - 0.000006 * t3;
 
     // For convenience, convert the above arcsecond values to radians.
-    eta *= PI / 648000.0;
-    P1  *= PI / 648000.0;
-    p   *= PI / 648000.0;
+    η  *= PI / 648000.0;
+    P1 *= PI / 648000.0;
+    p  *= PI / 648000.0;
 
-    const A1 = cos(eta) * cos(B0) * sin(P1 - L0) - sin(eta) * sin(B0);
+    const A1 = cos(η) * cos(B0) * sin(P1 - L0) - sin(η) * sin(B0);
     const B1 = cos(B0) * cos(P1 - L0);
-    const C1 = cos(eta) * sin(B0) + sin(eta) * cos(B0) * sin(P1 - L0);
+    const C1 = cos(η) * sin(B0) + sin(η) * cos(B0) * sin(P1 - L0);
 
     const L = p + P1 - atan2(A1, B1);
     const B = asin(limitNeg1to1(C1));
@@ -277,7 +276,7 @@ export class Ecliptic {
     if (mode === NMode.J2000) {
       result.Δψ = new Angle(0);
       result.Δε = new Angle(0);
-      result.obliquity = new Angle(OBLIQUITY_J2000, Unit.DEGREES);
+      result.ε = new Angle(OBLIQUITY_J2000, Unit.DEGREES);
     }
     else {
       let U = T / 100.0;
@@ -288,7 +287,7 @@ export class Ecliptic {
         U *= U;
       }
 
-      result.obliquity = new Angle(e, Unit.DEGREES);
+      result.ε = new Angle(e, Unit.DEGREES);
 
       if (mode === NMode.MEAN_OBLIQUITY) {
         result.Δψ = new Angle(0);
@@ -319,9 +318,9 @@ export class Ecliptic {
           Δε += cos_deg(arg) * (term.cc0 + term.cc1 * T);
         }
 
-        result.Δψ     = new Angle(Δψ     / 10000.0, Unit.ARC_SECONDS);
+        result.Δψ = new Angle(Δψ / 10000.0, Unit.ARC_SECONDS);
         result.Δε = new Angle(Δε / 10000.0, Unit.ARC_SECONDS);
-        result.obliquity    = result.obliquity.add(result.Δε);
+        result.ε = result.ε.add(result.Δε);
       }
     }
 
@@ -373,7 +372,7 @@ export class Ecliptic {
     const nutation = this.getNutation(time_JDE, mode);
     const L = pos.rightAscension;
     const B = pos.declination;
-    const E = nutation.obliquity;
+    const E = nutation.ε;
 
     return new SphericalPosition(
                   Angle.atan2_nonneg(L.sin * E.cos - B.tan * E.sin, L.cos),
@@ -388,7 +387,7 @@ export class Ecliptic {
     const nutation = this.getNutation(time_JDE, mode);
     const RA = pos.rightAscension;
     const dec = pos.declination;
-    const E = nutation.obliquity;
+    const E = nutation.ε;
 
     return new SphericalPosition(
                   Angle.atan2_nonneg(RA.sin * E.cos + dec.tan * E.sin, RA.cos),

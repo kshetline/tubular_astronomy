@@ -75,7 +75,7 @@ export class MoonEvents {
   events: MoonEvent[];
   shadowEvents: MoonEvent[];
   text = '';
-  searchDeltaT = 1; // In minutes
+  searchΔT = 1; // In minutes
 }
 
 export abstract class PlanetaryMoons {
@@ -160,14 +160,14 @@ export abstract class PlanetaryMoons {
 
     events.events = [];
     events.shadowEvents = [];
-    events.searchDeltaT = (!this.v_max ? 1 : 120); // At the very most, put off more event checking for two hours.
+    events.searchΔT = (!this.v_max ? 1 : 120); // At the very most, put off more event checking for two hours.
     events.t0 = t0;
     events.t1 = t1;
 
     if (this.v_max) {
       let Y1: number;
       let d: number;
-      let deltaT: number;
+      let ΔT: number;
 
       findSearchTime:
       for (let i = 0; i < nmoons; ++i) {
@@ -190,10 +190,10 @@ export abstract class PlanetaryMoons {
           else
             d = 1.0 - d;
 
-          deltaT = max(floor(d / this.v_max[i] * 0.75), 1);
-          events.searchDeltaT = min(deltaT, events.searchDeltaT);
+          ΔT = max(floor(d / this.v_max[i] * 0.75), 1);
+          events.searchΔT = min(ΔT, events.searchΔT);
 
-          if (deltaT === 1)
+          if (ΔT === 1)
             break findSearchTime;
         }
       }

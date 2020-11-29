@@ -140,16 +140,16 @@ export class SkyObserver implements ISkyObserver {
     const d    = pos.declination.radians;
     const H    = lha - RA;
 
-    let deltaRA = atan2(-this.ρ_cos_gcl * sinp * sin(H),
-                        cos(d) - this.ρ_cos_gcl * sinp * cos(H));
-    let d1      = atan2((sin(d) - this.ρ_sin_gcl * sinp) * cos(deltaRA),
-                        cos(d) - this.ρ_cos_gcl * sinp * cos(H));
+    let ΔRA = atan2(-this.ρ_cos_gcl * sinp * sin(H),
+                    cos(d) - this.ρ_cos_gcl * sinp * cos(H));
+    let d1  = atan2((sin(d) - this.ρ_sin_gcl * sinp) * cos(ΔRA),
+                    cos(d) - this.ρ_cos_gcl * sinp * cos(H));
 
     if ((flags & ABERRATION) !== 0) {
-      RA += deltaRA;
+      RA += ΔRA;
 
       if (abs(d1) > HALF_PI - 4.85E-6) {
-        deltaRA = 0.0;
+        ΔRA = 0.0;
 
         const rd = HALF_PI - abs(d1);
         const rl = 1.551E-6 * this._latitude.cos;
@@ -161,12 +161,12 @@ export class SkyObserver implements ISkyObserver {
         d1 = (HALF_PI - r) * sign(d1);
       }
       else {
-        deltaRA = 1.551E-6 * this._latitude.cos * cos(H) / cos(d1);
+        ΔRA = 1.551E-6 * this._latitude.cos * cos(H) / cos(d1);
         d1 += 1.551E-6 * this._latitude.cos * sin(d1) * sin(H);
       }
     }
 
-    return new SphericalPosition3D(RA + deltaRA, d1, distance);
+    return new SphericalPosition3D(RA + ΔRA, d1, distance);
   }
 
   equatorialToHorizontal(pos: SphericalPosition, time_JDU: number, flags = 0): SphericalPosition {

@@ -331,13 +331,13 @@ export class AdditionalOrbitingObjects {
     const oe = {} as OrbitalElements;
 
     // Handle precession of orbit
-    const deltaL = Ecliptic.precessEcliptical(new SphericalPosition(), time_JDE).longitude.degrees;
+    const ΔL = Ecliptic.precessEcliptical(new SphericalPosition(), time_JDE).longitude.degrees;
 
     oe.a = oi.a;
     oe.e = oi.e;
     oe.i = oi.i;
-    oe.Ω = mod(oi.L + deltaL, 360);
-    oe.pi = mod(oi.ω + oi.L + deltaL, 360.0);
+    oe.Ω = mod(oi.L + ΔL, 360);
+    oe.pi = mod(oi.ω + oi.L + ΔL, 360.0);
     oe.partial = true;
 
     return oe;

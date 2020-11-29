@@ -380,9 +380,9 @@ export class JupitersMoons extends PlanetaryMoons {
           break;
       }
 
-      // The precessional adjustment, P, made to both L and psi by Meeus, cancels out
-      // inside this loop. Since I'm not saving L, and psi should remain unadjusted for
-      // the series calculations, I only use P to produce PHI (derived from psi) later.
+      // The precessional adjustment, P, made to both L and ψ by Meeus, cancels out
+      // inside this loop. Since I'm not saving L, and ψ should remain unadjusted for
+      // the series calculations, I only use P to produce Φ (derived from ψ) later.
 
       X[j] = R * cos_deg(L - ψ) * cos_deg(B);
       Y[j] = R * sin_deg(L - ψ) * cos_deg(B);
@@ -483,7 +483,7 @@ export class JupitersMoons extends PlanetaryMoons {
       else if (grs1 < 0.0) {
         const estMinsNextTransit = floor(-grs1 / 360.0 * MEAN_JUPITER_SYS_II * 1440.0 * 0.9);
 
-        events.searchDeltaT = min(events.searchDeltaT, max(estMinsNextTransit, 1));
+        events.searchΔT = min(events.searchΔT, max(estMinsNextTransit, 1));
       }
     }
 

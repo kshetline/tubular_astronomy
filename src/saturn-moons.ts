@@ -163,7 +163,7 @@ export class SaturnMoons extends PlanetaryMoons {
           /* eslint-disable no-case-declarations */
           let p1: number, a1: number, a2: number, N: number, i1: number, Ω1: number;
           let g0: number, ψ: number, s: number, g: number, ww = 0.0, e1: number, q: number;
-          let b1, b2, theta, h;
+          let b1, b2, θ, h;
           let η, ζ, θ1, as, bs, cs, φ, χ;
           let ww1, ww0, μ, l, g1, ls, gs, lT, gT, u1, u2, u3, u4, u5, w1, Φ;
           let e = 0.0, a = 0.0, i = 0.0, λ1 = 0.0;
@@ -204,11 +204,11 @@ export class SaturnMoons extends PlanetaryMoons {
               q = 2.0 * (W5 - ww);
               b1 = sin_deg(i1) * sin_deg(Ω1 - W8);
               b2 = cos_deg(W7) * sin_deg(i1) * cos_deg(Ω1 - W8) - sin_deg(W7) * cos_deg(i1);
-              theta = atan2_deg(b1, b2) + W8;
+              θ = atan2_deg(b1, b2) + W8;
               e = e1 + 0.002778797 * e1 * cos_deg(q);
               p = ww + 0.159215 * sin_deg(q);
-              u = 2.0 * W5 - 2.0 * theta + ψ;
-              h = 0.9375 * e1 * e1 * sin_deg(q) + 0.1875 * s * s * sin_deg(2.0 * (W5 - theta));
+              u = 2.0 * W5 - 2.0 * θ + ψ;
+              h = 0.9375 * e1 * e1 * sin_deg(q) + 0.1875 * s * s * sin_deg(2.0 * (W5 - θ));
               λ1 = L - 0.254744 * (e1 * sin_deg(W6) + 0.75 * e1 * e1 * sin_deg(2.0 * W6) + h);
               i = i1 + 0.031843 * s * cos_deg(u);
               Ω = Ω1 + 0.031843 * s * sin_deg(u) / sin_deg(i1);
@@ -219,8 +219,8 @@ export class SaturnMoons extends PlanetaryMoons {
             case 6: // VII, Hyperion
               η = 92.39 + 0.5621071 * t6;
               ζ = 148.19 - 19.18 * t8;
-              theta = 184.8 - 35.41 * t9;
-              θ1 = theta - 7.5;
+              θ = 184.8 - 35.41 * t9;
+              θ1 = θ - 7.5;
               as = 176.0 + 12.22 * t8;
               bs = 8.0 + 24.44 * t8;
               cs = bs + 5.0;
@@ -242,7 +242,7 @@ export class SaturnMoons extends PlanetaryMoons {
                       + 0.2112 * sin_deg(ζ - η) - 0.26 * sin_deg(ζ)
                       - 0.0098 * sin_deg(2.0 * ζ)
                       - 0.013 * sin_deg(as) + 0.017 * sin_deg(bs) - 0.0303 * sin_deg(φ);
-              i = 27.3347 + 0.643486 * cos_deg(χ) + 0.315 * cos_deg(W3) + 0.018 * cos_deg(theta)
+              i = 27.3347 + 0.643486 * cos_deg(χ) + 0.315 * cos_deg(W3) + 0.018 * cos_deg(θ)
                   - 0.018 * cos_deg(cs);
               Ω = 168.6812 + 1.40136 * cos_deg(χ) + 0.68599 * sin_deg(W3)
                     - 0.0392 * sin_deg(cs) + 0.0366 * sin_deg(θ1);
@@ -253,7 +253,7 @@ export class SaturnMoons extends PlanetaryMoons {
               L = 261.1582 + 22.57697855 * t4;
               ww1 = 91.769 + 0.562 * t7;
               ψ = 4.367 - 0.195 * t7;
-              theta = 146.819 - 3.198 * t7;
+              θ = 146.819 - 3.198 * t7;
               φ = 60.470 + 1.521 * t7;
               Φ = 205.055 - 2.091 * t7;
               e1 = 0.028298 + 0.001156 * t11;
@@ -265,7 +265,7 @@ export class SaturnMoons extends PlanetaryMoons {
               g = ww0 - Ω1 - ψ;
               g1 = ww0 - Ω1 - φ;
               ls = W5 - ww1;
-              gs = ww1 - theta;
+              gs = ww1 - θ;
               lT = L - W4;
               gT = W4 - Φ;
               u1 = 2.0 * (l + g - ls - gs);

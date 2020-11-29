@@ -298,11 +298,11 @@ export class SolarSystem {
 
     // All other planets besides Pluto have automatically computed precession.
     if (planet === PLUTO) {
-      const deltaL = Ecliptic.precessEcliptical(new SphericalPosition(), time_JDE).longitude.degrees;
+      const ΔL = Ecliptic.precessEcliptical(new SphericalPosition(), time_JDE).longitude.degrees;
 
-      oe.L = mod(oe.L + deltaL, 360.0);
-      oe.Ω = mod(oe.Ω + deltaL, 360.0);
-      oe.pi = mod(oe.pi + deltaL, 360.0);
+      oe.L = mod(oe.L + ΔL, 360.0);
+      oe.Ω = mod(oe.Ω + ΔL, 360.0);
+      oe.pi = mod(oe.pi + ΔL, 360.0);
     }
 
     oe.ω = mod(oe.pi - oe.Ω, 360.0);
@@ -592,7 +592,7 @@ export class SolarSystem {
     const gmst = SolarSystem.getGreenwichMeanSiderealTime(time_JDU);
     const nutation = this.ecliptic.getNutation(UT_to_TDB(time_JDU));
 
-    return mod(gmst + nutation.Δψ.degrees * nutation.obliquity.cos, 360.0);
+    return mod(gmst + nutation.Δψ.degrees * nutation.ε.cos, 360.0);
   }
 
   // Note that getHorizontalPosition() is LOW_PRECISION by default -- which is still typically better
@@ -1051,8 +1051,8 @@ export class SolarSystem {
     const tolerance = degrees / 100000.0;
     const sign = (maxTime_JDE < startTime_JDE ? -1.0 : 1.0);
     let   minTime = startTime_JDE;
-    let   delta = sign;
-    let   result = startTime_JDE + delta;
+    let   δ = sign;
+    let   result = startTime_JDE + δ;
     let   change;
     let   found = false;
 
@@ -1067,16 +1067,16 @@ export class SolarSystem {
       }
       else if (change < degrees) {
         minTime = result;
-        delta *= 2;
+        δ *= 2;
 
         if (sign < 0)
-          result = Math.max(result + delta, maxTime_JDE);
+          result = Math.max(result + δ, maxTime_JDE);
         else
-          result = Math.min(result + delta, maxTime_JDE);
+          result = Math.min(result + δ, maxTime_JDE);
       }
       else {
         result = (result + minTime) / 2.0;
-        delta /= 2;
+        δ /= 2;
       }
     }
 

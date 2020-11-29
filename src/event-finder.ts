@@ -189,10 +189,10 @@ export class EventFinder {
 
     const results: AstroEvent[] = [];
     const dateTime = new KsDateTime(null, zone);
-    const delta = (addPaddingMonths ? 1 : 0);
-    const lastMonthYear = (endYear + 1) * 12 + delta;
+    const δ = (addPaddingMonths ? 1 : 0);
+    const lastMonthYear = (endYear + 1) * 12 + δ;
 
-    let monthYear = startYear * 12 - delta;
+    let monthYear = startYear * 12 - δ;
     let checkPhase = 0;
     let event: AstroEvent;
 
@@ -1060,13 +1060,13 @@ export class EventFinder {
 
         if (mEvents.count > 0) {
           // Round event time to nearest minute by adding half a minute.
-          const event = AstroEvent.fromJdu(GALILEAN_MOON_EVENT, mEvents.text, t + 1 / 2880.0, zone, gregorianChange, mEvents.searchDeltaT);
+          const event = AstroEvent.fromJdu(GALILEAN_MOON_EVENT, mEvents.text, t + 1 / 2880.0, zone, gregorianChange, mEvents.searchΔT);
 
           event.miscInfo = mEvents;
           results.push(event);
         }
 
-        t += mEvents.searchDeltaT / 1440.0;
+        t += mEvents.searchΔT / 1440.0;
       } while (t < endJdu && Date.now() < startTick + 50);
     };
 
@@ -1133,9 +1133,9 @@ export class EventFinder {
     if (!zone)
       zone = KsTimeZone.UT_ZONE;
 
-    const delta = (doPrevious ? -1 : 1);
+    const δ = (doPrevious ? -1 : 1);
 
-    originalTime += delta * HALF_MINUTE; // Bias time by a half minute towards the event seek direction.
+    originalTime += δ * HALF_MINUTE; // Bias time by a half minute towards the event seek direction.
 
     const dateTime = new KsDateTime(KsDateTime.millisFromJulianDay(originalTime), zone, gregorianChange);
     let ymd: YMDDate = dateTime.wallTime;
@@ -1160,7 +1160,7 @@ export class EventFinder {
           if (tries >= maxTries)
             return;
           else if (tries > 0)
-            ymd = dateTime.addDaysToDate(delta, ymd);
+            ymd = dateTime.addDaysToDate(δ, ymd);
 
           let minsBefore = 0;
           let targetAlt: number;
@@ -1186,7 +1186,7 @@ export class EventFinder {
         case FALL_EQUINOX:
         case WINTER_SOLSTICE:
           if (tries === 1)
-            ymd.y += delta;
+            ymd.y += δ;
           else if (tries > 1)
             return null;
 
@@ -1198,7 +1198,7 @@ export class EventFinder {
         case FULL_MOON:
         case LAST_QUARTER:
           if (tries > 0)
-            ymd = dateTime.addDaysToDate(delta, ymd);
+            ymd = dateTime.addDaysToDate(δ, ymd);
 
           events = [];
           event = this.getLunarPhaseEvent(ymd.y, ymd.m, ymd.d, zone, gregorianChange);
@@ -1385,7 +1385,7 @@ export class EventFinder {
             events.push(event);
           }
 
-          testTime += eventPeriod * delta * 0.95;
+          testTime += eventPeriod * δ * 0.95;
           break;
 
         case GALILEAN_MOON_EVENT:
@@ -1396,12 +1396,12 @@ export class EventFinder {
           const mevents = this.jupitersMoons.getMoonEventsForOneMinuteSpan(testTime, true);
 
           if (mevents.count > 0) {
-            event = AstroEvent.fromJdu(GALILEAN_MOON_EVENT, 'Galilean moon', testTime, zone, gregorianChange, mevents.searchDeltaT);
+            event = AstroEvent.fromJdu(GALILEAN_MOON_EVENT, 'Galilean moon', testTime, zone, gregorianChange, mevents.searchΔT);
             event.miscInfo = mevents.text;
             events.push(event);
           }
 
-          testTime += (delta * mevents.searchDeltaT + 0.1) / 1440.0;
+          testTime += (δ * mevents.searchΔT + 0.1) / 1440.0;
           break;
 
         default:
@@ -1416,7 +1416,7 @@ export class EventFinder {
         b = 0;
       }
 
-      for (let i = a; i !== b + delta; i += delta) {
+      for (let i = a; i !== b + δ; i += δ) {
         event = events[i];
         eventTime = event.ut;
 
@@ -1425,7 +1425,7 @@ export class EventFinder {
         else
           eventGap = minEventGap;
 
-        if (event.eventType === eventType && (eventTime - originalTime) * delta >= eventGap / 1440.0) {
+        if (event.eventType === eventType && (eventTime - originalTime) * δ >= eventGap / 1440.0) {
           if (eventType === GREATEST_ELONGATION) {
             let message: string;
             const angle = new Angle(event.value, Unit.DEGREES);
