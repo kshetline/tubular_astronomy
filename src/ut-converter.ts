@@ -83,7 +83,8 @@ const historicDeltaT = [
    63.83,  64.09,  64.30,  64.47,  64.57,  64.69,  64.85,  65.15,  65.46,  65.78,
    66.07,  66.32,  66.60,  66.91,  67.28,  67.64,  68.10,  68.59,  68.97,  69.22,
 
-// From ftp://cddis.nasa.gov/products/iers/delta.data
+// From ftp://hpiers.obspm.fr/iers/bul/bulb_new/
+// Via 32.184 (for diff. between TDT and TAI) + 37 (for TAI - UTC) + UTC-UT1
   // 2020
    69.36
 ];

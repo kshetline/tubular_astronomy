@@ -18,7 +18,8 @@
     "sourceType": "module"
   },
   "plugins": [
-    "@typescript-eslint"
+    "@typescript-eslint",
+    "chai-friendly"
   ],
   "rules": {
     "brace-style": [
@@ -69,6 +70,7 @@
     "no-new": "off",
     "no-return-assign": "off",
     "no-unused-expressions": "off",
+    "chai-friendly/no-unused-expressions": "error",
     "no-unused-vars": "off",
     "@typescript-eslint/no-unused-vars": [
       "error",

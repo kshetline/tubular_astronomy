@@ -1,3 +1,4 @@
+import { expect } from 'chai';
 import { KsDateTime, KsTimeZone } from 'ks-date-time-zone';
 import { FIRST_QUARTER, FULL_MOON, GREATEST_ELONGATION, GRS_TRANSIT_EVENT, JUPITER, MOON, RISE_EVENT, SET_EVENT, SOLAR_ECLIPSE, SUN, VENUS } from './astro-constants';
 import { EventFinder } from './event-finder';
@@ -43,7 +44,9 @@ class MockAstroDataService implements IAstroDataService {
 let jupiterInfo: JupiterInfo;
 
 JupiterInfo.getJupiterInfo(new MockAstroDataService()).then(ji => jupiterInfo = ji);
-promiseHelper && promiseHelper.resolve(grsTestData);
+
+if (promiseHelper)
+  promiseHelper.resolve(grsTestData);
 
 describe('EventFinder', () => {
   const eventFinder = new EventFinder();
@@ -54,61 +57,61 @@ describe('EventFinder', () => {
 
   it('should find the next sunrise', () => {
     const event = eventFinder.findEvent(SUN, RISE_EVENT, jdu, observer, zone);
-    expect(event.eventTime.wallTime.hrs).toEqual(6);
-    expect(event.eventTime.wallTime.min).toEqual(47);
+    expect(event.eventTime.wallTime.hrs).to.equal(6);
+    expect(event.eventTime.wallTime.min).to.equal(47);
   });
 
   it('should find the next setting of the moon', () => {
     const event = eventFinder.findEvent(MOON, SET_EVENT, jdu, observer, zone);
-    expect(event.eventTime.wallTime.hrs).toEqual(14);
-    expect(event.eventTime.wallTime.min).toEqual(23);
+    expect(event.eventTime.wallTime.hrs).to.equal(14);
+    expect(event.eventTime.wallTime.min).to.equal(23);
   });
 
   it('should find the next full moon', () => {
     const event = eventFinder.findEvent(MOON, FULL_MOON, jdu, observer, zone);
-    expect(event.eventTime.wallTime.m).toEqual(3);
-    expect(event.eventTime.wallTime.d).toEqual(1);
-    expect(event.eventTime.wallTime.hrs).toEqual(19);
-    expect(event.eventTime.wallTime.min).toEqual(51);
+    expect(event.eventTime.wallTime.m).to.equal(3);
+    expect(event.eventTime.wallTime.d).to.equal(1);
+    expect(event.eventTime.wallTime.hrs).to.equal(19);
+    expect(event.eventTime.wallTime.min).to.equal(51);
   });
 
   it('should find the next solar eclipse', () => {
     const event = eventFinder.findEvent(SUN, SOLAR_ECLIPSE, jdu, observer, zone);
-    expect(event.eventTime.wallTime.y).toEqual(2018);
-    expect(event.eventTime.wallTime.m).toEqual(2);
-    expect(event.eventTime.wallTime.d).toEqual(15);
-    expect(event.eventTime.wallTime.hrs).toEqual(15);
-    expect(event.eventTime.wallTime.min).toEqual(51);
-    expect((event.miscInfo as EclipseInfo).surfaceShadow.longitude.degrees).toBeCloseTo(0.80, 1);
-    expect((event.miscInfo as EclipseInfo).surfaceShadow.latitude.degrees).toBeCloseTo(-70.95, 1);
+    expect(event.eventTime.wallTime.y).to.equal(2018);
+    expect(event.eventTime.wallTime.m).to.equal(2);
+    expect(event.eventTime.wallTime.d).to.equal(15);
+    expect(event.eventTime.wallTime.hrs).to.equal(15);
+    expect(event.eventTime.wallTime.min).to.equal(51);
+    expect((event.miscInfo as EclipseInfo).surfaceShadow.longitude.degrees).to.be.closeTo(0.80, 1);
+    expect((event.miscInfo as EclipseInfo).surfaceShadow.latitude.degrees).to.be.closeTo(-70.95, 1);
   });
 
   it('should find the next greatest elongation of Venus', () => {
     const event = eventFinder.findEvent(VENUS, GREATEST_ELONGATION, jdu, observer, zone);
-    expect(event.eventTime.wallTime.y).toEqual(2018);
-    expect(event.eventTime.wallTime.m).toEqual(8);
-    expect(event.eventTime.wallTime.d).toEqual(17);
-    expect(event.eventTime.wallTime.hrs).toEqual(14);
+    expect(event.eventTime.wallTime.y).to.equal(2018);
+    expect(event.eventTime.wallTime.m).to.equal(8);
+    expect(event.eventTime.wallTime.d).to.equal(17);
+    expect(event.eventTime.wallTime.hrs).to.equal(14);
   });
 
   it('should find the previous first quarter moon', () => {
     const event = eventFinder.findEvent(MOON, FIRST_QUARTER, jdu, observer, zone, null, true);
-    expect(event.eventTime.wallTime.m).toEqual(1);
-    expect(event.eventTime.wallTime.d).toEqual(24);
-    expect(event.eventTime.wallTime.hrs).toEqual(17);
-    expect(event.eventTime.wallTime.min).toEqual(20);
+    expect(event.eventTime.wallTime.m).to.equal(1);
+    expect(event.eventTime.wallTime.d).to.equal(24);
+    expect(event.eventTime.wallTime.hrs).to.equal(17);
+    expect(event.eventTime.wallTime.min).to.equal(20);
   });
 
   it('should resolve the promise for GRS data and find next GRS transit', done => {
     grsPromise.then(() => {
-      expect(jupiterInfo).toBeDefined();
+      expect(jupiterInfo != null).to.be.true;
 
       const eventFinder2 = new EventFinder(jupiterInfo);
       const time2 = new KsDateTime({ y: 2017, m: 7, d: 1, hrs: 0, min: 0, sec: 0 }, KsTimeZone.UT_ZONE);
       const jdu2 = KsDateTime.julianDay(time2.utcTimeMillis);
       const event = eventFinder2.findEvent(JUPITER, GRS_TRANSIT_EVENT, jdu2, observer);
-      expect(event.eventTime.wallTime.hrs).toEqual(2);
-      expect(event.eventTime.wallTime.min).toEqual(31);
+      expect(event.eventTime.wallTime.hrs).to.equal(2);
+      expect(event.eventTime.wallTime.min).to.equal(31);
 
       done();
     });
