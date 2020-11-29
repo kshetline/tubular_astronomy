@@ -1,5 +1,5 @@
 /*
-  Copyright © 2017 Kerry Shetline, kerry@shetline.com
+  Copyright © 2017-2020 Kerry Shetline, kerry@shetline.com
 
   MIT license: https://opensource.org/licenses/MIT
 
@@ -46,7 +46,7 @@ export const COLORS_MOONLIGHT: string[] = ['black', '#333333', '#666666', '#9999
 const COLORS_DEEP_TWILIGHT: string[] = [COLOR_ASTRONOMICAL_TWILIGHT, COLOR_NAUTICAL_TWILIGHT];
 const TWILIGHT_MOON_BLENDS: string[][] = [];
 
-(function(): void {
+(function (): void {
   for (let i = 0; i < 2; ++i) {
     TWILIGHT_MOON_BLENDS[i] = [];
 
@@ -99,7 +99,7 @@ function unrefractedAltitudeAux(h0: number): number {
 export function getSkyColor(sunPos: SphericalPosition, skyPos: SphericalPosition, eclipseTotality = 0): string {
   const sunAltitude = sunPos.altitude.degrees;
 
-  if (sunAltitude <= - 18.0)
+  if (sunAltitude <= -18.0)
     return 'black';
 
   let   elongation  = skyPos.distanceFrom(sunPos).degrees;
@@ -136,11 +136,9 @@ export function getInsolationColor(observer: ISkyObserver, solarSystem: SolarSys
   let color: string;
   let twilightIndex = -1;
   let moonIndex: number;
-  let altitudeOfSun: number;
   let altitudeOfMoon: number;
   let illuminationOfMoon: number;
-
-  altitudeOfSun = solarSystem.getHorizontalPosition(SUN, time_JDU, observer, QUICK_SUN).altitude.degrees;
+  const altitudeOfSun = solarSystem.getHorizontalPosition(SUN, time_JDU, observer, QUICK_SUN).altitude.degrees;
 
   if (altitudeOfSun < -18.0)
     color = COLOR_NIGHT;
@@ -197,8 +195,8 @@ export function equatorialToGalactic(pos: SphericalPosition, time_JDE = JD_J2000
   const d = pos.declination;
 
   return new SphericalPosition(AN1.subtract(
-                Angle.atan2_nonneg(ga_a.sin, ga_a.cos * D_G.sin - d.tan * D_G.cos)),
-                Angle.asin(limitNeg1to1(d.sin * D_G.sin + d.cos * D_G.cos * ga_a.cos)));
+    Angle.atan2_nonneg(ga_a.sin, ga_a.cos * D_G.sin - d.tan * D_G.cos)),
+    Angle.asin(limitNeg1to1(d.sin * D_G.sin + d.cos * D_G.cos * ga_a.cos)));
 }
 
 export function galacticToEquatorial(pos: SphericalPosition, time_JDE = JD_J2000): SphericalPosition {
@@ -206,8 +204,8 @@ export function galacticToEquatorial(pos: SphericalPosition, time_JDE = JD_J2000
   const b = pos.declination;
 
   pos = new SphericalPosition(AG2.add(
-                Angle.atan2_nonneg(l_an2.sin, l_an2.cos * D_G.sin - b.tan * D_G.cos)),
-                Angle.asin(limitNeg1to1(b.sin * D_G.sin + b.cos * D_G.cos * l_an2.cos)));
+    Angle.atan2_nonneg(l_an2.sin, l_an2.cos * D_G.sin - b.tan * D_G.cos)),
+  Angle.asin(limitNeg1to1(b.sin * D_G.sin + b.cos * D_G.cos * l_an2.cos)));
 
   return Ecliptic.precessEquatorial(pos, JD_B1950, time_JDE);
 }

@@ -1,5 +1,5 @@
 /*
-  Copyright © 2017-2019 Kerry Shetline, kerry@shetline.com
+  Copyright © 2017-2020 Kerry Shetline, kerry@shetline.com
 
   MIT license: https://opensource.org/licenses/MIT
 
@@ -44,7 +44,7 @@ export interface AsteroidCometElements {
   L: number;  // longitude of the ascending node
   Tp: number; // Time of perihelion passage
   q: number;  // perihelion distance
-  w: number;  // argument of the perihelion
+  ω: number;  // argument of the perihelion
 }
 
 export interface AsteroidCometDescription {
@@ -93,9 +93,9 @@ export interface OrbitalElements {
   a: number;    // semimajor axis
   e: number;    // eccentricity
   i: number;    // inclination of orbit
-  OMEGA: number;    // longitude of ascending node
+  Ω: number;    // longitude of ascending node
   pi: number;    // longitude of perihelion
-  omega: number;    // argument of the perihelion (pi - OMEGA)
+  ω: number;    // argument of the perihelion (pi - OMEGA)
   M: number;    // mean anomaly
   C: number;    // equation of center
   v: number;    // true anomaly
@@ -201,6 +201,7 @@ export class SolarSystem {
   private pluto = new Pluto();
   private planetNames = ['Sun', 'Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn',
                          'Uranus', 'Neptune', 'Pluto', 'Moon'];
+
   private planetSymbols = ['\u2609', '\u263F', '\u2640', '\u2641', '\u2642', '\u2643', '\u2644',
                            '\u2645', '\u2646', '\u2647', '\u263D'];
 
@@ -276,7 +277,7 @@ export class SolarSystem {
     }
 
     const index = planet - MERCURY;
-    const oe = <OrbitalElements> {};
+    const oe = {} as OrbitalElements;
     const T = (time_JDE - JD_J2000) / 36525.0;
     let   t = 1.0;
     const elem = [0, 0, 0, 0, 0, 0];
@@ -292,7 +293,7 @@ export class SolarSystem {
     oe.a = elem[1];
     oe.e = elem[2];
     oe.i = elem[3];
-    oe.OMEGA = mod(elem[4], 360.0);
+    oe.Ω = mod(elem[4], 360.0);
     oe.pi = mod(elem[5], 360.0);
 
     // All other planets besides Pluto have automatically computed precession.
@@ -300,11 +301,11 @@ export class SolarSystem {
       const deltaL = Ecliptic.precessEcliptical(new SphericalPosition(), time_JDE).longitude.degrees;
 
       oe.L = mod(oe.L + deltaL, 360.0);
-      oe.OMEGA = mod(oe.OMEGA + deltaL, 360.0);
+      oe.Ω = mod(oe.Ω + deltaL, 360.0);
       oe.pi = mod(oe.pi + deltaL, 360.0);
     }
 
-    oe.omega = mod(oe.pi - oe.OMEGA, 360.0);
+    oe.ω = mod(oe.pi - oe.Ω, 360.0);
     oe.M = mod(oe.L - oe.pi, 360.0);
 
     const M = to_radian(oe.M);
@@ -328,10 +329,10 @@ export class SolarSystem {
   static getHeliocentricPositionFromElements(oe: OrbitalElements): SphericalPosition3D {
     const cos_i = cos_deg(oe.i);
     const sin_i = sin_deg(oe.i);
-    const cos_o = cos_deg(oe.OMEGA);
-    const sin_o = sin_deg(oe.OMEGA);
+    const cos_o = cos_deg(oe.Ω);
+    const sin_o = sin_deg(oe.Ω);
     const r = oe.a * (1.0 - oe.e * oe.e) / (1.0 + oe.e * cos_deg(oe.v));
-    const vpo = oe.v + oe.pi - oe.OMEGA;
+    const vpo = oe.v + oe.pi - oe.Ω;
     const cos_vpo = cos_deg(vpo);
     const sin_vpo = sin_deg(vpo);
     const x = r * (cos_o * cos_vpo - sin_o * sin_vpo * cos_i);
@@ -385,16 +386,16 @@ export class SolarSystem {
       this.sharedAdditionalsInitPending = false;
 
       this.sharedAdditionalsPendingPromise = AdditionalOrbitingObjects.getAdditionalOrbitingObjects(dataService).then(ao => {
-          this.sharedAdditionals = ao;
-          this.sharedAdditionalsPendingPromise = null;
+        this.sharedAdditionals = ao;
+        this.sharedAdditionalsPendingPromise = null;
 
-          return Promise.resolve(true);
-        }).catch(result => {
-          this.sharedAdditionalsPendingPromise = null;
-          console.log('Failed to initialze asteroids and comets: ', result);
+        return Promise.resolve(true);
+      }).catch(result => {
+        this.sharedAdditionalsPendingPromise = null;
+        console.log('Failed to initialize asteroids and comets: ', result);
 
-          return Promise.resolve(false);
-        });
+        return Promise.resolve(false);
+      });
 
       return this.sharedAdditionalsPendingPromise;
     }
@@ -436,7 +437,7 @@ export class SolarSystem {
 
   getHeliocentricPosition(planet: number, time_JDE: number, flags = 0): SphericalPosition3D {
     let result: SphericalPosition3D = null;
-    const precFlags = flags & ~LOW_PRECISION & ~HIGH_PRECISION;
+    const precisionFlags = flags & ~LOW_PRECISION & ~HIGH_PRECISION;
 
     if (MERCURY <= planet && planet <= NEPTUNE) {
       if (this.planets !== null && (flags & QUICK_PLANET) === 0)
@@ -447,9 +448,9 @@ export class SolarSystem {
     else if (planet === SUN)
       return new SphericalPosition3D();
     else if (planet === MOON) {
-      const sunPos = this.getEclipticPosition(SUN, time_JDE, null, precFlags);
+      const sunPos = this.getEclipticPosition(SUN, time_JDE, null, precisionFlags);
 
-      result = this.getEclipticPosition(MOON, time_JDE, null, precFlags).translate(sunPos);
+      result = this.getEclipticPosition(MOON, time_JDE, null, precisionFlags).translate(sunPos);
     }
     else if (planet === PLUTO) {
       if (this.pluto !== null && (flags & QUICK_PLANET) === 0)
@@ -591,7 +592,7 @@ export class SolarSystem {
     const gmst = SolarSystem.getGreenwichMeanSiderealTime(time_JDU);
     const nutation = this.ecliptic.getNutation(UT_to_TDB(time_JDU));
 
-    return mod(gmst + nutation.deltaPsi.degrees * nutation.obliquity.cos, 360.0);
+    return mod(gmst + nutation.Δψ.degrees * nutation.obliquity.cos, 360.0);
   }
 
   // Note that getHorizontalPosition() is LOW_PRECISION by default -- which is still typically better
@@ -616,7 +617,7 @@ export class SolarSystem {
 
     const pos = this.getEquatorialPosition(planet, UT_to_TDB(time_JDU), observer, flags);
 
-    return <SphericalPosition3D> observer.equatorialToHorizontal(pos, time_JDU, flags);
+    return observer.equatorialToHorizontal(pos, time_JDU, flags) as SphericalPosition3D;
   }
 
   getHourAngle(planet: number, time_JDU: number, observer: ISkyObserver, flags = DEFAULT_FLAGS): Angle {
@@ -652,13 +653,13 @@ export class SolarSystem {
 
     const pos = this.getEquatorialPosition(planet, UT_to_TDB(time_JDU), observer, flags);
     const hourAngle = this.getHourAngle(planet, time_JDU, observer, flags);
-    const numer = hourAngle.sin;
-    const denom = observer.latitude.tan * pos.declination.cos - pos.declination.sin * hourAngle.cos;
+    const numerator = hourAngle.sin;
+    const denominator = observer.latitude.tan * pos.declination.cos - pos.declination.sin * hourAngle.cos;
 
-    if (denom === 0.0)
+    if (denominator === 0.0)
       return null;
 
-    return Angle.atan2(numer, denom);
+    return Angle.atan2(numerator, denominator);
   }
 
   // Result continuously-variable value in degrees.
@@ -739,8 +740,8 @@ export class SolarSystem {
     const i = 28.075216 - 0.012998 * T + 0.000004 * T * T;
     const sin_i = sin_deg(i);
     const cos_i = cos_deg(i);
-    const OMEGA = 169.508470 + 1.394681 * T + 0.000412 * T * T;
-    const ri = <RingInfo> {};
+    const Ω = 169.508470 + 1.394681 * T + 0.000412 * T * T;
+    const ri = {} as RingInfo;
 
     const delayedTime = this.getEclipticPosition(SATURN, time_JDE, null, DELAYED_TIME | LOW_PRECISION).radius;
     const hpos = this.getHeliocentricPosition(SATURN, delayedTime, LOW_PRECISION);
@@ -750,28 +751,27 @@ export class SolarSystem {
     const l1 = l - 0.01759 / r;
     const b1 = hpos.latitude.degrees - 0.000764 * cos_deg(l - N) / r;
     const epos = this.getEclipticPosition(SATURN, delayedTime, null, LOW_PRECISION);
-    const lambda = epos.longitude.degrees;
-    const beta = epos.latitude.degrees;
-    const sin_beta = sin_deg(beta);
-    const cos_beta = cos_deg(beta);
-    const DELTA = epos.radius;
+    const λ = epos.longitude.degrees;
+    const β = epos.latitude.degrees;
+    const sin_β = sin_deg(β);
+    const cos_β = cos_deg(β);
+    const Δ = epos.radius;
 
-    ri.B = asin_deg(sin_i * cos_beta * sin_deg(lambda - OMEGA)
-           - cos_i * sin_beta);
-    ri.a = 375.35 / DELTA;
+    ri.B = asin_deg(sin_i * cos_β * sin_deg(λ - Ω) - cos_i * sin_β);
+    ri.a = 375.35 / Δ;
     ri.b = ri.a * sin_deg(abs(ri.B));
-    ri.B1 = asin_deg(sin_deg(i) * sin_deg(b1) * sin_deg(l1 - OMEGA) - cos_deg(i) * sin_deg(b1));
+    ri.B1 = asin_deg(sin_deg(i) * sin_deg(b1) * sin_deg(l1 - Ω) - cos_deg(i) * sin_deg(b1));
 
     const sin_b1 = sin_deg(b1);
     const cos_b1 = cos_deg(b1);
-    const U1 = atan2_deg(sin_i * sin_b1 + cos_i * cos_b1 * sin_deg(l1 - OMEGA),
-               cos_b1 * cos_deg(l1 - OMEGA));
-    const U2 = atan2_deg(sin_i * sin_beta + cos_i * cos_beta * sin_deg(lambda - OMEGA),
-               cos_b1 * cos_deg(lambda - OMEGA));
+    const U1 = atan2_deg(sin_i * sin_b1 + cos_i * cos_b1 * sin_deg(l1 - Ω),
+               cos_b1 * cos_deg(l1 - Ω));
+    const U2 = atan2_deg(sin_i * sin_β + cos_i * cos_β * sin_deg(λ - Ω),
+               cos_b1 * cos_deg(λ - Ω));
 
     ri.dU = abs(U1 - U2);
 
-    const lambda0 = OMEGA - 90.0;
+    const lambda0 = Ω - 90.0;
     const beta0 = 90.0 - i;
     // Equatorial position of Saturn (with aberration).
     const eqpos = this.getEquatorialPosition(SATURN, time_JDE, null, ABERRATION | LOW_PRECISION);
@@ -791,12 +791,12 @@ export class SolarSystem {
 
   getMagnitude(planet: number, time_JDE: number): number {
     const r = this.getHeliocentricPosition(planet, time_JDE, QUICK_SUN | LOW_PRECISION).radius;
-    const DELTA = this.getEclipticPosition(planet, time_JDE, null, QUICK_SUN | LOW_PRECISION).radius;
+    const Δ = this.getEclipticPosition(planet, time_JDE, null, QUICK_SUN | LOW_PRECISION).radius;
 
     const i = this.getPhaseAngle(planet, time_JDE);
     const i2 = i * i;
     const i3 = i2 * i;
-    const _5log_rD = 5.0 * log10(r * DELTA);
+    const _5log_rD = 5.0 * log10(r * Δ);
 
     switch (planet) {
       // Mercury and Venus from "Improving the Visual Magnitudes of the Planets in the Astronomical
@@ -817,7 +817,9 @@ export class SolarSystem {
         return -9.40 + _5log_rD + 0.005 * i;
 
       case SATURN:
+        // eslint-disable-next-line no-case-declarations
         const ri = this.getSaturnRingInfo(time_JDE);
+        // eslint-disable-next-line no-case-declarations
         const sin_B = sin_deg(ri.B);
 
         return -8.88 + _5log_rD + 0.044 * ri.dU - 2.60 * sin_deg(abs(ri.B)) + 1.25 * sin_B * sin_B;
@@ -835,7 +837,7 @@ export class SolarSystem {
         return 0.23 + _5log_rD + 0.026 * i + 4.0E-9 * i3 * i;
 
       case SUN:
-        return -26.74 + 5 * log10(DELTA);
+        return -26.74 + 5 * log10(Δ);
 
       default:
         if (SolarSystem.sharedAdditionals && SolarSystem.isAsteroidOrComet(planet)) {
@@ -859,26 +861,26 @@ export class SolarSystem {
     if (planet < SUN || planet === EARTH || planet > MOON)
       return 0.0;
 
-    let DELTA;
+    let Δ;
 
     if (!isNil(observer) && planet === MOON)
-      DELTA = this.getHorizontalPosition(planet, time_JDE, observer).radius;
+      Δ = this.getHorizontalPosition(planet, time_JDE, observer).radius;
     else
-      DELTA = this.getEclipticPosition(planet, time_JDE, null, ABERRATION + QUICK_SUN).radius;
+      Δ = this.getEclipticPosition(planet, time_JDE, null, ABERRATION + QUICK_SUN).radius;
 
     let r = 0.0;
 
     switch (planet) {
-      case SUN:     r = 959.63 / DELTA;                      break;
-      case MOON:    r = 358473400 / (DELTA * KM_PER_AU);     break;
-      case MERCURY: r =   3.36 / DELTA;                      break;
-      case VENUS:   r =   8.34 / DELTA;                      break;
-      case MARS:    r =   4.68 / DELTA;                      break;
-      case JUPITER: r = (polarSize ? 92.06 : 98.44) / DELTA; break;
-      case SATURN:  r = (polarSize ? 73.82 : 82.73) / DELTA; break;
-      case URANUS:  r =  35.02 / DELTA;                      break;
-      case NEPTUNE: r =  33.50 / DELTA;                      break;
-      case PLUTO:   r =   2.07 / DELTA;                      break;
+      case SUN:     r = 959.63 / Δ;                      break;
+      case MOON:    r = 358473400 / (Δ * KM_PER_AU);     break;
+      case MERCURY: r =   3.36 / Δ;                      break;
+      case VENUS:   r =   8.34 / Δ;                      break;
+      case MARS:    r =   4.68 / Δ;                      break;
+      case JUPITER: r = (polarSize ? 92.06 : 98.44) / Δ; break;
+      case SATURN:  r = (polarSize ? 73.82 : 82.73) / Δ; break;
+      case URANUS:  r =  35.02 / Δ;                      break;
+      case NEPTUNE: r =  33.50 / Δ;                      break;
+      case PLUTO:   r =   2.07 / Δ;                      break;
     }
 
     return r * 2.0;
@@ -894,7 +896,7 @@ export class SolarSystem {
   // shadows.
   //
   getLunarEclipseInfo(time_JDE: number): EclipseInfo {
-    const ei = <EclipseInfo> {};
+    const ei = {} as EclipseInfo;
 
     ei.isSolar = false;
     ei.pos = this.getEclipticPosition(MOON, time_JDE, null, ABERRATION | NUTATION);
@@ -937,7 +939,7 @@ export class SolarSystem {
   // the duration of a solar eclipse, not just the peak of the eclipse.
   //
   getSolarEclipseInfo(time_JDE: number, locateShadow = false): EclipseInfo {
-    const ei = <EclipseInfo> {};
+    const ei = {} as EclipseInfo;
     const moonPos = this.getEclipticPosition(MOON, time_JDE, null, ABERRATION);
 
     ei.isSolar = true;
@@ -1011,17 +1013,16 @@ export class SolarSystem {
       const dx = xs - xm;
       const dy = ys - ym;
       const dz = zs - zm;
-      let c: number, radicand: number, u: number, xh: number, yh: number, zh: number;
 
       a = dx * dx + dy * dy + dz * dz;
       b = 2.0 * (xm * dx + ym * dy + zm * dz);
-      c = xm * xm + ym * ym + zm * zm - r * r;
 
-      radicand = max(b * b - 4.0 * a * c, 0.0);
-      u = (-b + sqrt(radicand)) / 2.0 / a;
-      xh = xm + u * dx;
-      yh = ym + u * dy;
-      zh = (zm + u * dz) / flattening;
+      const c = xm * xm + ym * ym + zm * zm - r * r;
+      const radicand = max(b * b - 4.0 * a * c, 0.0);
+      const u = (-b + sqrt(radicand)) / 2.0 / a;
+      const xh = xm + u * dx;
+      const yh = ym + u * dy;
+      const zh = (zm + u * dz) / flattening;
 
       const shadowCtr = SphericalPosition3D.convertRectangular(xh, yh, zh);
 
@@ -1035,7 +1036,7 @@ export class SolarSystem {
     const separation = this.getSolarElongation(MOON, time_JDE, observer);
 
     if (separation > 1.0)
-       return 0.0;
+      return 0.0;
 
     const moonRadius = this.getAngularDiameter(MOON, time_JDE, observer) / 7200.0;
     const sunRadius  = this.getAngularDiameter(SUN,  time_JDE)           / 7200.0;

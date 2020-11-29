@@ -1,5 +1,5 @@
 /*
-  Copyright © 2017-2019 Kerry Shetline, kerry@shetline.com
+  Copyright © 2017-2020 Kerry Shetline, kerry@shetline.com
 
   MIT license: https://opensource.org/licenses/MIT
 
@@ -321,7 +321,7 @@ export abstract class PlanetaryMoons {
   }
 
   protected static registerMoonNames(first: number, last: number, names: string[], shadowNames: string[]): void {
-    const mni = <MoonNameInfo> {};
+    const mni = {} as MoonNameInfo;
 
     mni.first = first;
     mni.last = last;

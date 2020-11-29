@@ -1,5 +1,5 @@
 /*
-  Copyright © 2017-2019 Kerry Shetline, kerry@shetline.com
+  Copyright © 2017-2020 Kerry Shetline, kerry@shetline.com
 
   MIT license: https://opensource.org/licenses/MIT
 
@@ -20,7 +20,6 @@
 import { ArrayBufferReader } from 'array-buffer-reader';
 import { KsDateTime } from 'ks-date-time-zone';
 import { Angle, asin_deg, cos_deg, interpolateTabular, limitNeg1to1, sign, sin_deg, sqrt, squared, Unit } from 'ks-math';
-import { isNumber, isUndefined } from 'util';
 import { JD_J2000 } from './astro-constants';
 import { IAstroDataService } from './i-astro-data.service';
 import { TDB_to_UT } from './ut-converter';
@@ -80,13 +79,13 @@ export class JupiterInfo {
           this.grsTimes.push(jd);
           this.grsLongs.push(lon);
 
-          if (isUndefined(this.minGRSTableTime) || this.minGRSTableTime > jd) {
+          if (this.minGRSTableTime === undefined || this.minGRSTableTime > jd) {
             this.firstGRSDate = date;
             this.minGRSTableTime =  jd;
             this.grsLongAtMinTime = lon;
           }
 
-          if (isUndefined(this.maxGRSTableTime) || this.maxGRSTableTime < jd) {
+          if (this.maxGRSTableTime === undefined || this.maxGRSTableTime < jd) {
             this.lastGRSDate = date;
             this.maxGRSTableTime =  jd;
             this.grsLongAtMaxTime = lon;
@@ -106,16 +105,17 @@ export class JupiterInfo {
     if (this.properlyInitialized)
       return Promise.resolve(new JupiterInfo());
     else if (this.properlyInitialized === false)
-      return Promise.reject('Failed to initialize JupiterInfo');
+      return Promise.reject(new Error('Failed to initialize JupiterInfo'));
     else {
       return astroDataService.getGrsData().then((grsData: ArrayBuffer) => {
-          this.readGrsInfo(grsData);
+        this.readGrsInfo(grsData);
 
-          return this.getJupiterInfo(astroDataService);
-        }).catch((reason: any) => {
-          this.properlyInitialized = false;
-          return Promise.reject('Failed to initialize JupiterInfo: ' + reason);
-        });
+        return this.getJupiterInfo(astroDataService);
+      }).catch((reason: any) => {
+        this.properlyInitialized = false;
+
+        return Promise.reject(new Error('Failed to initialize JupiterInfo: ' + reason));
+      });
     }
   }
 
@@ -138,9 +138,6 @@ export class JupiterInfo {
 
   static getLastKnownGRSLongitude(): Angle {
     return this.grsLongAtMaxTimeAngle;
-  }
-
-  private constructor() {
   }
 
   getSystemILongitude(time_JDE: number): Angle {
@@ -184,10 +181,10 @@ export class JupiterInfo {
   }
 
   setFixedGRSLongitude(longitude: number | Angle): void {
-    if (isNumber(longitude))
-      this.fixedGRSLong = new Angle(<number> longitude, Unit.DEGREES);
+    if (typeof longitude === 'number')
+      this.fixedGRSLong = new Angle(longitude as number, Unit.DEGREES);
     else
-      this.fixedGRSLong = <Angle> longitude;
+      this.fixedGRSLong = longitude as Angle;
 
     this.cacheTime = Number.MAX_VALUE;
   }
@@ -226,13 +223,13 @@ export class JupiterInfo {
     const K = J + A - B;
     const R = 1.00014 - 0.01671 * cos_deg(M) - 0.00014 * cos_deg(2.0 * M);
     const r = 5.20872 - 0.25208 * cos_deg(N) - 0.00611 * cos_deg(2.0 * N);
-    const delta = sqrt(r * r + R * R - 2.0 * r * R * cos_deg(K));
-    const psi = asin_deg(limitNeg1to1(R / delta * sin_deg(K)));
-    const omega1 = 210.98 + 877.8169088 * (d - delta / 173) + psi - B;
-    const omega2 = 187.23 + 870.1869088 * (d - delta / 173) + psi - B;
-    const cfp = 57.3 * squared(sin_deg(psi / 2.0)) * sign(sin_deg(K));
-    const cm1 = omega1 + cfp;
-    const cm2 = omega2 + cfp;
+    const Δ = sqrt(r * r + R * R - 2.0 * r * R * cos_deg(K));
+    const ψ = asin_deg(limitNeg1to1(R / Δ * sin_deg(K)));
+    const ω1 = 210.98 + 877.8169088 * (d - Δ / 173) + ψ - B;
+    const ω2 = 187.23 + 870.1869088 * (d - Δ / 173) + ψ - B;
+    const cfp = 57.3 * squared(sin_deg(ψ / 2.0)) * sign(sin_deg(K));
+    const cm1 = ω1 + cfp;
+    const cm2 = ω2 + cfp;
 
     this.sys1Long = new Angle(cm1, Unit.DEGREES);
     this.sys2Long = new Angle(cm2, Unit.DEGREES);

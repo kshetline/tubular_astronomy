@@ -1,5 +1,5 @@
 /*
-  Copyright © 2018 Kerry Shetline, kerry@shetline.com
+  Copyright © 2018-2020 Kerry Shetline, kerry@shetline.com
 
   MIT license: https://opensource.org/licenses/MIT
 
@@ -28,11 +28,12 @@ function makeRequest(url: string, responseType: XMLHttpRequestResponseType): Pro
     xhr.open('GET', url);
     xhr.responseType = responseType;
 
-    xhr.onload = function(): void {
+    xhr.onload = function (): void {
       if (this.status >= 200 && this.status < 300) {
         resolve(xhr.response);
       }
       else {
+        // eslint-disable-next-line prefer-promise-reject-errors
         reject({
           status: this.status,
           statusText: xhr.statusText
@@ -40,7 +41,8 @@ function makeRequest(url: string, responseType: XMLHttpRequestResponseType): Pro
       }
     };
 
-    xhr.onerror = function(): void {
+    xhr.onerror = function (): void {
+      // eslint-disable-next-line prefer-promise-reject-errors
       reject({
         status: this.status,
         statusText: xhr.statusText
@@ -52,6 +54,7 @@ function makeRequest(url: string, responseType: XMLHttpRequestResponseType): Pro
 }
 
 export class SimpleAstroDataService implements IAstroDataService {
+  // eslint-disable-next-line no-useless-constructor
   constructor(private baseUrl: string) {
   }
 
