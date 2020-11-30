@@ -1,8 +1,8 @@
 {
   "env": {
-    "browser": true,
-    "es6": true,
-    "jasmine": true
+    "es2017": true,
+    "mocha": true,
+    "node": true
   },
   "extends": [
     "standard",
