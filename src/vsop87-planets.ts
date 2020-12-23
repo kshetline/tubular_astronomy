@@ -24,7 +24,7 @@
   VSOP87D series.
 */
 
-import { abs, Angle, cos, PI, SphericalPosition3D, Unit } from 'ks-math';
+import { abs, Angle, cos, PI, SphericalPosition3D, Unit } from '@tubular/math';
 import { JD_J2000, MERCURY, NEPTUNE, SUN } from './astro-constants';
 
 interface VsopTerm {

@@ -17,12 +17,12 @@
   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import { KsDateTime, KsTimeZone, parseISODate } from 'ks-date-time-zone';
+import { DateTime, Timezone, parseISODate } from '@tubular/time';
 import {
   abs, Angle, atan, cos, cos_deg, cosh, HALF_PI, interpolate, interpolateModular, log, max, min, mod, PI, pow, sign, signZP,
   sin, sin_deg, sinh, SphericalPosition, SphericalPosition3D, sqrt, tan, to_radian, TWO_PI
-} from 'ks-math';
-import { compareCaseSecondary, compareStrings, padLeft, replace } from 'ks-util';
+} from '@tubular/math';
+import { compareCaseSecondary, compareStrings, padLeft, replace } from '@tubular/util';
 import isNil from 'lodash/isNil';
 import isNumber from 'lodash/isNumber';
 import { ASTEROID_BASE, COMET_BASE, K_DEG, K_RAD, NO_MATCH } from './astro-constants';
@@ -59,9 +59,9 @@ export class ObjectInfo {
   next: ObjectInfo;
 
   toString(): string {
-    const tEpoch = new KsDateTime(KsDateTime.millisFromJulianDay(this.epoch), KsTimeZone.UT_ZONE);
+    const tEpoch = new DateTime(DateTime.millisFromJulianDay(this.epoch), Timezone.UT_ZONE);
     const epoch = tEpoch.toYMDhmString();
-    const tTp = new KsDateTime(KsDateTime.millisFromJulianDay(this.Tp), KsTimeZone.UT_ZONE);
+    const tTp = new DateTime(DateTime.millisFromJulianDay(this.Tp), Timezone.UT_ZONE);
     const Tp = tTp.toYMDhmString();
 
     return `${this.name}: epoch=${epoch}, a=${this.a}, q=${this.q}, e=${this.e}, i=${this.i}, w=${this.ω}, ` +
@@ -122,7 +122,7 @@ export class AdditionalOrbitingObjects {
         oi.menuName = menuNameBase + name;
         oi.shortMenuName = menuNameBase + shortName;
         oi.id = id;
-        oi.epoch = KsDateTime.julianDay_SGC(ymd.y, ymd.m, ymd.d, 0, 0, 0);
+        oi.epoch = DateTime.julianDay_SGC(ymd.y, ymd.m, ymd.d, 0, 0, 0);
         oi.hasMag = asAsteroids;
         oi.asteroid = asAsteroids;
         oi.a = element.q / (1.0 - element.e);

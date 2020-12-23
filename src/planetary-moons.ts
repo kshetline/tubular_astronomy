@@ -17,8 +17,8 @@
   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import { floor, max, min, sqrt } from 'ks-math';
-import { extendDelimited } from 'ks-util';
+import { floor, max, min, sqrt } from '@tubular/math';
+import { extendDelimited } from '@tubular/util';
 import clone from 'lodash/clone';
 import isUndefined from 'lodash/isUndefined';
 import { FIRST_JUPITER_MOON, NO_MATCH } from './astro-constants';

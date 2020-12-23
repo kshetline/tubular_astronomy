@@ -17,9 +17,9 @@
   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import { ArrayBufferReader } from 'array-buffer-reader';
-import { KsDateTime } from 'ks-date-time-zone';
-import { Angle, asin_deg, cos_deg, interpolateTabular, limitNeg1to1, sign, sin_deg, sqrt, squared, Unit } from 'ks-math';
+import { ArrayBufferReader } from '@tubular/array-buffer-reader';
+import { DateTime } from '@tubular/time';
+import { Angle, asin_deg, cos_deg, interpolateTabular, limitNeg1to1, sign, sin_deg, sqrt, squared, Unit } from '@tubular/math';
 import { JD_J2000 } from './astro-constants';
 import { IAstroDataService } from './i-astro-data.service';
 import { TDB_to_UT } from './ut-converter';
@@ -74,7 +74,7 @@ export class JupiterInfo {
           const year = Number(Y);
           const month = Number(M);
           const day = Number(D);
-          const jd = KsDateTime.julianDay_SGC(year, month, day, 0, 0, 0);
+          const jd = DateTime.julianDay_SGC(year, month, day, 0, 0, 0);
 
           this.grsTimes.push(jd);
           this.grsLongs.push(lon);

@@ -17,10 +17,10 @@
   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import { DateTimeField, getISOFormatDate, GregorianChange, KsCalendar, KsDateTime, KsTimeZone, YMDDate } from 'ks-date-time-zone';
+import { DateTimeField, getISOFormatDate, GregorianChange, Calendar, DateTime, Timezone, YMDDate } from '@tubular/time';
 import {
   abs, Angle, div_rd, floor, FMT_DD, FMT_MINS, max, min, MinMaxFinder, mod, mod2, round, sign, sin_deg, Unit, ZeroFinder
-} from 'ks-math';
+} from '@tubular/math';
 import escape from 'lodash/escape';
 import findIndex from 'lodash/findIndex';
 import flatten from 'lodash/flatten';
@@ -48,16 +48,16 @@ export class AstroEvent {
   readonly _eventText: string;
   readonly _value: number;
 
-  eventTime: KsDateTime;
+  eventTime: DateTime;
 
   miscInfo: any;
 
   constructor(eventType: number, eventText: string, year: number, month: number, day: number, hourOffset: number,
-              zone: KsTimeZone, gregorianChange?: GregorianChange, value?: number) {
+              zone: Timezone, gregorianChange?: GregorianChange, value?: number) {
     this._eventType = eventType;
     this._eventText = eventText;
     this._value = value;
-    this.eventTime = new KsDateTime({ y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1 }, zone, gregorianChange);
+    this.eventTime = new DateTime({ y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1 }, zone, gregorianChange);
 
     const minutesInDay = this.eventTime.getMinutesInDay(year, month, day);
     const minutesIntoDay = min(max(floor(hourOffset * 60), 0), minutesInDay - 1);
@@ -65,8 +65,8 @@ export class AstroEvent {
     this.eventTime.add(DateTimeField.MINUTES, minutesIntoDay);
   }
 
-  static fromJdu(eventType: number, eventText: string, jdu: number, zone: KsTimeZone, gregorianChange?: GregorianChange, value?: number): AstroEvent {
-    const dateTime = new KsDateTime(KsDateTime.millisFromJulianDay(jdu), zone, gregorianChange);
+  static fromJdu(eventType: number, eventText: string, jdu: number, zone: Timezone, gregorianChange?: GregorianChange, value?: number): AstroEvent {
+    const dateTime = new DateTime(DateTime.millisFromJulianDay(jdu), zone, gregorianChange);
     const startOfDay = dateTime.getStartOfDayMillis();
     const ymd = dateTime.wallTime;
     const hourOffset = (dateTime.utcTimeMillis - startOfDay) / 3600000;
@@ -77,7 +77,7 @@ export class AstroEvent {
   get eventType(): number { return this._eventType; }
   get eventText(): string { return this._eventText; }
   get value(): number { return this._value; }
-  get ut(): number { return KsDateTime.julianDay(this.eventTime.utcTimeMillis); }
+  get ut(): number { return DateTime.julianDay(this.eventTime.utcTimeMillis); }
 
   toString(): string {
     return this._eventType + '; ' + this._eventText + '; ' + this.eventTime.toYMDhmString() +
@@ -125,12 +125,12 @@ export class EventFinder {
   constructor(private jupiterInfo?: JupiterInfo) {
   }
 
-  getLunarPhaseEvent(year: number, month: number, day: number, zone?: KsTimeZone, gregorianChange?: GregorianChange): AstroEvent {
+  getLunarPhaseEvent(year: number, month: number, day: number, zone?: Timezone, gregorianChange?: GregorianChange): AstroEvent {
     if (!zone)
-      zone = KsTimeZone.UT_ZONE;
+      zone = Timezone.UT_ZONE;
 
-    const dateTime = new KsDateTime({ y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1 }, zone, gregorianChange);
-    let startOfDay = KsDateTime.julianDay(dateTime.utcTimeMillis) - HALF_MINUTE;
+    const dateTime = new DateTime({ y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1 }, zone, gregorianChange);
+    let startOfDay = DateTime.julianDay(dateTime.utcTimeMillis) - HALF_MINUTE;
     const minutesInDay = dateTime.getMinutesInDay(year, month, day);
 
     if (minutesInDay === 0)
@@ -183,12 +183,12 @@ export class EventFinder {
                            year, month, day, eventTime, zone);
   }
 
-  getLunarPhasesByYear(startYear: number, endYear: number, zone?: KsTimeZone, gregorianChange?: GregorianChange, addPaddingMonths = false): Promise<AstroEvent[]> {
+  getLunarPhasesByYear(startYear: number, endYear: number, zone?: Timezone, gregorianChange?: GregorianChange, addPaddingMonths = false): Promise<AstroEvent[]> {
     if (!zone)
-      zone = KsTimeZone.UT_ZONE;
+      zone = Timezone.UT_ZONE;
 
     const results: AstroEvent[] = [];
-    const dateTime = new KsDateTime(null, zone);
+    const dateTime = new DateTime(null, zone);
     const δ = (addPaddingMonths ? 1 : 0);
     const lastMonthYear = (endYear + 1) * 12 + δ;
 
@@ -248,7 +248,7 @@ export class EventFinder {
   private static formatEventTime(event: AstroEvent): string {
     const hour   = event.eventTime.wallTime.hrs;
     const minute = event.eventTime.wallTime.min;
-    let dstSymbol = KsTimeZone.getDstSymbol(event.eventTime.wallTime.dstOffset);
+    let dstSymbol = Timezone.getDstSymbol(event.eventTime.wallTime.dstOffset);
 
     if (!dstSymbol)
       dstSymbol = ' ';
@@ -268,7 +268,7 @@ export class EventFinder {
     return months[month - 1] + ' ' + (day < 10 ? ' ' : '') + day + ' ' + EventFinder.formatEventTime(event);
   }
 
-  getLunarPhasesByYearAsHtml(startYear: number, endYear: number, zone?: KsTimeZone, gregorianChange?: GregorianChange,
+  getLunarPhasesByYearAsHtml(startYear: number, endYear: number, zone?: Timezone, gregorianChange?: GregorianChange,
                              options?: LunarPhasesHtmlOptions): Promise<string> {
     return this.getLunarPhasesByYear(startYear, endYear, zone, gregorianChange).then(events => {
       const results: string[] = [];
@@ -353,12 +353,12 @@ export class EventFinder {
     });
   }
 
-  getLunarPhasesForMonth(year: number, month: number, zone?: KsTimeZone, gregorianChange?: GregorianChange): AstroEvent[] {
+  getLunarPhasesForMonth(year: number, month: number, zone?: Timezone, gregorianChange?: GregorianChange): AstroEvent[] {
     if (!zone)
-      zone = KsTimeZone.UT_ZONE;
+      zone = Timezone.UT_ZONE;
 
     const results: AstroEvent[] = [];
-    const dateTime = new KsDateTime(null, zone);
+    const dateTime = new DateTime(null, zone);
     const firstDay = dateTime.getFirstDateInMonth(year, month);
     const lastDay = dateTime.getLastDateInMonth(year, month);
     const missing = dateTime.getMissingDateRange(year, month);
@@ -387,15 +387,15 @@ export class EventFinder {
     return results;
   }
 
-  getEquinoxSolsticeEvent(year: number, month: number, day: number, zone?: KsTimeZone, gregorianChange?: GregorianChange): AstroEvent {
+  getEquinoxSolsticeEvent(year: number, month: number, day: number, zone?: Timezone, gregorianChange?: GregorianChange): AstroEvent {
     if (month % 3 !== 0 && year > -500 && year < 2700)
       return null;
 
     if (!zone)
-      zone = KsTimeZone.UT_ZONE;
+      zone = Timezone.UT_ZONE;
 
-    const dateTime = new KsDateTime({ y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1 }, zone, gregorianChange);
-    let startOfDay = KsDateTime.julianDay(dateTime.utcTimeMillis) - HALF_MINUTE;
+    const dateTime = new DateTime({ y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1 }, zone, gregorianChange);
+    let startOfDay = DateTime.julianDay(dateTime.utcTimeMillis) - HALF_MINUTE;
     const minutesInDay = dateTime.getMinutesInDay(year, month, day);
 
     if (minutesInDay === 0)
@@ -446,9 +446,9 @@ export class EventFinder {
                           year, month, day, eventTime, zone, gregorianChange);
   }
 
-  getEquinoxesAndSolsticesForOneYear(year: number, zone?: KsTimeZone, gregorianChange?: GregorianChange): AstroEvent[] {
+  getEquinoxesAndSolsticesForOneYear(year: number, zone?: Timezone, gregorianChange?: GregorianChange): AstroEvent[] {
     const results: AstroEvent[] = [];
-    const dateTime = new KsDateTime(null, zone || KsTimeZone.UT_ZONE, gregorianChange);
+    const dateTime = new DateTime(null, zone || Timezone.UT_ZONE, gregorianChange);
     let firstMonth = 3;
     let step = 3;
 
@@ -476,9 +476,9 @@ export class EventFinder {
     return results;
   }
 
-  getEquinoxesAndSolsticesByYear(startYear: number, endYear: number, zone?: KsTimeZone, gregorianChange?: GregorianChange): Promise<AstroEvent[]> {
+  getEquinoxesAndSolsticesByYear(startYear: number, endYear: number, zone?: Timezone, gregorianChange?: GregorianChange): Promise<AstroEvent[]> {
     const results: AstroEvent[] = [];
-    const dateTime = new KsDateTime(null, zone || KsTimeZone.UT_ZONE, gregorianChange);
+    const dateTime = new DateTime(null, zone || Timezone.UT_ZONE, gregorianChange);
     const lastMonthYear = (endYear + 1) * 12;
 
     let monthYear = startYear * 12;
@@ -525,7 +525,7 @@ export class EventFinder {
     });
   }
 
-  getEquinoxesAndSolsticesByYearAsHtml(startYear: number, endYear: number, zone?: KsTimeZone, gregorianChange?: GregorianChange,
+  getEquinoxesAndSolsticesByYearAsHtml(startYear: number, endYear: number, zone?: Timezone, gregorianChange?: GregorianChange,
                                        options?: EquinoxSolsticeHtmlOptions): Promise<string> {
     return this.getEquinoxesAndSolsticesByYear(startYear, endYear, zone, gregorianChange).then(events => {
       const results: string[] = [];
@@ -591,10 +591,10 @@ export class EventFinder {
   // even two risings or two settings during a single day are handled.
   //
   getRiseAndSetTimes(body: number, year: number, month: number, day: number, observer: ISkyObserver,
-                     zone?: KsTimeZone, gregorianChange?: GregorianChange,
+                     zone?: Timezone, gregorianChange?: GregorianChange,
                      minutesBefore = 0, targetAltitude?: number, doTwilight?: boolean): AstroEvent[] {
     if (!zone)
-      zone = KsTimeZone.UT_ZONE;
+      zone = Timezone.UT_ZONE;
 
     if (isNil(targetAltitude)) {
       targetAltitude = -REFRACTION_AT_HORIZON;
@@ -607,8 +607,8 @@ export class EventFinder {
       doTwilight = (body === SUN && targetAltitude <= MAX_ALT_FOR_TWILIGHT);
 
     const results: AstroEvent[] = [];
-    const dateTime = new KsDateTime({ y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1 }, zone, gregorianChange);
-    let startOfDay = KsDateTime.julianDay(dateTime.utcTimeMillis) - HALF_MINUTE;
+    const dateTime = new DateTime({ y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1 }, zone, gregorianChange);
+    let startOfDay = DateTime.julianDay(dateTime.utcTimeMillis) - HALF_MINUTE;
     const minutesInDay = dateTime.getMinutesInDay(year, month, day);
 
     if (minutesInDay === 0)
@@ -709,13 +709,13 @@ export class EventFinder {
   }
 
   getTransitTimes(body: number, year: number, month: number, day: number, observer: ISkyObserver,
-                  zone?: KsTimeZone, gregorianChange?: GregorianChange): AstroEvent[] {
+                  zone?: Timezone, gregorianChange?: GregorianChange): AstroEvent[] {
     if (!zone)
-      zone = KsTimeZone.UT_ZONE;
+      zone = Timezone.UT_ZONE;
 
     const results: AstroEvent[] = [];
-    const dateTime = new KsDateTime({ y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1 }, zone, gregorianChange);
-    const startOfDay = KsDateTime.julianDay(dateTime.utcTimeMillis) - HALF_MINUTE;
+    const dateTime = new DateTime({ y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1 }, zone, gregorianChange);
+    const startOfDay = DateTime.julianDay(dateTime.utcTimeMillis) - HALF_MINUTE;
     const minutesInDay = dateTime.getMinutesInDay(year, month, day);
 
     if (minutesInDay === 0)
@@ -768,19 +768,19 @@ export class EventFinder {
   }
 
   getMinutesOfDaylight(year: number, month: number, day: number, observer: ISkyObserver,
-                       zone?: KsTimeZone, gregorianChange?: GregorianChange): number {
+                       zone?: Timezone, gregorianChange?: GregorianChange): number {
     const sunEvents = this.getRiseAndSetTimes(SUN, year, month, day, observer, zone, gregorianChange);
 
     if (sunEvents.length === 1 && sunEvents[0].eventType === UNSEEN_ALL_DAY)
       return 0;
 
-    const dateTime = new KsDateTime({ y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1 }, zone, gregorianChange);
+    const dateTime = new DateTime({ y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1 }, zone, gregorianChange);
     const minutesInDay = dateTime.getMinutesInDay(year, month, day);
 
     if (sunEvents.length === 1 && sunEvents[0].eventType === VISIBLE_ALL_DAY)
       return minutesInDay;
 
-    const startOfDay = KsDateTime.julianDay(dateTime.utcTimeMillis);
+    const startOfDay = DateTime.julianDay(dateTime.utcTimeMillis);
     let lastTime = startOfDay;
     let total = 0;
     let lastEvent = NON_EVENT;
@@ -803,10 +803,10 @@ export class EventFinder {
   }
 
   getMonthOfEvents(body: number, year: number, month: number, observer: ISkyObserver,
-                   zone?: KsTimeZone, gregorianChange?: GregorianChange, targetAltitude?: number): AstroEvent[] {
+                   zone?: Timezone, gregorianChange?: GregorianChange, targetAltitude?: number): AstroEvent[] {
     const monthsEvents: AstroEvent[] = [];
     const eAndSList = this.getEquinoxesAndSolsticesForOneYear(year, zone, gregorianChange);
-    const dateTime = new KsDateTime(null, zone || KsTimeZone.UT_ZONE, gregorianChange);
+    const dateTime = new DateTime(null, zone || Timezone.UT_ZONE, gregorianChange);
 
     for (const event of eAndSList) {
       if (event.eventTime.wallTime.m === month) {
@@ -854,9 +854,9 @@ export class EventFinder {
   }
 
   getRiseAndSetEvents(body: number, year: number, month: number, day: number, dayCount: number, observer: ISkyObserver,
-                      zone?: KsTimeZone, gregorianChange?: GregorianChange, twilightAltitude?: number): Promise<AstroEvent[][]> {
+                      zone?: Timezone, gregorianChange?: GregorianChange, twilightAltitude?: number): Promise<AstroEvent[][]> {
     const results: AstroEvent[][] = [];
-    const calendar = new KsCalendar(gregorianChange);
+    const calendar = new Calendar(gregorianChange);
 
     let dayNum = 0;
 
@@ -901,7 +901,7 @@ export class EventFinder {
   }
 
   getRiseAndSetEventsAsHtml(body: number, year: number, month: number, day: number, dayCount: number, observer: ISkyObserver,
-                            zone?: KsTimeZone, gregorianChange?: GregorianChange, twilightAltitude?: number, options?: RiseAndSetHtmlOptions): Promise<string> {
+                            zone?: Timezone, gregorianChange?: GregorianChange, twilightAltitude?: number, options?: RiseAndSetHtmlOptions): Promise<string> {
     return this.getRiseAndSetEvents(body, year, month, day, dayCount, observer, zone, gregorianChange, twilightAltitude).then(daysOfEvents => {
       const results: string[] = [];
       const doTwilight = (body === SUN && !isNil(twilightAltitude));
@@ -1047,7 +1047,7 @@ export class EventFinder {
     });
   }
 
-  getGalileanMoonEvents(startJdu: number, endJdu: number, includeGrsTransits: boolean, zone?: KsTimeZone, gregorianChange?: GregorianChange): Promise<AstroEvent[]> {
+  getGalileanMoonEvents(startJdu: number, endJdu: number, includeGrsTransits: boolean, zone?: Timezone, gregorianChange?: GregorianChange): Promise<AstroEvent[]> {
     const results: AstroEvent[] = [];
 
     let t = floor(startJdu * 1440.0) / 1440.0;
@@ -1084,7 +1084,7 @@ export class EventFinder {
     });
   }
 
-  getGalileanMoonEventsAsHtml(startJdu: number, endJdu: number, includeGrsTransits: boolean, zone?: KsTimeZone,
+  getGalileanMoonEventsAsHtml(startJdu: number, endJdu: number, includeGrsTransits: boolean, zone?: Timezone,
                               gregorianChange?: GregorianChange, options?: GalileanMoonsHtmlOptions): Promise<string> {
     return this.getGalileanMoonEvents(startJdu, endJdu, includeGrsTransits, zone, gregorianChange).then(events => {
       const results: string[] = [];
@@ -1128,16 +1128,16 @@ export class EventFinder {
   }
 
   findEvent(planet: number, eventType: number, originalTime: number,
-            observer: ISkyObserver, zone?: KsTimeZone, gregorianChange?: GregorianChange,
+            observer: ISkyObserver, zone?: Timezone, gregorianChange?: GregorianChange,
             doPrevious = false, argument?: any, maxTries = Number.MAX_SAFE_INTEGER): AstroEvent {
     if (!zone)
-      zone = KsTimeZone.UT_ZONE;
+      zone = Timezone.UT_ZONE;
 
     const δ = (doPrevious ? -1 : 1);
 
     originalTime += δ * HALF_MINUTE; // Bias time by a half minute towards the event seek direction.
 
-    const dateTime = new KsDateTime(KsDateTime.millisFromJulianDay(originalTime), zone, gregorianChange);
+    const dateTime = new DateTime(DateTime.millisFromJulianDay(originalTime), zone, gregorianChange);
     let ymd: YMDDate = dateTime.wallTime;
 
     let testTime = originalTime;

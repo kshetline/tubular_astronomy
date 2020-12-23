@@ -17,7 +17,7 @@
   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import { Angle, SphericalPosition, SphericalPosition3D } from 'ks-math';
+import { Angle, SphericalPosition, SphericalPosition3D } from '@tubular/math';
 
 export interface ISkyObserver {
   readonly longitude: Angle;

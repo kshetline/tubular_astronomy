@@ -20,7 +20,7 @@
 import {
   abs, Angle, asin, atan, atan2, cos, HALF_PI, interpolate, limitNeg1to1, mod, PI, sign, sin, SphericalPosition, SphericalPosition3D,
   sqrt, tan, to_degree, to_radian, TWO_PI, Unit
-} from 'ks-math';
+} from '@tubular/math';
 import isNumber from 'lodash/isNumber';
 import { ABERRATION, EARTH_RADIUS_KM, EARTH_RADIUS_POLAR_KM, KM_PER_AU, NUTATION, REFRACTION, SUN, TOPOCENTRIC } from './astro-constants';
 import { refractedAltitude, unrefractedAltitude } from './astronomy-util';

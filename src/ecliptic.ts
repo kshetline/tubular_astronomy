@@ -23,7 +23,7 @@
 import {
   abs, Angle, asin, atan2, cos, cos_deg, HALF_PI, limitNeg1to1, PI, sin, sin_deg, SphericalPosition, SphericalPosition3D,
   sqrt, Unit
-} from 'ks-math';
+} from '@tubular/math';
 import isNumber from 'lodash/isNumber';
 import { JD_J2000, OBLIQUITY_J2000 } from './astro-constants';
 

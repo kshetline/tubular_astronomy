@@ -20,8 +20,8 @@
   as presented by Jean Meeus.
 */
 
-import { abs, atan2, atan_deg, cos, cos_deg, floor, max, min, sin, sin_deg, SphericalPosition3D, sqrt, squared } from 'ks-math';
-import { extendDelimited } from 'ks-util';
+import { abs, atan2, atan_deg, cos, cos_deg, floor, max, min, sin, sin_deg, SphericalPosition3D, sqrt, squared } from '@tubular/math';
+import { extendDelimited } from '@tubular/util';
 import { DELAYED_TIME, FIRST_JUPITER_MOON, JUPITER, JUPITER_FLATTENING, LAST_JUPITER_MOON, MEAN_JUPITER_SYS_II } from './astro-constants';
 import { JupiterInfo } from './jupiter-info';
 import { MoonEvents, MoonInfo, PlanetaryMoons } from './planetary-moons';

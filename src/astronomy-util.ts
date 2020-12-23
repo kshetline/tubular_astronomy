@@ -25,8 +25,8 @@
 // Degrees in, degrees out.
 //
 
-import { Angle, floor, interpolate, limitNeg1to1, max, min, pow, round, SphericalPosition, sqrt, tan_deg, Unit } from 'ks-math';
-import { blendColors } from 'ks-util';
+import { Angle, floor, interpolate, limitNeg1to1, max, min, pow, round, SphericalPosition, sqrt, tan_deg, Unit } from '@tubular/math';
+import { blendColors } from '@tubular/util';
 import { GALACTIC_ASCENDING_NODE_B1950, GALACTIC_NORTH_B1950, JD_B1950, JD_J2000, LOW_PRECISION, MOON, QUICK_SUN, SUN } from './astro-constants';
 import { Ecliptic } from './ecliptic';
 import { ISkyObserver } from './i-sky-observer';

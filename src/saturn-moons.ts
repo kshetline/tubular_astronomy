@@ -20,7 +20,7 @@
   by Gérard Dourneau, as presented by Jean Meeus.
 */
 
-import { abs, asin_deg, atan2, atan2_deg, cos, cos_deg, sin, sin_deg, SphericalPosition3D, sqrt, squared, to_degree } from 'ks-math';
+import { abs, asin_deg, atan2, atan2_deg, cos, cos_deg, sin, sin_deg, SphericalPosition3D, sqrt, squared, to_degree } from '@tubular/math';
 import { DELAYED_TIME, FIRST_SATURN_MOON, JD_B1950, LAST_SATURN_MOON, SATURN, SATURN_FLATTENING } from './astro-constants';
 import { Ecliptic } from './ecliptic';
 import { MoonInfo, PlanetaryMoons } from './planetary-moons';

@@ -20,7 +20,7 @@
   presented in a shorter but lower-accuracy form, by Jean Meeus.
 */
 
-import { cos_deg, sin_deg, SphericalPosition3D, Unit } from 'ks-math';
+import { cos_deg, sin_deg, SphericalPosition3D, Unit } from '@tubular/math';
 import { JD_J2000, KM_PER_AU } from './astro-constants';
 
 interface LongitudeTerm

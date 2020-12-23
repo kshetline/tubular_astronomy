@@ -17,7 +17,7 @@
   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import { floor, squared } from 'ks-math';
+import { floor, squared } from '@tubular/math';
 import { JD_J2000 } from './astro-constants';
 
 /* eslint-disable @typescript-eslint/indent, comma-spacing, space-infix-ops */

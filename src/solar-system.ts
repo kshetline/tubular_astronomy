@@ -20,7 +20,7 @@
 import {
   abs, acos, acos_deg, Angle, asin_deg, atan2_deg, atan_deg, cos, cos_deg, exp, limitNeg1to1, log, log10, max, min, mod, mod2, pow,
   sin, sin_deg, SphericalPosition, SphericalPosition3D, sqrt, tan, tan_deg, to_radian, TWO_PI, Unit
-} from 'ks-math';
+} from '@tubular/math';
 import isNil from 'lodash/isNil';
 import { AdditionalOrbitingObjects } from './additional-orbiting-objects';
 import {

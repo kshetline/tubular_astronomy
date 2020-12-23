@@ -1,12 +1,12 @@
 import { expect } from 'chai';
-import { KsDateTime, KsTimeZone } from 'ks-date-time-zone';
+import { DateTime, Timezone } from '@tubular/time';
 import { FIRST_QUARTER, FULL_MOON, GREATEST_ELONGATION, GRS_TRANSIT_EVENT, JUPITER, MOON, RISE_EVENT, SET_EVENT, SOLAR_ECLIPSE, SUN, VENUS } from './astro-constants';
 import { EventFinder } from './event-finder';
 import { IAstroDataService } from './i-astro-data.service';
 import { JupiterInfo } from './jupiter-info';
 import { SkyObserver } from './sky-observer';
 import { AsteroidCometInfo, EclipseInfo } from './solar-system';
-import { processMillis } from 'ks-util';
+import { processMillis } from '@tubular/util';
 
 const grsTestData = new Uint8ClampedArray(
 `3.9
@@ -51,9 +51,9 @@ if (promiseHelper)
 
 describe('EventFinder', () => {
   const eventFinder = new EventFinder();
-  const zone = KsTimeZone.getTimeZone('America/New_York');
-  const time = new KsDateTime({ y: 2018, m: 2, d: 11, hrs: 20, min: 0, sec: 0 }, zone);
-  const jdu = KsDateTime.julianDay(time.utcTimeMillis);
+  const zone = Timezone.getTimeZone('America/New_York');
+  const time = new DateTime({ y: 2018, m: 2, d: 11, hrs: 20, min: 0, sec: 0 }, zone);
+  const jdu = DateTime.julianDay(time.utcTimeMillis);
   const observer = new SkyObserver(-71.48, 42.75);
 
   it('should find the next sunrise', () => {
@@ -115,8 +115,8 @@ describe('EventFinder', () => {
       expect(jupiterInfo != null).to.be.true;
 
       const eventFinder2 = new EventFinder(jupiterInfo);
-      const time2 = new KsDateTime({ y: 2017, m: 7, d: 1, hrs: 0, min: 0, sec: 0 }, KsTimeZone.UT_ZONE);
-      const jdu2 = KsDateTime.julianDay(time2.utcTimeMillis);
+      const time2 = new DateTime({ y: 2017, m: 7, d: 1, hrs: 0, min: 0, sec: 0 }, Timezone.UT_ZONE);
+      const jdu2 = DateTime.julianDay(time2.utcTimeMillis);
       const event = eventFinder2.findEvent(JUPITER, GRS_TRANSIT_EVENT, jdu2, observer);
       expect(event.eventTime.wallTime.hrs).to.equal(2);
       expect(event.eventTime.wallTime.min).to.equal(31);

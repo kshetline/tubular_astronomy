@@ -17,8 +17,8 @@
   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-import { ArrayBufferReader } from 'array-buffer-reader';
-import { abs, cos, mod, PI, sign, sin, sin_deg, SphericalPosition, tan, to_radian, Unit } from 'ks-math';
+import { ArrayBufferReader } from '@tubular/array-buffer-reader';
+import { abs, cos, mod, PI, sign, sin, sin_deg, SphericalPosition, tan, to_radian, Unit } from '@tubular/math';
 import { ABERRATION, JD_J2000, NO_PRECESSION, NUTATION, OBLIQUITY_J2000, UNKNOWN_MAGNITUDE } from './astro-constants';
 import { Ecliptic, NMode } from './ecliptic';
 import { IAstroDataService } from './i-astro-data.service';
