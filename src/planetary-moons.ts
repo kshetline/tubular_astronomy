@@ -18,9 +18,7 @@
 */
 
 import { floor, max, min, sqrt } from '@tubular/math';
-import { extendDelimited } from '@tubular/util';
-import clone from 'lodash/clone';
-import isUndefined from 'lodash/isUndefined';
+import { clone, extendDelimited } from '@tubular/util';
 import { FIRST_JUPITER_MOON, NO_MATCH } from './astro-constants';
 import { SolarSystem } from './solar-system';
 import { UT_to_TDB } from './ut-converter';
@@ -114,7 +112,7 @@ export abstract class PlanetaryMoons {
     let moons: MoonInfo[];
 
     for (let i = 0; i < CACHE_SIZE; ++i) {
-      if (time_JDE === this.cachedTimes[index][i] && !isUndefined(this.cachedMoons[index][i])) {
+      if (time_JDE === this.cachedTimes[index][i] && this.cachedMoons[index][i] != null) {
         moons = this.cachedMoons[index][i];
         break;
       }

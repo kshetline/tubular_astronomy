@@ -1,26 +1,32 @@
 const { resolve } = require('path');
 
 module.exports = env => {
-  const target = env?.target === 'umd' ? 'es5' : 'es2015';
-  const libraryTarget = env?.target === 'umd' ? 'umd' : 'commonjs';
-  const library = env?.target === 'umd' ? 'tbAstro' : undefined;
-
   const config = {
     mode: env?.dev ? 'development' : 'production',
-    target,
+    target: ['web', 'es5'],
     entry: './dist/index.js',
     output: {
-      path: resolve(__dirname, 'dist'),
-      filename: `index.${env?.target || 'cjs'}.js`,
-      libraryTarget,
-      library
+      path: resolve(__dirname, 'dist/web'),
+      filename: 'index..js',
+      libraryTarget: 'umd',
+      library: 'tbAstro'
     },
     module: {
       rules: [
-        { test: /\.js$/, use: 'babel-loader', resolve: { fullySpecified: false } }
+        {
+          test: /\.js$/,
+          use: {
+            loader: 'babel-loader',
+            options: { presets: ['@babel/preset-env'] }
+          },
+          resolve: { fullySpecified: false }
+        }
       ]
     },
-    externals: ['@tubular/time', 'lodash']
+    externals: ['@tubular/time'],
+    resolve: {
+      mainFields: ['esm2015', 'es2015', 'module', 'main', 'browser']
+    }
   };
 
   // Allow UMD target to bundle @tubular/array-buffer-reader, @tubular/math, and @tubular/util.

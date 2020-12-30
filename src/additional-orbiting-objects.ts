@@ -22,9 +22,7 @@ import {
   abs, Angle, atan, cos, cos_deg, cosh, HALF_PI, interpolate, interpolateModular, log, max, min, mod, PI, pow, sign, signZP,
   sin, sin_deg, sinh, SphericalPosition, SphericalPosition3D, sqrt, tan, to_radian, TWO_PI
 } from '@tubular/math';
-import { compareCaseSecondary, compareStrings, padLeft, replace } from '@tubular/util';
-import isNil from 'lodash/isNil';
-import isNumber from 'lodash/isNumber';
+import { compareCaseSecondary, compareStrings, isNumber, padLeft, replace } from '@tubular/util';
 import { ASTEROID_BASE, COMET_BASE, K_DEG, K_RAD, NO_MATCH } from './astro-constants';
 import { Ecliptic } from './ecliptic';
 import { IAstroDataService } from './i-astro-data.service';
@@ -349,7 +347,7 @@ export class AdditionalOrbitingObjects {
     if (isNumber(objectInfoOrBodyId)) {
       oi = this.getObjectInfo(objectInfoOrBodyId as number, time_JDE);
 
-      if (isNil(oi))
+      if (oi == null)
         return null;
     }
     else

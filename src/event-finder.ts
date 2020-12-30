@@ -21,13 +21,7 @@ import { DateTimeField, getISOFormatDate, GregorianChange, Calendar, DateTime, T
 import {
   abs, Angle, div_rd, floor, FMT_DD, FMT_MINS, max, min, MinMaxFinder, mod, mod2, round, sign, sin_deg, Unit, ZeroFinder
 } from '@tubular/math';
-import escape from 'lodash/escape';
-import findIndex from 'lodash/findIndex';
-import flatten from 'lodash/flatten';
-import isNil from 'lodash/isNil';
-import isNumber from 'lodash/isNumber';
-import isString from 'lodash/isString';
-import isUndefined from 'lodash/isUndefined';
+import { flatten, htmlEscape, isNumber, isString } from '@tubular/util';
 import {
   APHELION, AVG_SUN_MOON_RADIUS, FALL_EQUINOX, FIRST_QUARTER, FULL_MOON, GALILEAN_MOON_EVENT, GREATEST_ELONGATION, GRS_TRANSIT_EVENT, HALF_MINUTE,
   INFERIOR_CONJUNCTION, LAST_QUARTER, LUNAR_ECLIPSE, MARS, MAX_ALT_FOR_TWILIGHT, MEAN_JUPITER_SYS_II, MEAN_SYNODIC_MONTH, MERCURY, MINUTE, MOON,
@@ -81,7 +75,7 @@ export class AstroEvent {
 
   toString(): string {
     return this._eventType + '; ' + this._eventText + '; ' + this.eventTime.toYMDhmString() +
-      (isUndefined(this.value) ? '' : '; ' + this.value) +
+      (this.value == null ? '' : '; ' + this.value) +
       (isString(this.miscInfo) ? '; ' + this.miscInfo : '');
   }
 }
@@ -114,7 +108,7 @@ export interface GalileanMoonsHtmlOptions {
 }
 
 function esc(s: string): string {
-  return escape(s).replace(/\n/g, '<br>');
+  return htmlEscape(s).replace(/\n/g, '<br>');
 }
 
 export class EventFinder {
@@ -596,14 +590,14 @@ export class EventFinder {
     if (!zone)
       zone = Timezone.UT_ZONE;
 
-    if (isNil(targetAltitude)) {
+    if (targetAltitude == null) {
       targetAltitude = -REFRACTION_AT_HORIZON;
 
       if (body === SUN || body === MOON)
         targetAltitude -= AVG_SUN_MOON_RADIUS;
     }
 
-    if (isNil(doTwilight))
+    if (doTwilight == null)
       doTwilight = (body === SUN && targetAltitude <= MAX_ALT_FOR_TWILIGHT);
 
     const results: AstroEvent[] = [];
@@ -824,7 +818,7 @@ export class EventFinder {
     const missing = dateTime.getMissingDateRange(year, month);
     let doTwilight = false;
 
-    if (isNil(targetAltitude)) {
+    if (targetAltitude == null) {
       targetAltitude = -REFRACTION_AT_HORIZON;
 
       if (body === SUN || body === MOON)
@@ -869,7 +863,7 @@ export class EventFinder {
 
         Array.prototype.push.apply(eventsForOneDay, this.getRiseAndSetTimes(body, ymd.y, ymd.m, ymd.d, observer, zone, gregorianChange, 0, null, false));
 
-        if (body === SUN && !isNil(twilightAltitude))
+        if (body === SUN && twilightAltitude != null)
           Array.prototype.push.apply(eventsForOneDay, this.getRiseAndSetTimes(body, ymd.y, ymd.m, ymd.d, observer, zone, gregorianChange, 0, twilightAltitude, true));
 
         Array.prototype.push.apply(eventsForOneDay, this.getTransitTimes(body, ymd.y, ymd.m, ymd.d, observer, zone, gregorianChange));
@@ -904,7 +898,7 @@ export class EventFinder {
                             zone?: Timezone, gregorianChange?: GregorianChange, twilightAltitude?: number, options?: RiseAndSetHtmlOptions): Promise<string> {
     return this.getRiseAndSetEvents(body, year, month, day, dayCount, observer, zone, gregorianChange, twilightAltitude).then(daysOfEvents => {
       const results: string[] = [];
-      const doTwilight = (body === SUN && !isNil(twilightAltitude));
+      const doTwilight = (body === SUN && twilightAltitude != null);
 
       if (options && options.tableClass)
         results.push(`<table class="${options.tableClass}">\n`);
@@ -923,7 +917,7 @@ export class EventFinder {
       let extraColumn = false;
 
       if (!doTwilight)
-        extraColumn = findIndex(flatten(daysOfEvents), { eventType: VISIBLE_ALL_DAY }) >= 0;
+        extraColumn = !!flatten(daysOfEvents).find(evt => evt.eventType === VISIBLE_ALL_DAY);
 
       if (extraColumn && headers.length === 3)
         headers.push('\u00A0');

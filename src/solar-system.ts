@@ -21,7 +21,6 @@ import {
   abs, acos, acos_deg, Angle, asin_deg, atan2_deg, atan_deg, cos, cos_deg, exp, limitNeg1to1, log, log10, max, min, mod, mod2, pow,
   sin, sin_deg, SphericalPosition, SphericalPosition3D, sqrt, tan, tan_deg, to_radian, TWO_PI, Unit
 } from '@tubular/math';
-import isNil from 'lodash/isNil';
 import { AdditionalOrbitingObjects } from './additional-orbiting-objects';
 import {
   ABERRATION, ASTEROID_BASE, ASTEROID_MAX, ASTROMETRIC, COMET_BASE, COMET_MAX, DEFAULT_FLAGS, DELAYED_TIME, EARTH, EARTH_RADIUS_KM,
@@ -466,7 +465,7 @@ export class SolarSystem {
 
   getEclipticPosition(planet: number, time_JDE: number, observer?: ISkyObserver,
                       flags = DEFAULT_FLAGS, earthTime?: number): SphericalPosition3D {
-    if (isNil(earthTime))
+    if (earthTime == null)
       earthTime = time_JDE;
 
     if (flags === DEFAULT_FLAGS) {
@@ -485,7 +484,7 @@ export class SolarSystem {
     // position. A catch-22 is avoided by making sure the equatorial computation does
     // not pass the topocentric flag into this function.
 
-    if ((flags & TOPOCENTRIC) !== 0 && !isNil(observer)) {
+    if ((flags & TOPOCENTRIC) !== 0 && observer != null) {
       const equPos = this.getEquatorialPosition(planet, time_JDE, observer, flags);
 
       return this.ecliptic.equatorialToEcliptic3D(equPos, time_JDE,
@@ -580,7 +579,7 @@ export class SolarSystem {
     const eclipticPos = this.getEclipticPosition(planet, time_JDE, null, flags & ~TOPOCENTRIC);
     let pos = this.ecliptic.eclipticToEquatorial3D(eclipticPos, time_JDE, obliquityMode);
 
-    if ((flags & TOPOCENTRIC) !== 0 && !isNil(observer))
+    if ((flags & TOPOCENTRIC) !== 0 && observer != null)
       pos = observer.equatorialTopocentricAdjustment(pos, time_JDE, flags);
 
     return pos;
@@ -603,7 +602,7 @@ export class SolarSystem {
   //
   getHorizontalPosition(planet: number, time_JDU: number, observer: ISkyObserver,
                         flags = ABERRATION | LOW_PRECISION): SphericalPosition3D {
-    if (isNil(observer) || (!SolarSystem.isNominalPlanet(planet) && !SolarSystem.isAsteroidOrComet(planet)))
+    if (observer == null || (!SolarSystem.isNominalPlanet(planet) && !SolarSystem.isAsteroidOrComet(planet)))
       return null;
     else if (planet === EARTH)
       return new SphericalPosition3D();
@@ -624,7 +623,7 @@ export class SolarSystem {
     if (flags === DEFAULT_FLAGS) {
       flags = ABERRATION;
 
-      if (!isNil(observer))
+      if (observer != null)
         flags |= TOPOCENTRIC;
     }
 
@@ -645,7 +644,7 @@ export class SolarSystem {
     if (flags === DEFAULT_FLAGS) {
       flags = ABERRATION;
 
-      if (!isNil(observer))
+      if (observer != null)
         flags |= TOPOCENTRIC;
     }
 
@@ -715,7 +714,7 @@ export class SolarSystem {
     if (flags === DEFAULT_FLAGS) {
       flags = ABERRATION;
 
-      if (!isNil(observer))
+      if (observer != null)
         flags |= TOPOCENTRIC;
     }
 
@@ -863,7 +862,7 @@ export class SolarSystem {
 
     let Δ;
 
-    if (!isNil(observer) && planet === MOON)
+    if (observer != null && planet === MOON)
       Δ = this.getHorizontalPosition(planet, time_JDE, observer).radius;
     else
       Δ = this.getEclipticPosition(planet, time_JDE, null, ABERRATION + QUICK_SUN).radius;

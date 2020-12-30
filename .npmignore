@@ -9,3 +9,4 @@
 *.spec.js
 /webpack.config.cjs
 /.nyc_output
+*.tgz
