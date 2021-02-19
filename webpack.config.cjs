@@ -1,13 +1,17 @@
 const { resolve } = require('path');
 
 module.exports = env => {
+  const esVersion = env?.esver === '5' ? 'es5' : 'es6';
+  const dir = env?.esver === '5' ? 'web5' : 'web';
+  const chromeVersion = env?.esver === '5' ? '23' : '51';
+
   const config = {
     mode: env?.dev ? 'development' : 'production',
-    target: ['web', 'es5'],
+    target: [esVersion, 'web'],
     entry: './dist/index.js',
     output: {
-      path: resolve(__dirname, 'dist/web'),
-      filename: 'index..js',
+      path: resolve(__dirname, 'dist/' + dir),
+      filename: 'index.js',
       libraryTarget: 'umd',
       library: 'tbAstro'
     },
@@ -17,15 +21,16 @@ module.exports = env => {
           test: /\.js$/,
           use: {
             loader: 'babel-loader',
-            options: { presets: ['@babel/preset-env'] }
+            options: { presets: [['@babel/preset-env', { targets: { chrome: chromeVersion } }]] }
           },
           resolve: { fullySpecified: false }
         }
       ]
     },
     externals: ['@tubular/time'],
+    devtool: 'source-map',
     resolve: {
-      mainFields: ['esm2015', 'es2015', 'module', 'main', 'browser']
+      mainFields: ['es2015', 'browser', 'module', 'main', 'main-es5']
     }
   };
 

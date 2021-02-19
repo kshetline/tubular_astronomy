@@ -53,10 +53,10 @@ export class AstroEvent {
     this._value = value;
     this.eventTime = new DateTime({ y: year, m: month, d: day, hrs: 0, min: 0, sec: 0, occurrence: 1 }, zone, gregorianChange);
 
-    const minutesInDay = this.eventTime.getMinutesInDay(year, month, day);
+    const minutesInDay = round(this.eventTime.getMinutesInDay(year, month, day));
     const minutesIntoDay = min(max(floor(hourOffset * 60), 0), minutesInDay - 1);
 
-    this.eventTime.add(DateTimeField.MINUTES, minutesIntoDay);
+    this.eventTime.add(DateTimeField.MINUTE, minutesIntoDay);
   }
 
   static fromJdu(eventType: number, eventText: string, jdu: number, zone: Timezone, gregorianChange?: GregorianChange, value?: number): AstroEvent {
@@ -170,7 +170,7 @@ export class EventFinder {
     if (!gotEvent)
       return null;
 
-    dateTime.add(DateTimeField.MINUTES, eventTime);
+    dateTime.add(DateTimeField.MINUTE, floor(eventTime));
 
     return new AstroEvent(NEW_MOON + phaseIndex,
                            ['new moon', '1st quarter', 'full moon', 'third quarter'][phaseIndex],
@@ -190,7 +190,7 @@ export class EventFinder {
     let checkPhase = 0;
     let event: AstroEvent;
 
-    const calculate = () => {
+    const calculate = (): void => {
       const startTick = Date.now();
 
       for (; monthYear < lastMonthYear && Date.now() < startTick + 50; ++monthYear) {
@@ -222,7 +222,7 @@ export class EventFinder {
     };
 
     return new Promise<AstroEvent[]>((resolve) => {
-      const loop = () => {
+      const loop = (): void => {
         calculate();
 
         if (monthYear === lastMonthYear)
@@ -280,7 +280,7 @@ export class EventFinder {
       if (options && options.formatDateTime)
         formatDateTime = options.formatDateTime;
 
-      let formatYear = (year: number) => year.toString();
+      let formatYear = (year: number): string => year.toString();
 
       if (options && options.formatYear)
         formatYear = options.formatYear;
@@ -477,7 +477,7 @@ export class EventFinder {
 
     let monthYear = startYear * 12;
 
-    const calculate = () => {
+    const calculate = (): void => {
       const startTick = Date.now();
 
       for (; monthYear < lastMonthYear && Date.now() < startTick + 50; ++monthYear) {
@@ -506,7 +506,7 @@ export class EventFinder {
     };
 
     return new Promise<AstroEvent[]>((resolve) => {
-      const loop = () => {
+      const loop = (): void => {
         calculate();
 
         if (monthYear === lastMonthYear)
@@ -536,7 +536,7 @@ export class EventFinder {
       if (options && options.formatDateTime)
         formatDateTime = options.formatDateTime;
 
-      let formatYear = (year: number) => year.toString();
+      let formatYear = (year: number): string => year.toString();
 
       if (options && options.formatYear)
         formatYear = options.formatYear;
@@ -854,7 +854,7 @@ export class EventFinder {
 
     let dayNum = 0;
 
-    const calculate = () => {
+    const calculate = (): void => {
       const startTick = Date.now();
 
       while (dayNum < dayCount && Date.now() < startTick + 50) {
@@ -881,7 +881,7 @@ export class EventFinder {
     };
 
     return new Promise<AstroEvent[][]>((resolve) => {
-      const loop = () => {
+      const loop = (): void => {
         calculate();
 
         if (dayNum === dayCount)
@@ -932,7 +932,7 @@ export class EventFinder {
       if (options && options.formatDate)
         formatDate = options.formatDate;
 
-      const formatDay = (event: AstroEvent) => {
+      const formatDay = (event: AstroEvent): string => {
         const d = event.eventTime.wallTime.d;
 
         return (d < 10 ? '0' : '') + d;
@@ -1046,7 +1046,7 @@ export class EventFinder {
 
     let t = floor(startJdu * 1440.0) / 1440.0;
 
-    const calculate = () => {
+    const calculate = (): void => {
       const startTick = Date.now();
 
       do {
@@ -1065,7 +1065,7 @@ export class EventFinder {
     };
 
     return new Promise<AstroEvent[]>((resolve) => {
-      const loop = () => {
+      const loop = (): void => {
         calculate();
 
         if (t >= endJdu)

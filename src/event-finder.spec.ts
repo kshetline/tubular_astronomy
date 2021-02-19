@@ -51,7 +51,7 @@ if (promiseHelper)
 
 describe('EventFinder', () => {
   const eventFinder = new EventFinder();
-  const zone = Timezone.getTimezone('America/New_York');
+  const zone = Timezone.from('America/New_York');
   const time = new DateTime({ y: 2018, m: 2, d: 11, hrs: 20, min: 0, sec: 0 }, zone);
   const jdu = DateTime.julianDay(time.utcTimeMillis);
   const observer = new SkyObserver(-71.48, 42.75);

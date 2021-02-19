@@ -31,7 +31,7 @@ import { TDB_to_UT, UT_to_TDB } from './ut-converter';
 const A90_1SEC = 1.5707915;
 const A90_2SEC = 1.5707866;
 
-SolarSystem.createSkyObserver = (longitude, latitude) => new SkyObserver(longitude, latitude);
+SolarSystem.createSkyObserver = (longitude, latitude): SkyObserver => new SkyObserver(longitude, latitude);
 
 export class SkyObserver implements ISkyObserver {
   private static solarSystem: SolarSystem;

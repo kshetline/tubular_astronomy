@@ -623,7 +623,7 @@ export class SolarSystem {
     if (flags === DEFAULT_FLAGS) {
       flags = ABERRATION;
 
-      if (observer != null)
+      if (planet === MOON)
         flags |= TOPOCENTRIC;
     }
 
