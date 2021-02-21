@@ -108,7 +108,7 @@ export class AdditionalOrbitingObjects {
         oi.q = element.q;
         oi.e = element.e;
         oi.i = element.i;
-        oi.ω = element.ω;
+        oi.ω = (element as any).w ?? element.ω;
         oi.L = element.L;
         oi.Tp = element.Tp;
         oi.n = K_DEG / oi.a / sqrt(oi.a);

@@ -1,6 +1,6 @@
 {
   "name": "@tubular/astronomy",
-  "version": "2.1.6",
+  "version": "2.1.7",
   "description": "Astronomical calculations for planetary positions, moon phases, eclipses, rise, transit, and set times, and more.",
   "browser": "dist/web/index.js",
   "browser-es5": "dist/web5/index.js",
