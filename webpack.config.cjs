@@ -1,3 +1,4 @@
+const TerserPlugin = require('terser-webpack-plugin');
 const { resolve } = require('path');
 
 module.exports = env => {
@@ -28,6 +29,14 @@ module.exports = env => {
       ]
     },
     externals: ['@tubular/time'],
+    optimization: {
+      minimize: !env?.dev,
+      minimizer: [new TerserPlugin({
+        terserOptions: {
+          output: { max_line_len: 511 }
+        }
+      })],
+    },
     devtool: 'source-map',
     resolve: {
       mainFields: ['es2015', 'browser', 'module', 'main', 'main-es5']
