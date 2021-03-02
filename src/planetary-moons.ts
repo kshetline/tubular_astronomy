@@ -1,26 +1,5 @@
-/*
-  Copyright © 2017-2020 Kerry Shetline, kerry@shetline.com
-
-  MIT license: https://opensource.org/licenses/MIT
-
-  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-  documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-  rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-  persons to whom the Software is furnished to do so, subject to the following conditions:
-
-  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-  Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-  WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-  COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-import { floor, max, min, sqrt } from 'ks-math';
-import { extendDelimited } from 'ks-util';
-import clone from 'lodash/clone';
-import isUndefined from 'lodash/isUndefined';
+import { floor, max, min, sqrt } from '@tubular/math';
+import { clone, extendDelimited } from '@tubular/util';
 import { FIRST_JUPITER_MOON, NO_MATCH } from './astro-constants';
 import { SolarSystem } from './solar-system';
 import { UT_to_TDB } from './ut-converter';
@@ -114,7 +93,7 @@ export abstract class PlanetaryMoons {
     let moons: MoonInfo[];
 
     for (let i = 0; i < CACHE_SIZE; ++i) {
-      if (time_JDE === this.cachedTimes[index][i] && !isUndefined(this.cachedMoons[index][i])) {
+      if (time_JDE === this.cachedTimes[index][i] && this.cachedMoons[index][i] != null) {
         moons = this.cachedMoons[index][i];
         break;
       }

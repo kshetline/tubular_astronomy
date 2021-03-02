@@ -1,30 +1,9 @@
-/*
-  Copyright © 2017-2020 Kerry Shetline, kerry@shetline.com
-
-  MIT license: https://opensource.org/licenses/MIT
-
-  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-  documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-  rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-  persons to whom the Software is furnished to do so, subject to the following conditions:
-
-  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-  Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-  WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-  COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-import { KsDateTime, KsTimeZone, parseISODate } from 'ks-date-time-zone';
+import { DateTime, Timezone, parseISODate } from '@tubular/time';
 import {
   abs, Angle, atan, cos, cos_deg, cosh, HALF_PI, interpolate, interpolateModular, log, max, min, mod, PI, pow, sign, signZP,
   sin, sin_deg, sinh, SphericalPosition, SphericalPosition3D, sqrt, tan, to_radian, TWO_PI
-} from 'ks-math';
-import { compareCaseSecondary, compareStrings, padLeft, replace } from 'ks-util';
-import isNil from 'lodash/isNil';
-import isNumber from 'lodash/isNumber';
+} from '@tubular/math';
+import { compareCaseSecondary, compareStrings, isNumber, padLeft, replace } from '@tubular/util';
 import { ASTEROID_BASE, COMET_BASE, K_DEG, K_RAD, NO_MATCH } from './astro-constants';
 import { Ecliptic } from './ecliptic';
 import { IAstroDataService } from './i-astro-data.service';
@@ -59,9 +38,9 @@ export class ObjectInfo {
   next: ObjectInfo;
 
   toString(): string {
-    const tEpoch = new KsDateTime(KsDateTime.millisFromJulianDay(this.epoch), KsTimeZone.UT_ZONE);
+    const tEpoch = new DateTime(DateTime.millisFromJulianDay(this.epoch), Timezone.UT_ZONE);
     const epoch = tEpoch.toYMDhmString();
-    const tTp = new KsDateTime(KsDateTime.millisFromJulianDay(this.Tp), KsTimeZone.UT_ZONE);
+    const tTp = new DateTime(DateTime.millisFromJulianDay(this.Tp), Timezone.UT_ZONE);
     const Tp = tTp.toYMDhmString();
 
     return `${this.name}: epoch=${epoch}, a=${this.a}, q=${this.q}, e=${this.e}, i=${this.i}, w=${this.ω}, ` +
@@ -122,14 +101,14 @@ export class AdditionalOrbitingObjects {
         oi.menuName = menuNameBase + name;
         oi.shortMenuName = menuNameBase + shortName;
         oi.id = id;
-        oi.epoch = KsDateTime.julianDay_SGC(ymd.y, ymd.m, ymd.d, 0, 0, 0);
+        oi.epoch = DateTime.julianDay_SGC(ymd.y, ymd.m, ymd.d, 0, 0, 0);
         oi.hasMag = asAsteroids;
         oi.asteroid = asAsteroids;
         oi.a = element.q / (1.0 - element.e);
         oi.q = element.q;
         oi.e = element.e;
         oi.i = element.i;
-        oi.ω = element.ω;
+        oi.ω = (element as any).w ?? element.ω;
         oi.L = element.L;
         oi.Tp = element.Tp;
         oi.n = K_DEG / oi.a / sqrt(oi.a);
@@ -349,7 +328,7 @@ export class AdditionalOrbitingObjects {
     if (isNumber(objectInfoOrBodyId)) {
       oi = this.getObjectInfo(objectInfoOrBodyId as number, time_JDE);
 
-      if (isNil(oi))
+      if (oi == null)
         return null;
     }
     else

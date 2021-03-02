@@ -1,27 +1,7 @@
-/*
-  Copyright © 2017-2020 Kerry Shetline, kerry@shetline.com
-
-  MIT license: https://opensource.org/licenses/MIT
-
-  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-  documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-  rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-  persons to whom the Software is furnished to do so, subject to the following conditions:
-
-  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-  Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-  WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-  COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
 import {
   abs, acos, acos_deg, Angle, asin_deg, atan2_deg, atan_deg, cos, cos_deg, exp, limitNeg1to1, log, log10, max, min, mod, mod2, pow,
   sin, sin_deg, SphericalPosition, SphericalPosition3D, sqrt, tan, tan_deg, to_radian, TWO_PI, Unit
-} from 'ks-math';
-import isNil from 'lodash/isNil';
+} from '@tubular/math';
 import { AdditionalOrbitingObjects } from './additional-orbiting-objects';
 import {
   ABERRATION, ASTEROID_BASE, ASTEROID_MAX, ASTROMETRIC, COMET_BASE, COMET_MAX, DEFAULT_FLAGS, DELAYED_TIME, EARTH, EARTH_RADIUS_KM,
@@ -466,7 +446,7 @@ export class SolarSystem {
 
   getEclipticPosition(planet: number, time_JDE: number, observer?: ISkyObserver,
                       flags = DEFAULT_FLAGS, earthTime?: number): SphericalPosition3D {
-    if (isNil(earthTime))
+    if (earthTime == null)
       earthTime = time_JDE;
 
     if (flags === DEFAULT_FLAGS) {
@@ -485,7 +465,7 @@ export class SolarSystem {
     // position. A catch-22 is avoided by making sure the equatorial computation does
     // not pass the topocentric flag into this function.
 
-    if ((flags & TOPOCENTRIC) !== 0 && !isNil(observer)) {
+    if ((flags & TOPOCENTRIC) !== 0 && observer != null) {
       const equPos = this.getEquatorialPosition(planet, time_JDE, observer, flags);
 
       return this.ecliptic.equatorialToEcliptic3D(equPos, time_JDE,
@@ -580,7 +560,7 @@ export class SolarSystem {
     const eclipticPos = this.getEclipticPosition(planet, time_JDE, null, flags & ~TOPOCENTRIC);
     let pos = this.ecliptic.eclipticToEquatorial3D(eclipticPos, time_JDE, obliquityMode);
 
-    if ((flags & TOPOCENTRIC) !== 0 && !isNil(observer))
+    if ((flags & TOPOCENTRIC) !== 0 && observer != null)
       pos = observer.equatorialTopocentricAdjustment(pos, time_JDE, flags);
 
     return pos;
@@ -603,7 +583,7 @@ export class SolarSystem {
   //
   getHorizontalPosition(planet: number, time_JDU: number, observer: ISkyObserver,
                         flags = ABERRATION | LOW_PRECISION): SphericalPosition3D {
-    if (isNil(observer) || (!SolarSystem.isNominalPlanet(planet) && !SolarSystem.isAsteroidOrComet(planet)))
+    if (observer == null || (!SolarSystem.isNominalPlanet(planet) && !SolarSystem.isAsteroidOrComet(planet)))
       return null;
     else if (planet === EARTH)
       return new SphericalPosition3D();
@@ -624,7 +604,7 @@ export class SolarSystem {
     if (flags === DEFAULT_FLAGS) {
       flags = ABERRATION;
 
-      if (!isNil(observer))
+      if (planet === MOON)
         flags |= TOPOCENTRIC;
     }
 
@@ -645,7 +625,7 @@ export class SolarSystem {
     if (flags === DEFAULT_FLAGS) {
       flags = ABERRATION;
 
-      if (!isNil(observer))
+      if (observer != null)
         flags |= TOPOCENTRIC;
     }
 
@@ -715,7 +695,7 @@ export class SolarSystem {
     if (flags === DEFAULT_FLAGS) {
       flags = ABERRATION;
 
-      if (!isNil(observer))
+      if (observer != null)
         flags |= TOPOCENTRIC;
     }
 
@@ -863,7 +843,7 @@ export class SolarSystem {
 
     let Δ;
 
-    if (!isNil(observer) && planet === MOON)
+    if (observer != null && planet === MOON)
       Δ = this.getHorizontalPosition(planet, time_JDE, observer).radius;
     else
       Δ = this.getEclipticPosition(planet, time_JDE, null, ABERRATION + QUICK_SUN).radius;

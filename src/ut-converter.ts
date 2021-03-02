@@ -1,23 +1,4 @@
-/*
-  Copyright © 2017-2020 Kerry Shetline, kerry@shetline.com
-
-  MIT license: https://opensource.org/licenses/MIT
-
-  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-  documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-  rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-  persons to whom the Software is furnished to do so, subject to the following conditions:
-
-  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-  Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-  WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-  COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-import { floor, squared } from 'ks-math';
+import { floor, squared } from '@tubular/math';
 import { JD_J2000 } from './astro-constants';
 
 /* eslint-disable @typescript-eslint/indent, comma-spacing, space-infix-ops */
@@ -27,13 +8,13 @@ const historicDeltaT = [
   120.3 , 120.3 , 120.5 , 120.6 , 120.7 , 120.9 , 121.0 , 121.1 , 121.3 , 121.5 ,
   121.6 , 121.9 , 122.0 , 122.2 , 122.5 , 122.7 , 122.9 , 123.2 , 123.4 , 123.7 ,
 // From http://www.phys.uu.nl/~vgent/deltat/deltat.htm (1659 value modified for
-// smoother transition to next data source.)
+// smoother transition to next data source.), https://stjarnhimlen.se/comp/time.html
   // 1620-1659
   124   , 119   , 115   , 110   , 106   , 102   ,  98   ,  95   ,  91   ,  88   ,
    85   ,  82   ,  79   ,  77   ,  74   ,  72   ,  70   ,  67   ,  65   ,  63   ,
    62   ,  60   ,  58   ,  57   ,  55   ,  54   ,  53   ,  51   ,  50   ,  49   ,
    48   ,  47   ,  46   ,  45   ,  44   ,  43   ,  42   ,  41   ,  40   ,  39   ,
-// From http://maia.usno.navy.mil/ser7/historic_deltat.data
+// From http://maia.usno.navy.mil/ser7/historic_deltat.data, https://stjarnhimlen.se/comp/time.html
   // 1660-1699
    38   ,  37   ,  36   ,  37   ,  38   ,  36   ,  35   ,  34   ,  33   ,  32   ,
    31   ,  30   ,  29   ,  29   ,  28   ,  27   ,  26   ,  25   ,  25   ,  26   ,
@@ -83,10 +64,10 @@ const historicDeltaT = [
    63.83,  64.09,  64.30,  64.47,  64.57,  64.69,  64.85,  65.15,  65.46,  65.78,
    66.07,  66.32,  66.60,  66.91,  67.28,  67.64,  68.10,  68.59,  68.97,  69.22,
 
-// From ftp://hpiers.obspm.fr/iers/bul/bulb_new/
-// Via 32.184 (for diff. between TDT and TAI) + 37 (for TAI - UTC) + UTC-UT1
-  // 2020
-   69.36
+// From https://www.iers.org/IERS/EN/DataProducts/EarthOrientationData/eop.html
+// As ΔT = 32.184 (for TDT - TAI) + 37 (for TAI - UTC) - (UT1-UTC)
+  // 2020-2021
+   69.36,  69.36
 ];
 
 let calibration = 0;

@@ -1,27 +1,8 @@
-/*
-  Copyright © 2017-2020 Kerry Shetline, kerry@shetline.com
-
-  MIT license: https://opensource.org/licenses/MIT
-
-  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-  documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-  rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-  persons to whom the Software is furnished to do so, subject to the following conditions:
-
-  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-  Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-  WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-  COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
 import {
   abs, Angle, asin, atan, atan2, cos, HALF_PI, interpolate, limitNeg1to1, mod, PI, sign, sin, SphericalPosition, SphericalPosition3D,
   sqrt, tan, to_degree, to_radian, TWO_PI, Unit
-} from 'ks-math';
-import isNumber from 'lodash/isNumber';
+} from '@tubular/math';
+import { isNumber } from '@tubular/util';
 import { ABERRATION, EARTH_RADIUS_KM, EARTH_RADIUS_POLAR_KM, KM_PER_AU, NUTATION, REFRACTION, SUN, TOPOCENTRIC } from './astro-constants';
 import { refractedAltitude, unrefractedAltitude } from './astronomy-util';
 import { ISkyObserver } from './i-sky-observer';
@@ -31,7 +12,7 @@ import { TDB_to_UT, UT_to_TDB } from './ut-converter';
 const A90_1SEC = 1.5707915;
 const A90_2SEC = 1.5707866;
 
-SolarSystem.createSkyObserver = (longitude, latitude) => new SkyObserver(longitude, latitude);
+SolarSystem.createSkyObserver = (longitude, latitude): SkyObserver => new SkyObserver(longitude, latitude);
 
 export class SkyObserver implements ISkyObserver {
   private static solarSystem: SolarSystem;
