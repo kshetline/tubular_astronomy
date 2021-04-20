@@ -2,12 +2,12 @@ import {
   abs, Angle, asin, atan, atan2, cos, HALF_PI, interpolate, limitNeg1to1, mod, PI, sign, sin, SphericalPosition, SphericalPosition3D,
   sqrt, tan, to_degree, to_radian, TWO_PI, Unit
 } from '@tubular/math';
+import { tdtToUt, utToTdt } from '@tubular/time';
 import { isNumber } from '@tubular/util';
 import { ABERRATION, EARTH_RADIUS_KM, EARTH_RADIUS_POLAR_KM, KM_PER_AU, NUTATION, REFRACTION, SUN, TOPOCENTRIC } from './astro-constants';
 import { refractedAltitude, unrefractedAltitude } from './astronomy-util';
 import { ISkyObserver } from './i-sky-observer';
 import { SolarSystem } from './solar-system';
-import { TDB_to_UT, UT_to_TDB } from './ut-converter';
 
 const A90_1SEC = 1.5707915;
 const A90_2SEC = 1.5707866;
@@ -97,7 +97,7 @@ export class SkyObserver implements ISkyObserver {
 
   getApparentSolarTime(time_JDU: number): Angle {
     const lha = this.getLocalHourAngle(time_JDU, true);
-    const time_JDE = UT_to_TDB(time_JDU);
+    const time_JDE = utToTdt(time_JDU);
     const sun =  SkyObserver.solarSystem.getEquatorialPosition(SUN, time_JDE, this).rightAscension;
 
     return lha.subtract(sun).add_nonneg(Angle.STRAIGHT);
@@ -112,7 +112,7 @@ export class SkyObserver implements ISkyObserver {
   // slight discontinuity within one arcsecond of each pole.
   //
   equatorialTopocentricAdjustment(pos: SphericalPosition3D, time_JDE: number, flags: number): SphericalPosition3D {
-    const time_JDU = TDB_to_UT(time_JDE);
+    const time_JDU = tdtToUt(time_JDE);
     const lha      = this.getLocalHourAngle(time_JDU, (flags & NUTATION) !== 0).radians;
     const distance = pos.radius;
     // Sine of parallax, using 8.79412 arc seconds and distance in AU.

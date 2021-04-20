@@ -1,4 +1,4 @@
-import { DateTimeField, getISOFormatDate, GregorianChange, Calendar, DateTime, Timezone, YMDDate } from '@tubular/time';
+import { DateTimeField, getISOFormatDate, GregorianChange, Calendar, DateTime, Timezone, utToTdt, YMDDate } from '@tubular/time';
 import {
   abs, Angle, div_rd, floor, FMT_DD, FMT_MINS, max, min, MinMaxFinder, mod, mod2, round, sign, sin_deg, Unit, ZeroFinder
 } from '@tubular/math';
@@ -14,7 +14,6 @@ import { ISkyObserver } from './i-sky-observer';
 import { JupiterInfo } from './jupiter-info';
 import { JupitersMoons } from './jupiter-moons';
 import { EclipseInfo, SolarSystem } from './solar-system';
-import { UT_to_TDB } from './ut-converter';
 
 /* eslint-disable no-case-declarations, yoda */
 
@@ -113,8 +112,8 @@ export class EventFinder {
 
     let endOfDay = startOfDay + minutesInDay * MINUTE;
 
-    startOfDay = UT_to_TDB(startOfDay);
-    endOfDay   = UT_to_TDB(endOfDay);
+    startOfDay = utToTdt(startOfDay);
+    endOfDay   = utToTdt(endOfDay);
 
     let lowPhase  = this.ss.getLunarPhase(startOfDay);
     let highPhase = this.ss.getLunarPhase(endOfDay);
@@ -378,8 +377,8 @@ export class EventFinder {
 
     let endOfDay = startOfDay + minutesInDay * MINUTE;
 
-    startOfDay = UT_to_TDB(startOfDay);
-    endOfDay   = UT_to_TDB(endOfDay);
+    startOfDay = utToTdt(startOfDay);
+    endOfDay   = utToTdt(endOfDay);
 
     let lowLongitude  = this.ss.getEclipticPosition(SUN, startOfDay).longitude.degrees;
     let highLongitude = this.ss.getEclipticPosition(SUN,   endOfDay).longitude.degrees;
@@ -1334,21 +1333,21 @@ export class EventFinder {
             let ei: EclipseInfo;
 
             if (eventType === LUNAR_ECLIPSE) {
-              ei = this.ss.getLunarEclipseInfo(UT_to_TDB(eventTime));
+              ei = this.ss.getLunarEclipseInfo(utToTdt(eventTime));
 
               if (!ei.inPenumbra)
                 continue;
             }
 
             if (eventType === SOLAR_ECLIPSE) {
-              ei = this.ss.getSolarEclipseInfo(UT_to_TDB(eventTime));
+              ei = this.ss.getSolarEclipseInfo(utToTdt(eventTime));
 
               if (!ei.inPenumbra)
                 continue;
               else
                 // Since the clock will be rounded up half a minute, we'll get the location
                 // of the fast-moving shadow at that moment.
-                ei = this.ss.getSolarEclipseInfo(UT_to_TDB(eventTime + 0.5 / 1440.0), true);
+                ei = this.ss.getSolarEclipseInfo(utToTdt(eventTime + 0.5 / 1440.0), true);
             }
 
             // TODO: Add event text
@@ -1425,7 +1424,7 @@ export class EventFinder {
   }
 
   protected  getEventSearchValue(planet: number, eventType: number, time_JDU: number): number {
-    const time_JDE = UT_to_TDB(time_JDU);
+    const time_JDE = utToTdt(time_JDU);
 
     switch (eventType) {
       case OPPOSITION:
@@ -1466,7 +1465,7 @@ export class EventFinder {
     if (planet !== MERCURY && planet !== VENUS)
       return false;
 
-    const time_JDE = UT_to_TDB(time_JDU);
+    const time_JDE = utToTdt(time_JDU);
     const sunPos = this.ss.getEclipticPosition(SUN, time_JDE);
     const planetPos = this.ss.getEclipticPosition(planet, time_JDE);
 

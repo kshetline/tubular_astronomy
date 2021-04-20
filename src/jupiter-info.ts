@@ -1,9 +1,8 @@
 import { ArrayBufferReader } from '@tubular/array-buffer-reader';
-import { DateTime } from '@tubular/time';
+import { DateTime, tdtToUt } from '@tubular/time';
 import { Angle, asin_deg, cos_deg, interpolateTabular, limitNeg1to1, sign, sin_deg, sqrt, squared, Unit } from '@tubular/math';
 import { JD_J2000 } from './astro-constants';
 import { IAstroDataService } from './i-astro-data.service';
-import { TDB_to_UT } from './ut-converter';
 
 export enum DataQuality { GOOD = 1, FAIR, POOR }
 
@@ -221,7 +220,7 @@ export class JupiterInfo {
       this.grsLong = this.fixedGRSLong;
     else if (JupiterInfo.properlyInitialized) {
       let grs;
-      const time_JDU = TDB_to_UT(time_JDE);
+      const time_JDU = tdtToUt(time_JDE);
 
       if      (time_JDE < JupiterInfo.minGRSTableTime)
         grs = JupiterInfo.grsLongAtMinTime - (JupiterInfo.minGRSTableTime - time_JDU) * JupiterInfo.preTableGRSDrift;

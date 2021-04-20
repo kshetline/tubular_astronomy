@@ -1,10 +1,10 @@
 import { ArrayBufferReader } from '@tubular/array-buffer-reader';
 import { abs, cos, mod, PI, sign, sin, sin_deg, SphericalPosition, tan, to_radian, Unit } from '@tubular/math';
+import { utToTdt } from '@tubular/time';
 import { ABERRATION, JD_J2000, NO_PRECESSION, NUTATION, OBLIQUITY_J2000, UNKNOWN_MAGNITUDE } from './astro-constants';
 import { Ecliptic, NMode } from './ecliptic';
 import { IAstroDataService } from './i-astro-data.service';
 import { ISkyObserver } from './i-sky-observer';
-import { UT_to_TDB } from './ut-converter';
 
 enum READING {FK5, BSC, HIP, DSO}
 enum MARKER {INC_FK5 = 0xFF, NEW_STATE = 0xFE, DBL_PREC  = 0xFD, SNG_PREC = 0xFC}
@@ -701,7 +701,7 @@ export class StarCatalog {
 
     flags &= ~NUTATION;
 
-    const pos = this.getEquatorialPosition(starIndex, UT_to_TDB(time_JDU), cacheTolerance, flags);
+    const pos = this.getEquatorialPosition(starIndex, utToTdt(time_JDU), cacheTolerance, flags);
 
     return observer.equatorialToHorizontal(pos, time_JDU, flags);
   }

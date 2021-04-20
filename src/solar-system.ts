@@ -2,6 +2,7 @@ import {
   abs, acos, acos_deg, Angle, asin_deg, atan2_deg, atan_deg, cos, cos_deg, exp, limitNeg1to1, log, log10, max, min, mod, mod2, pow,
   sin, sin_deg, SphericalPosition, SphericalPosition3D, sqrt, tan, tan_deg, to_radian, TWO_PI, Unit
 } from '@tubular/math';
+import { tdtToUt, utToTdt } from '@tubular/time';
 import { AdditionalOrbitingObjects } from './additional-orbiting-objects';
 import {
   ABERRATION, ASTEROID_BASE, ASTEROID_MAX, ASTROMETRIC, COMET_BASE, COMET_MAX, DEFAULT_FLAGS, DELAYED_TIME, EARTH, EARTH_RADIUS_KM,
@@ -14,7 +15,6 @@ import { IAstroDataService } from './i-astro-data.service';
 import { ISkyObserver } from './i-sky-observer';
 import { MeeusMoon } from './meeus-moon';
 import { Pluto } from './pluto';
-import { TDB_to_UT, UT_to_TDB } from './ut-converter';
 import { Vsop87Planets } from './vsop87-planets';
 
 export interface AsteroidCometElements {
@@ -570,7 +570,7 @@ export class SolarSystem {
   //
   getGreenwichApparentSiderealTime(time_JDU: number): number {
     const gmst = SolarSystem.getGreenwichMeanSiderealTime(time_JDU);
-    const nutation = this.ecliptic.getNutation(UT_to_TDB(time_JDU));
+    const nutation = this.ecliptic.getNutation(utToTdt(time_JDU));
 
     return mod(gmst + nutation.Δψ.degrees * nutation.ε.cos, 360.0);
   }
@@ -595,7 +595,7 @@ export class SolarSystem {
     if (planet === MOON)
       flags |= TOPOCENTRIC;
 
-    const pos = this.getEquatorialPosition(planet, UT_to_TDB(time_JDU), observer, flags);
+    const pos = this.getEquatorialPosition(planet, utToTdt(time_JDU), observer, flags);
 
     return observer.equatorialToHorizontal(pos, time_JDU, flags) as SphericalPosition3D;
   }
@@ -610,7 +610,7 @@ export class SolarSystem {
 
     flags &= ~NUTATION;
 
-    const pos = this.getEquatorialPosition(planet, UT_to_TDB(time_JDU), observer, flags);
+    const pos = this.getEquatorialPosition(planet, utToTdt(time_JDU), observer, flags);
 
     if ((flags & SIGNED_HOUR_ANGLE) !== 0)
       return observer.getLocalHourAngle(time_JDU, false).subtract(pos.rightAscension);
@@ -631,7 +631,7 @@ export class SolarSystem {
 
     flags &= ~NUTATION;
 
-    const pos = this.getEquatorialPosition(planet, UT_to_TDB(time_JDU), observer, flags);
+    const pos = this.getEquatorialPosition(planet, utToTdt(time_JDU), observer, flags);
     const hourAngle = this.getHourAngle(planet, time_JDU, observer, flags);
     const numerator = hourAngle.sin;
     const denominator = observer.latitude.tan * pos.declination.cos - pos.declination.sin * hourAngle.cos;
@@ -982,7 +982,7 @@ export class SolarSystem {
     if (locateShadow) {
       // Compute where a line going through the center of the Sun and the Moon
       // intersects the sphere of the Earth.
-      const time_JDU = TDB_to_UT(time_JDE);
+      const time_JDU = tdtToUt(time_JDE);
       const siderealTime = SolarSystem.getGreenwichMeanSiderealTime(time_JDU);
       const flattening = EARTH_RADIUS_KM / EARTH_RADIUS_POLAR_KM;
       const sunPt = this.getEquatorialPosition(SUN, time_JDE, null, ABERRATION).xyz;

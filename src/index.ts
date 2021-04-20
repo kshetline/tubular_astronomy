@@ -16,6 +16,7 @@
   COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
   OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+import { getDeltaTAtJulianDate as gdt, utToTdt, tdtToUt } from '@tubular/time';
 
 export * from './additional-orbiting-objects';
 export * from './astro-constants';
@@ -33,5 +34,19 @@ export * from './saturn-moons';
 export * from './sky-observer';
 export * from './solar-system';
 export * from './star-catalog';
-export * from './ut-converter';
 export * from './vsop87-planets';
+
+/**
+ * @deprecated Use @tubular/time getDeltaTAtJulianDate() instead.
+ */
+export const getDeltaTAtJulianDate = gdt;
+
+/**
+ * @deprecated Use @tubular/time utToTdt() instead.
+ */
+export const UT_to_TDB = utToTdt;
+
+/**
+ * @deprecated Use @tubular/time tdtToUt() instead.
+ */
+export const TDB_to_UT = tdtToUt;

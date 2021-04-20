@@ -2,7 +2,7 @@ import { floor, max, min, sqrt } from '@tubular/math';
 import { clone, extendDelimited } from '@tubular/util';
 import { FIRST_JUPITER_MOON, NO_MATCH } from './astro-constants';
 import { SolarSystem } from './solar-system';
-import { UT_to_TDB } from './ut-converter';
+import { utToTdt } from '@tubular/time';
 
 export const AS_SEEN_FROM_EARTH = false;
 export const AS_SEEN_FROM_SUN   = true;
@@ -129,8 +129,8 @@ export abstract class PlanetaryMoons {
   //
   getMoonEventsForOneMinuteSpan(time_JDU: number, longFormat = false): MoonEvents {
     const events = new MoonEvents();
-    const t0 = UT_to_TDB(time_JDU - 0.5 / 1440.0);
-    const t1 = UT_to_TDB(time_JDU + 0.5 / 1440.0);
+    const t0 = utToTdt(time_JDU - 0.5 / 1440.0);
+    const t1 = utToTdt(time_JDU + 0.5 / 1440.0);
     const pos0 = this.getMoonPositions(t0);
     const pos1 = this.getMoonPositions(t1);
     const sunPos0 = this.getMoonPositions(t0, AS_SEEN_FROM_SUN);
