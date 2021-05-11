@@ -1,6 +1,6 @@
 {
   "name": "@tubular/astronomy",
-  "version": "2.2.4",
+  "version": "2.2.5",
   "description": "Astronomical calculations for planetary positions, moon phases, eclipses, rise, transit, and set times, and more.",
   "browser": "dist/web/index.js",
   "browser-es5": "dist/web5/index.js",
@@ -36,10 +36,10 @@
   "author": "Kerry Shetline <kerry@shetline.com>",
   "license": "MIT",
   "dependencies": {
-    "@tubular/array-buffer-reader": "^2.0.0",
-    "@tubular/math": "^2.2.1",
-    "@tubular/time": "^2.6.5",
-    "@tubular/util": "^3.7.0"
+    "@tubular/array-buffer-reader": "^2.1.1",
+    "@tubular/math": "^2.2.2",
+    "@tubular/time": "^2.6.7",
+    "@tubular/util": "^3.7.1"
   },
   "devDependencies": {
     "@babel/core": "^7.14.0",
