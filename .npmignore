@@ -5,6 +5,7 @@
 /.eslintrc.json
 /.eslintignore
 *.js.map
+!/dist/**/*.js.map
 *.spec.d.ts
 *.spec.js
 /webpack.config.cjs
