@@ -50,7 +50,7 @@
   "author": "Kerry Shetline <kerry@shetline.com>",
   "license": "MIT",
   "dependencies": {
-    "@tubular/array-buffer-reader": "^3.0.0-alpha.0",
+    "@tubular/array-buffer-reader": "^3.0.0",
     "@tubular/math": "^3.0.0",
     "@tubular/time": "^3.0.1",
     "@tubular/util": "^4.0.0"
