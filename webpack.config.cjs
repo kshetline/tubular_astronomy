@@ -46,7 +46,7 @@ module.exports = env => {
       ]
     },
     externals: ['@tubular/time'],
-    externalsType: "commonjs",
+    externalsType: cjs ? 'commonjs' : 'global',
     optimization: {
       minimize: !env?.dev,
       minimizer: [new TerserPlugin({
