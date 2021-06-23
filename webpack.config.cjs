@@ -2,18 +2,17 @@ const TerserPlugin = require('terser-webpack-plugin');
 const { resolve } = require('path');
 
 module.exports = env => {
-  const esVersion = env?.esver === '5' ? 'es5' : 'es6';
-  const dir = env?.esver === '5' ? 'web5' : 'web';
-  const chromeVersion = env?.esver === '5' ? '23' : '51';
+  const dev = !!env?.dev && (/^[ty]/i.test(env?.dev) || Number(env?.dev) !== 0);
+  const libraryTarget = 'umd';
 
-  const config = {
-    mode: env?.dev ? 'development' : 'production',
-    target: [esVersion, 'web'],
+  return {
+    mode: dev ? 'development' : 'production',
+    target: ['es6', 'web'],
     entry: './dist/index.js',
     output: {
-      path: resolve(__dirname, 'dist/' + dir),
+      path: resolve(__dirname, 'dist', 'umd'),
       filename: 'index.js',
-      libraryTarget: 'umd',
+      libraryTarget,
       library: 'tbAstro'
     },
     module: {
@@ -22,15 +21,25 @@ module.exports = env => {
           test: /\.js$/,
           use: {
             loader: 'babel-loader',
-            options: { presets: [['@babel/preset-env', { targets: { chrome: chromeVersion } }]] }
+            options: {
+              presets: [['@babel/preset-env', {
+                targets: { // ES6 minimums
+                  chrome:  '58',
+                  edge:    '14',
+                  firefox: '54',
+                  opera:   '55',
+                  safari:  '10'
+                }
+              }]]
+            }
           },
           resolve: { fullySpecified: false }
         }
       ]
     },
-    externals: ['@tubular/time'],
+    externals: [{ '@tubular/time': { commonjs: '@tubular/time', commonjs2: '@tubular/time', root: 'tbTime' } }],
     optimization: {
-      minimize: !env?.dev,
+      minimize: !dev,
       minimizer: [new TerserPlugin({
         terserOptions: {
           output: { max_line_len: 511 }
@@ -39,13 +48,7 @@ module.exports = env => {
     },
     devtool: 'source-map',
     resolve: {
-      mainFields: ['es2015', 'browser', 'module', 'main', 'main-es5']
+      mainFields: ['fesm2015', 'module', 'main']
     }
   };
-
-  // Allow UMD target to bundle @tubular/array-buffer-reader, @tubular/math, and @tubular/util.
-  if (env?.target !== 'umd')
-    config.externals.push(...['@tubular/array-buffer-reader', '@tubular/math', '@tubular/util']);
-
-  return config;
 };
