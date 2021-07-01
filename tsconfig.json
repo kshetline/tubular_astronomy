@@ -10,8 +10,10 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "target": "ES2018",
-    "typeRoots": [
-      "node_modules/@types"
+    "types": [
+      "chai",
+      "mocha",
+      "node"
     ],
     "lib": [
       "es2020",

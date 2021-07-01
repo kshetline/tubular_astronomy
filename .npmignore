@@ -11,3 +11,4 @@
 /webpack.config.cjs
 /.nyc_output
 *.tgz
+/rollup.config.js
