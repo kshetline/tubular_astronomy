@@ -1,18 +1,30 @@
 import { ArrayBufferReader } from '@tubular/array-buffer-reader';
 import { abs, cos, mod, PI, sign, sin, sin_deg, SphericalPosition, tan, to_radian, Unit } from '@tubular/math';
 import { utToTdt } from '@tubular/time';
+import { isFunction, isString } from '@tubular/util';
+import { readFile } from 'fs';
 import { ABERRATION, JD_J2000, NO_PRECESSION, NUTATION, OBLIQUITY_J2000, UNKNOWN_MAGNITUDE } from './astro-constants';
 import { Ecliptic, NMode } from './ecliptic';
 import { IAstroDataService } from './i-astro-data.service';
 import { ISkyObserver } from './i-sky-observer';
 
-enum READING {FK5, BSC, HIP, DSO}
-enum MARKER {INC_FK5 = 0xFF, NEW_STATE = 0xFE, DBL_PREC  = 0xFD, SNG_PREC = 0xFC}
+let _Buffer: typeof Buffer;
+let _readFile: typeof readFile;
+
+try {
+  _Buffer = typeof Buffer !== undefined && Buffer;
+  _readFile = typeof Buffer !== undefined && readFile;
+}
+catch {}
+
+enum READING { FK5, BSC, HIP, /* DSO */ }
+enum MARKER { INC_FK5 = 0xFF, NEW_STATE = 0xFE, DBL_PREC  = 0xFD, SNG_PREC = 0xFC }
 
 export interface StarInfo
 {
   bayerRank: number;
   bscNum: number;
+  catalogIndex: number;
   flamsteed: number;
   codedName: string;
   constellation: number;
@@ -137,27 +149,37 @@ Vul~Vulpecula~13,Alp,1`;
 export const LINE_BREAK = -1;
 export const LABEL_ANCHOR = -2;
 
+function toArrayBuffer(buf: Buffer): ArrayBuffer {
+  return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+}
+
 export class StarCatalog {
   static readonly greekIndices =
-    'Alp Bet Gam Del Eps Zet Eta The Iot Kap Lam Mu  Nu  Xi  Omi Pi  Rho Sig Tau Ups Phi Chi Psi Ome ';
+    'Alp Bet Gam Del Eps Zet Eta The Iot Kap Lam Mu Nu Xi Omi Pi Rho Sig Tau Ups Phi Chi Psi Ome'
+      .split(/\s+/);
 
   static readonly constellationCodes =
-    'And Ant Aps Aql Aqr Ara Ari Aur Boo Cae Cam Cap Car Cas Cen Cep Cet Cha Cir CMa CMi Cnc Col Com ' +
-    'CrA CrB Crt Cru Crv CVn Cyg Del Dor Dra Equ Eri For Gem Gru Her Hor Hya Hyi Ind Lac Leo Lep Lib ' +
-    'LMi Lup Lyn Lyr Men Mic Mon Mus Nor Oct Oph Ori Pav Peg Per Phe Pic PsA Psc Pup Pyx Ret Scl Sco ' +
-    'Sct Ser Sex Sge Sgr Tau Tel TrA Tri Tuc UMa UMi Vel Vir Vol Vul ';
+    ('And Ant Aps Aql Aqr Ara Ari Aur Boo Cae Cam Cap Car Cas Cen Cep Cet Cha Cir CMa CMi Cnc Col Com ' +
+     'CrA CrB Crt Cru Crv CVn Cyg Del Dor Dra Equ Eri For Gem Gru Her Hor Hya Hyi Ind Lac Leo Lep Lib ' +
+     'LMi Lup Lyn Lyr Men Mic Mon Mus Nor Oct Oph Ori Pav Peg Per Phe Pic PsA Psc Pup Pyx Ret Scl Sco ' +
+     'Sct Ser Sex Sge Sgr Tau Tel TrA Tri Tuc UMa UMi Vel Vir Vol Vul')
+      .split(/\s+/);
 
   static readonly ECLIPTIC = 0x80000000; // Flag used in cache
   // Constant of aberration, converted to radians.
   static readonly kappa = 20.49552 / 648000 * PI;
 
-  private starNames: {[name: string]: number} = {};
-  private bscLookup: number[] = [];
-  private fk5Lookup: number[] = [];
-  private constellations: ConstellationInfo[] = [];
-  private properlyInitialized = false;
+  private bscLookup: Record<number, StarInfo> = {};
   private cachedPositions: CacheEntry[] = [];
+  private constellations: ConstellationInfo[] = [];
   private ecliptic = new Ecliptic();
+  private fk5Lookup: Record<number, StarInfo> = {};
+  private hipLookup: Record<number, StarInfo> = {};
+  private messierLookup: Record<number, StarInfo> = {};
+  private ngcIcLookup: Record<number, StarInfo> = {};
+  private nameLookup: Record<string, StarInfo> = {};
+  private properlyInitialized = false;
+  private starNames: Record<string, number> = {};
   private sunCacheTime = -1E10;
   private sunLongitudeCache = -1;
 
@@ -172,23 +194,18 @@ export class StarCatalog {
       return 'NGC ' + star.ngcIcNum;
 
     let result = '';
-    let pos;
 
     if (star.flamsteed > 0)
       result += star.flamsteed + ' ';
 
-    if (star.bayerRank > 0) {
-      pos = star.bayerRank * 4 - 4;
-      result += StarCatalog.greekIndices.substr(pos, 3).trim() + ' ';
-    }
+    if (star.bayerRank > 0)
+      result += StarCatalog.greekIndices[star.bayerRank - 1] + ' ';
 
     if (star.subIndex > 0)
       result = result.trim() + '-' + star.subIndex + ' ';
 
-    if (star.constellation > 0) {
-      pos = star.constellation * 4 - 4;
-      result += StarCatalog.constellationCodes.substring(pos, pos + 3);
-    }
+    if (star.constellation > 0)
+      result += StarCatalog.constellationCodes[star.constellation - 1];
 
     if (result === '') {
       if (star.fk5Num > 0)
@@ -204,13 +221,41 @@ export class StarCatalog {
     return result;
   }
 
-  constructor(private dataService: IAstroDataService, readyCallback?: (initialized: boolean) => void) {
-    this.dataService.getStars().then((data: ArrayBuffer) => {
-      this.readStarData(data);
+  constructor(dataSource: Buffer | IAstroDataService | string, readyCallback?: (initialized: boolean) => void) {
+    if (_Buffer) {
+      if (dataSource instanceof _Buffer) {
+        this.readStarData(toArrayBuffer(dataSource));
 
-      if (readyCallback)
-        readyCallback(this.properlyInitialized);
-    });
+        if (readyCallback)
+          readyCallback(this.properlyInitialized);
+
+        return;
+      }
+      else if (_readFile && isString(dataSource)) {
+        _readFile(dataSource, (err, data) => {
+          if (err)
+            throw err;
+
+          this.readStarData(toArrayBuffer(data));
+
+          if (readyCallback)
+            readyCallback(this.properlyInitialized);
+        });
+
+        return;
+      }
+    }
+
+    if (isFunction((dataSource as any).getStars)) {
+      (dataSource as IAstroDataService).getStars().then((data: ArrayBuffer) => {
+        this.readStarData(data);
+
+        if (readyCallback)
+          readyCallback(this.properlyInitialized);
+      });
+    }
+    else
+      throw new Error('Invalid StarCatalog constructor data source');
   }
 
   private readStarData(data: ArrayBuffer): void {
@@ -315,6 +360,24 @@ export class StarCatalog {
 
         star.codedName = StarCatalog.createCodedName(star);
         this.stars.push(star);
+
+        if (star.name)
+          this.nameLookup[star.name.toLowerCase()] = star;
+
+        if (star.bscNum)
+          this.bscLookup[star.bscNum] = star;
+
+        if (star.fk5Num)
+          this.fk5Lookup[star.fk5Num] = star;
+
+        if (star.hipNum)
+          this.hipLookup[star.hipNum] = star;
+
+        if (star.messierNum)
+          this.messierLookup[star.messierNum] = star;
+
+        if (star.ngcIcNum)
+          this.ngcIcLookup[star.ngcIcNum] = star;
       }
     }
     catch (e) {
@@ -324,7 +387,7 @@ export class StarCatalog {
     }
 
     this.stars.sort((a, b) => {
-      // The most important thing is sorting stars by magnitude, dimmest (highest vmag) first.
+      // The top priority is sorting stars by magnitude, dimmest (highest vmag) first.
       // The rest of the comparison, if vmags match, is to impose a consistent sort order.
       if (a.vmag > b.vmag)
         return -1;
@@ -351,11 +414,8 @@ export class StarCatalog {
 
       const star = this.stars[i];
 
-      if (star.fk5Num > 0)
-        this.fk5Lookup[star.fk5Num] = i;
-
-      if (star.bscNum > 0)
-        this.bscLookup[star.bscNum] = i;
+      star.catalogIndex = i;
+      Object.freeze(star);
 
       if (star.name)
         this.starNames[star.name] = i;
@@ -406,8 +466,8 @@ export class StarCatalog {
           if (codedIndex.startsWith('FK5:')) {
             fk5Num = Number(codedIndex.substring(4));
 
-            if (this.fk5Lookup[fk5Num] > 0)
-              starList.push(this.fk5Lookup[fk5Num]);
+            if (this.fk5Lookup[fk5Num])
+              starList.push(this.fk5Lookup[fk5Num].catalogIndex);
             else
               console.error(codedIndex + ' not found');
           }
@@ -415,7 +475,7 @@ export class StarCatalog {
             const bscNum = Number(codedIndex.substring(4));
 
             if (this.bscLookup[bscNum])
-              starList.push(this.bscLookup[bscNum]);
+              starList.push(this.bscLookup[bscNum].catalogIndex);
             else
               console.error(codedIndex + ' not found');
           }
@@ -433,8 +493,7 @@ export class StarCatalog {
 
             const codedName = codedIndex + ' ' + constCode2;
 
-            // If a first match is not found on, say, Gam And,
-            // try Gam-1 And.
+            // If a first match is not found on, say, Gam And, try Gam-1 And.
             if (!(starNum = this.starNames[codedName])) {
               const codedNameAlt = codedIndex + '-1 ' + constCode2;
 
@@ -462,18 +521,38 @@ export class StarCatalog {
     return (this.stars ? this.stars.length : 0);
   }
 
+  getStarInfo(starIndex: number): StarInfo {
+    return this.stars[starIndex];
+  }
+
+  getStarByName(name: string): StarInfo {
+    return this.nameLookup[name?.toLowerCase() || ''];
+  }
+
+  getBrightStarCatalogStar(num: number): StarInfo {
+    return this.bscLookup[num];
+  }
+
+  getFk5Star(num: number): StarInfo {
+    return this.fk5Lookup[num];
+  }
+
+  getHipparcosStar(num: number): StarInfo {
+    return this.hipLookup[num];
+  }
+
   getName(starIndex: number, skipDuplicates = false): string {
     if (starIndex < 0 || starIndex >= this.stars.length || (skipDuplicates && this.stars[starIndex].duplicateName))
       return null;
 
-    return this.stars[starIndex].name;
+    return this.stars[starIndex]?.name;
   }
 
   getCodedName(starIndex: number): string {
     if (starIndex < 0 || starIndex >= this.stars.length)
       return null;
 
-    return this.stars[starIndex].codedName;
+    return this.stars[starIndex]?.codedName;
   }
 
   getExpandedName(starIndex: number): string {
@@ -520,6 +599,13 @@ export class StarCatalog {
     return this.stars[starIndex].bscNum;
   }
 
+  forEach(callback: (star: StarInfo, index?: number) => boolean | void): void {
+    for (const star of this.stars) {
+      if (callback(star, star.catalogIndex) === false)
+        break;
+    }
+  }
+
   isDeepSkyObject(starIndex: number): boolean {
     if (starIndex < 0 || starIndex >= this.stars.length)
       return false;
@@ -536,18 +622,38 @@ export class StarCatalog {
     return this.stars[starIndex].messierNum;
   }
 
-  getNGCNumber(starIndex: number): number {
+  getDsoByMessierNumber(mn: number): StarInfo {
+    return this.messierLookup[mn];
+  }
+
+  // noinspection JSUnusedGlobalSymbols
+  /** @deprecated */
+  getNGCNumber(n: number): number { return this.getNgcNumber(n); }
+
+  getNgcNumber(starIndex: number): number {
     if (starIndex < 0 || starIndex >= this.stars.length || this.stars[starIndex].ngcIcNum <= 0)
       return 0;
 
     return this.stars[starIndex].ngcIcNum;
   }
 
-  getICNumber(starIndex: number): number {
+  getDsoByNgcNumber(ngc: number): StarInfo {
+    return this.ngcIcLookup[ngc];
+  }
+
+  // noinspection JSUnusedGlobalSymbols
+  /** @deprecated */
+  getICNumber(n: number): number { return this.getIcNumber(n); }
+
+  getIcNumber(starIndex: number): number {
     if (starIndex < 0 || starIndex >= this.stars.length || this.stars[starIndex].ngcIcNum >= 0)
       return 0;
 
     return -this.stars[starIndex].ngcIcNum;
+  }
+
+  getDsoByIcNumber(ic: number): StarInfo {
+    return this.ngcIcLookup[-ic];
   }
 
   getBayerRank(starIndex: number): number {
@@ -568,25 +674,40 @@ export class StarCatalog {
     return this.constellations.length;
   }
 
+  // noinspection JSUnusedGlobalSymbols
+  /**
+   * @deprecated - Uses 0-based indexing, inconsistent with 1-based constellation codes
+   * */
   getConstellationName(constellationIndex: number): string {
-    if (constellationIndex < 0 || constellationIndex >= this.constellations.length)
-      return null;
-
     return this.constellations[constellationIndex].name;
   }
 
-  getConstellationCode(constellationIndex: number): string {
-    if (constellationIndex < 0 || constellationIndex >= this.constellations.length)
-      return null;
+  constellationName(constellationIndex: number): string {
+    return this.constellations[constellationIndex - 1].name;
+  }
 
+  // noinspection JSUnusedGlobalSymbols
+  /**
+   * @deprecated - Uses 0-based indexing, inconsistent with 1-based constellation codes
+   * */
+  getConstellationCode(constellationIndex: number): string {
     return this.constellations[constellationIndex].code;
   }
 
-  getConstellationDrawingStars(constellationIndex: number): number[] {
-    if (constellationIndex < 0 || constellationIndex >= this.constellations.length)
-      return null;
+  constellationCode(constellationIndex: number): string {
+    return this.constellations[constellationIndex - 1].code;
+  }
 
+  // noinspection JSUnusedGlobalSymbols
+  /**
+   * @deprecated - Uses 0-based indexing, inconsistent with 1-based constellation codes
+   * */
+  getConstellationDrawingStars(constellationIndex: number): number[] {
     return this.constellations[constellationIndex].starList;
+  }
+
+  constellationDrawingStars(constellationIndex: number): number[] {
+    return this.constellations[constellationIndex - 1].starList;
   }
 
   // Note: The calculation for aberration used here can misbehave for coordinates very close
@@ -695,7 +816,7 @@ export class StarCatalog {
   //    themselves are not cached.
   //
   getHorizontalPosition(starIndex: number, time_JDU: number, observer: ISkyObserver,
-                        cacheTolerance: number, flags = 0): SphericalPosition {
+                        cacheTolerance = 0, flags = 0): SphericalPosition {
     if (starIndex < 0 || starIndex >= this.stars.length)
       return null;
 
