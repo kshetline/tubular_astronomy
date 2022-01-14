@@ -43,6 +43,7 @@ export interface StarInfo
 }
 
 export interface ConstellationInfo {
+  index: number;
   name: string;
   code: string;
   starList: number[];
@@ -507,7 +508,7 @@ export class StarCatalog {
         }
       }
 
-      this.constellations.push({ name: constName, code: constCode, starList: starList });
+      this.constellations.push({ index: this.constellations.length + 1, name: constName, code: constCode, starList: starList });
     }
 
     this.properlyInitialized = true;
@@ -708,6 +709,13 @@ export class StarCatalog {
 
   constellationDrawingStars(constellationIndex: number): number[] {
     return this.constellations[constellationIndex - 1].starList;
+  }
+
+  forEachConstellation(callback: (constellation: ConstellationInfo, index?: number) => boolean | void): void {
+    for (const constellation of this.constellations) {
+      if (callback(constellation, constellation.index) === false)
+        break;
+    }
   }
 
   // Note: The calculation for aberration used here can misbehave for coordinates very close
