@@ -49,6 +49,7 @@ module.exports = env => {
     devtool: 'source-map',
     resolve: {
       mainFields: ['fesm2015', 'module', 'main']
-    }
+    },
+    ignoreWarnings: [{ message: /require function is used in a way/ }]
   };
 };

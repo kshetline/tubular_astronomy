@@ -1,6 +1,6 @@
 # Derived from data found at http://jupos.privat.t-online.de/
 3.9 # Pre-table estimated GRS drift rate, degrees/year
-13.0 # Post-table estimated GRS drift rate, degrees/year
+17.0 # Post-table estimated GRS drift rate, degrees/year
 366.0 # Max +/- span for LaGrange interpolation of this table, in days
 1969-04-01,21.8
 1969-07-01,22.7
@@ -213,3 +213,4 @@
 2021-04-01,355.5
 2021-07-01,359.5
 2021-10-01,362.0
+2022-01-01,367.5
