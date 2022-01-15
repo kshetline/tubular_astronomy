@@ -40,6 +40,7 @@ describe('StarCatalog', () => {
         .longitude.degrees, 360))).to.be.lessThan(1);
       expect(sc.getHorizontalPosition(sc.getStarByName('Alnitak')?.catalogIndex, ttime('2010-10-10 EDT').wallTime.jdu, observer)
         .latitude.degrees).approximately(7.366, 0.002);
+      expect(sc.getConstellationCount()).to.equal(89);
       sc.forEachConstellation(c => expect(c.code).to.equal(sc.constellationCode(c.index)) as any);
       done();
     });

@@ -2,18 +2,18 @@ import { ArrayBufferReader } from '@tubular/array-buffer-reader';
 import { abs, cos, mod, PI, sign, sin, sin_deg, SphericalPosition, tan, to_radian, Unit } from '@tubular/math';
 import { utToTdt } from '@tubular/time';
 import { isFunction, isString } from '@tubular/util';
-import { readFile } from 'fs';
 import { ABERRATION, JD_J2000, NO_PRECESSION, NUTATION, OBLIQUITY_J2000, UNKNOWN_MAGNITUDE } from './astro-constants';
 import { Ecliptic, NMode } from './ecliptic';
 import { IAstroDataService } from './i-astro-data.service';
 import { ISkyObserver } from './i-sky-observer';
 
 let _Buffer: typeof Buffer;
-let _readFile: typeof readFile;
+let _readFile: (path: string, callback: (err: (NodeJS.ErrnoException | null), data: Buffer) => void) => void;
 
 try {
   _Buffer = typeof Buffer !== undefined && Buffer;
-  _readFile = typeof Buffer !== undefined && readFile;
+  // eslint-disable-next-line no-new-func
+  _readFile = !!_Buffer && (new Function('req', 'return req("fs").readFile'))(typeof require !== 'undefined' && require);
 }
 catch {}
 

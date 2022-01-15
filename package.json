@@ -19,7 +19,7 @@
   },
   "scripts": {
     "build": "rimraf dist/ && tsc && rollup -c -m && webpack && npm run resources",
-    "prepublishOnly": "npm run build",
+    "prepack": "npm run build",
     "lint": "eslint 'src/**/*.ts' '**/*.cjs'",
     "test": "nyc --reporter=html mocha --require ts-node/register src/**/*.spec.ts",
     "resources": "cp -R src/resources/ dist/resources/"
