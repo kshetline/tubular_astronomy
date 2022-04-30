@@ -508,7 +508,7 @@ export class StarCatalog {
         }
       }
 
-      this.constellations.push({ index: this.constellations.length + 1, name: constName, code: constCode, starList: starList });
+      this.constellations.push({ index: this.constellations.length + 1, name: constName, code: constCode, starList });
     }
 
     this.properlyInitialized = true;

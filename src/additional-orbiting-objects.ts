@@ -34,8 +34,8 @@ export class ObjectInfo {
   convergenceFails: boolean;
   cfMin = Number.MAX_VALUE;
   cfMax = -Number.MAX_VALUE;
-  prev: ObjectInfo;
-  next: ObjectInfo;
+  prev: ObjectInfo; // eslint-disable-line no-use-before-define
+  next: ObjectInfo; // eslint-disable-line no-use-before-define
 
   toString(): string {
     const tEpoch = new DateTime(DateTime.millisFromJulianDay(this.epoch), Timezone.UT_ZONE);
