@@ -203,7 +203,7 @@ export class JupiterInfo {
     const K = J + A - B;
     const R = 1.00014 - 0.01671 * cos_deg(M) - 0.00014 * cos_deg(2.0 * M);
     const r = 5.20872 - 0.25208 * cos_deg(N) - 0.00611 * cos_deg(2.0 * N);
-    const Δ = sqrt(r ** 2 + R ** 2 - 2.0 * r ** 2 * cos_deg(K));
+    const Δ = sqrt(r ** 2 + R ** 2 - 2.0 * r * R * cos_deg(K));
     const ψ = asin_deg(limitNeg1to1(R / Δ * sin_deg(K)));
     const ω1 = 210.98 + 877.8169088 * (d - Δ / 173) + ψ - B;
     const ω2 = 187.23 + 870.1869088 * (d - Δ / 173) + ψ - B;

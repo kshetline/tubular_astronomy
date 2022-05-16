@@ -6,9 +6,9 @@ import { tdtToUt, utToTdt } from '@tubular/time';
 import { AdditionalOrbitingObjects } from './additional-orbiting-objects';
 import {
   ABERRATION, ASTEROID_BASE, ASTEROID_MAX, ASTROMETRIC, COMET_BASE, COMET_MAX, DEFAULT_FLAGS, DELAYED_TIME, EARTH, EARTH_RADIUS_KM,
-  EARTH_RADIUS_POLAR_KM, FIRST_PLANET, HIGH_PRECISION, JD_J2000, JUPITER, KM_PER_AU, LAST_PLANET, LIGHT_DAYS_PER_AU, LOW_PRECISION,
-  MARS, MERCURY, MOON, MOON_RADIUS_KM, NEPTUNE, NO_MATCH, NUTATION, PLUTO, QUICK_PLANET, QUICK_SUN, SATURN, SIGNED_HOUR_ANGLE, SUN,
-  SUN_RADIUS_KM, TOPOCENTRIC, TRUE_DISTANCE, UNKNOWN_MAGNITUDE, URANUS, VENUS
+  EARTH_RADIUS_POLAR_KM, FIRST_PLANET, HIGH_PRECISION, INCLINATION_MEAN_LUNAR_EQUATOR, JD_J2000, JUPITER, KM_PER_AU, LAST_PLANET,
+  LIGHT_DAYS_PER_AU, LOW_PRECISION, MARS, MERCURY, MOON, MOON_RADIUS_KM, NEPTUNE, NO_MATCH, NUTATION, PLUTO, QUICK_PLANET, QUICK_SUN,
+  SATURN, SIGNED_HOUR_ANGLE, SUN, SUN_RADIUS_KM, TOPOCENTRIC, TRUE_DISTANCE, UNKNOWN_MAGNITUDE, URANUS, VENUS
 } from './astro-constants';
 import { Ecliptic, NMode } from './ecliptic';
 import { IAstroDataService } from './i-astro-data.service';
@@ -80,6 +80,13 @@ export interface OrbitalElements {
   C: number;    // equation of center
   v: number;    // true anomaly
   partial: boolean; // true when all other fields not filled in, such as results returned by AdditionalOrbitingObjects.
+}
+
+export interface Libration {
+  l: number; // in degrees
+  b: number; // in degrees
+  d: number; // diameter, in arcseconds
+  D: number; // distance from Earth, in AU
 }
 
   // Orbital elements for mean equinox of date (except Pluto, J2000.0).
@@ -866,8 +873,30 @@ export class SolarSystem {
     return r * 2.0;
   }
 
+  getLunarLibration(time_JDE: number, observer?: ISkyObserver): Libration {
+    // Adapted from _Astronomical Algorithms, 2nd Ed._ by Jean Meeus, pp. 371-375.
+    const pos = this.getEclipticPosition(MOON, time_JDE, observer, ABERRATION | (observer ? TOPOCENTRIC : 0));
+    // Δψ not needed, since pos is computed without nutation.
+    const T = (time_JDE - JD_J2000) / 36525.0;
+    const F = 93.2720950 + 483202.0175233 * T - 0.0036539 * T ** 2 - T ** 3 / 3526000.0 + T ** 4 / 863310000.0;
+    const Ω = 125.04452 - 1934.136261 * T + 0.0020708 * T ** 2 + T ** 3 / 450000.0;
+    const W = pos.longitude.degrees - Ω;
+    const cosβ = pos.latitude.cos;
+    const sinβ = pos.latitude.sin;
+    const cosI = cos_deg(INCLINATION_MEAN_LUNAR_EQUATOR);
+    const sinI = sin_deg(INCLINATION_MEAN_LUNAR_EQUATOR);
+    const A = atan2_deg(sin_deg(W) * cosβ * cosI - sinβ * sinI, cos_deg(W) * cosβ);
+
+    return {
+      l: mod2(A - F, 360),
+      b: asin_deg(-sin_deg(W) * cosβ * sinI - sinβ * cosI),
+      d: this.getAngularDiameter(MOON, time_JDE, observer),
+      D: pos.radius
+    };
+  }
+
   // I treat the umbra and penumbra of the Earth as imaginary circular objects
-  // directly opposite from the Sun and located at the same distance from the
+  // directly opposite to the Sun and located at the same distance from the
   // Earth as the Moon.
   //
   // If you can imagine the typical diagram of how umbral and penumbral shadows are

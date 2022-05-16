@@ -439,7 +439,7 @@ export class AdditionalOrbitingObjects {
             }
 
             s1 = s;
-            s = (2.0 * s ** 2 * s / 3.0 + q3) / (s ** 2 + 1.0);
+            s = (2.0 * s ** 3 / 3.0 + q3) / (s ** 2 + 1.0);
           } while (abs(s - s1) > maxErr);
         } while (abs(s - s0) > maxErr);
 
