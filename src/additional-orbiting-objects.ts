@@ -351,10 +351,10 @@ export class AdditionalOrbitingObjects {
       // Adapted from _Astronomical Algorithms, 2nd Ed._ by Jean Meeus, pp. 241-243.
       const W = 0.03649116245 * t / q / sqrt(q);
       const G = W / 2.0;
-      const Y = pow(G + sqrt(G * G + 1.0), 1.0 / 3.0);
+      const Y = pow(G + sqrt(G ** 2 + 1.0), 1.0 / 3.0);
       const s = Y - 1.0 / Y;
 
-      r = q * (1.0 + s * s);
+      r = q * (1.0 + s ** 2);
       v = 2.0 * atan(s);
     }
     else if (e < NEAR_PARABOLIC_E_LOW || (doNotConverge && e < 1.0)) { // elliptical orbit
@@ -367,7 +367,7 @@ export class AdditionalOrbitingObjects {
         v = 2.0 * atan(ef * tan(ea / 2.0));
       }
 
-      r = a * (1.0 - e * e) / (1.0 + e * cos(v));
+      r = a * (1.0 - e ** 2) / (1.0 + e * cos(v));
     }
     else if (e > NEAR_PARABOLIC_E_HIGH || doNotConverge) { // hyperbolic orbit
       // Adapted from code by Robert D. Miller.
@@ -377,9 +377,9 @@ export class AdditionalOrbitingObjects {
       const coshEA = cosh(ea);
       ef = sqrt((e + 1.0) / (e - 1.0));
       v = 2.0 * atan(ef * tan(0.5 * ea));
-      const rsinv = abs(a) * sqrt(e * e - 1.0) * sinhEA;
+      const rsinv = abs(a) * sqrt(e ** 2 - 1.0) * sinhEA;
       const rcosv = abs(a) * (e - coshEA);
-      r = rsinv * rsinv + rcosv * rcosv;
+      r = rsinv ** 2 + rcosv ** 2;
     }
     else { // Near parabolic orbit, eccentricity [0.98, 1.1].
       // Adapted from _Astronomical Algorithms, 2nd Ed._ by Jean Meeus, pp. 245-246.
@@ -402,7 +402,7 @@ export class AdditionalOrbitingObjects {
 
         do {
           let z = 1;
-          const y = s * s;
+          const y = s ** 2;
           let g1 = -y * s;
           let q3 = q2 + 2.0 * g * s * y / 3.0;
           let z1: number, f: number;
@@ -439,7 +439,7 @@ export class AdditionalOrbitingObjects {
             }
 
             s1 = s;
-            s = (2.0 * s * s * s / 3.0 + q3) / (s * s + 1.0);
+            s = (2.0 * s ** 2 * s / 3.0 + q3) / (s ** 2 + 1.0);
           } while (abs(s - s1) > maxErr);
         } while (abs(s - s0) > maxErr);
 
@@ -462,7 +462,7 @@ export class AdditionalOrbitingObjects {
     const y = r * (sinL * cosu + cosL * sinu * cosi);
     const z = r * sini * sinu;
 
-    let pos = new SphericalPosition3D(Angle.atan2_nonneg(y, x), Angle.atan2(z, sqrt(x * x + y * y)), r);
+    let pos = new SphericalPosition3D(Angle.atan2_nonneg(y, x), Angle.atan2(z, sqrt(x ** 2 + y ** 2)), r);
 
     pos = Ecliptic.precessEcliptical3D(pos, time_JDE);
 
@@ -535,7 +535,7 @@ export class AdditionalOrbitingObjects {
       f = ecc * sine - h - meanA;
       f1 = ecc * cose - 1.0;
       f2 = ecc * sine;
-      dh = -5.0 * f / (f1 + signZP(f1) * sqrt(abs(16.0 * f1 * f1 - 20.0 * f * f2)));
+      dh = -5.0 * f / (f1 + signZP(f1) * sqrt(abs(16.0 * f1 ** 2 - 20.0 * f * f2)));
       h = h + dh;
     } while (abs(dh) >= maxError);
 

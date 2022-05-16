@@ -747,7 +747,7 @@ export class StarCatalog {
       // ecliptic are quite enough here, given that the greatest effect of stellar
       // aberration is only 20.5".
 
-      const T2 = T * T;
+      const T2 = T ** 2;
       const e = 0.016708634 - 0.000042037 * T - 0.0000001267 * T2;
       const pi = to_radian(102.93735 + 1.71946 * T + 0.00046 * T2);
       const e0 = to_radian(OBLIQUITY_J2000 - (46.8150 * T - 0.00059 * T2 + 0.001813 * T2 * T) / 3600.0);

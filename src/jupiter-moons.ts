@@ -373,7 +373,7 @@ export class JupitersMoons extends PlanetaryMoons {
     }
 
     const T0 = (time_JDE - 2433282.423) / 36525.0;
-    const P = 1.3966626 * T0 + 0.0003088 * T0 * T0;
+    const P = 1.3966626 * T0 + 0.0003088 * T0 ** 2;
     const T = (time_JDE - 2415020.0) / 36525.0;
     const I = 3.120262 + 0.0006 * T;
     const oe = SolarSystem.getOrbitalElements(JUPITER, time_JDE - lightDelay);
@@ -441,7 +441,7 @@ export class JupitersMoons extends PlanetaryMoons {
         moon.Z = Z[j];
         moon.inferior = (moon.Z <= 0.0);
         Y1 = moon.Y * this.flattening;
-        moon.withinDisc    = (sqrt(moon.X * moon.X + Y1 * Y1) < 1.0);
+        moon.withinDisc    = (sqrt(moon.X * moon.X + Y1 ** 2) < 1.0);
         moon.inFrontOfDisc = moon.withinDisc &&  moon.inferior;
         moon.behindDisc    = moon.withinDisc && !moon.inferior;
 

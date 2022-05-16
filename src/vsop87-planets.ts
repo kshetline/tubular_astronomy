@@ -2604,7 +2604,7 @@ export class Vsop87Planets {
     const L = pos.longitude;
     const B = pos.latitude;
     const T = (time_JDE - JD_J2000) / 36525.0;
-    const L1 = new Angle(L.degrees - 1.397 * T - 0.00031 * T * T, Unit.DEGREES);
+    const L1 = new Angle(L.degrees - 1.397 * T - 0.00031 * T ** 2, Unit.DEGREES);
     const dL = new Angle(-0.09033 + 0.03916 * (L1.cos + L1.sin) * B.tan, Unit.ARC_SECONDS);
     const dB = new Angle(0.03916 * (L1.cos - L1.sin), Unit.ARC_SECONDS);
 

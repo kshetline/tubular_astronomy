@@ -136,7 +136,7 @@ export class SkyObserver implements ISkyObserver {
         const rl = 1.551E-6 * this._latitude.cos;
         const x  = cos(RA) * rd - sin(lha) * rl;
         const y  = sin(RA) * rd + cos(lha) * rl;
-        const r  = sqrt(x * x + y * y);
+        const r  = sqrt(x ** 2 + y ** 2);
 
         RA = atan2(y, x);
         d1 = (HALF_PI - r) * sign(d1);
