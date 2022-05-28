@@ -48,14 +48,15 @@ export interface EclipseInfo {
   penumbraRadius: number;
   umbraRadius: number;
   centerSeparation: number;
-  penumbralSeparation: number; // Zero at contact of penumbra and Moon's disc, negative for overlap.
+  penumbralSeparation: number; // zero at contact of penumbra and Moon's disc, negative for overlap
   inPenumbra: boolean;
-  umbralSeparation: number; // Zero at contact of umbra and Moon's disc, negative for overlap.
-  inUmbra: boolean; // If this is true, inPenumbra must also be true
+  umbralSeparation: number; // zero at contact of umbra and Moon's disc, negative for overlap
+  inUmbra: boolean; // if true, inPenumbra must also be true
   total: boolean;
+  totality?: number; // currently only computed for lunar eclipse
   annular: boolean;
   hybrid: boolean;
-  surfaceShadow: ISkyObserver; // Only for solar eclipse, latitude and longitude of shadow's center.
+  surfaceShadow: ISkyObserver; // only for solar eclipse: latitude and longitude of ground shadow's center
 }
 
 export interface RingInfo {
@@ -932,8 +933,8 @@ export class SolarSystem {
     ei.inPenumbra          = (ei.penumbralSeparation <= 0.0);
     ei.umbralSeparation    = ei.centerSeparation - ei.radius - ei.umbraRadius;
     ei.inUmbra             = (ei.umbralSeparation <= 0.0);
-    // 0.9844 fudge-factor to loosely account for perspective effects of the curvature of the moon.
-    ei.total               = ((ei.centerSeparation + ei.radius) * 0.9844 <= ei.umbraRadius);
+    ei.total               = (ei.centerSeparation + ei.radius <= ei.umbraRadius);
+    ei.totality            = ei.inUmbra ? min(-ei.umbralSeparation / ei.radius / 2, 1) : 0;
 
     ei.annular             = false;
     ei.hybrid              = false;
