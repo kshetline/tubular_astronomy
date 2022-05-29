@@ -122,6 +122,6 @@ describe('EventFinder', () => {
       expect(event.eventTime.wallTime.min).to.equal(31);
 
       done();
-    });
+    }).catch(done);
   });
 });

@@ -199,7 +199,7 @@ export class MeeusMoon {
     }
 
     const T = (time_JDE - JD_J2000) / 36525.0;
-    const T2 = T * T;
+    const T2 = T ** 2;
     const T3 = T2 * T;
     const T4 = T3 * T;
 
@@ -219,7 +219,7 @@ export class MeeusMoon {
     const A2 = 53.09 + 479264.290 * T;
     const A3 = 313.45 + 481266.484 * T;
     const E = 1.0 - 0.002516 * T - 0.0000074 * T2;
-    const E2 = E * E;
+    const E2 = E ** 2;
 
     let L = 0.0, B = 0.0, R = 0.0;
     let arg;

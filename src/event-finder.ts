@@ -1450,7 +1450,7 @@ export class EventFinder {
       case QUADRATURE:
         const sinElongation = sin_deg(this.ss.getSolarElongationInLongitude(planet, time_JDE));
 
-        return sinElongation * sinElongation;
+        return sinElongation ** 2;
 
       case GRS_TRANSIT_EVENT:
         if (this.jupiterInfo)

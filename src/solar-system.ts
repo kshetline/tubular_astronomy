@@ -6,9 +6,9 @@ import { tdtToUt, utToTdt } from '@tubular/time';
 import { AdditionalOrbitingObjects } from './additional-orbiting-objects';
 import {
   ABERRATION, ASTEROID_BASE, ASTEROID_MAX, ASTROMETRIC, COMET_BASE, COMET_MAX, DEFAULT_FLAGS, DELAYED_TIME, EARTH, EARTH_RADIUS_KM,
-  EARTH_RADIUS_POLAR_KM, FIRST_PLANET, HIGH_PRECISION, JD_J2000, JUPITER, KM_PER_AU, LAST_PLANET, LIGHT_DAYS_PER_AU, LOW_PRECISION,
-  MARS, MERCURY, MOON, MOON_RADIUS_KM, NEPTUNE, NO_MATCH, NUTATION, PLUTO, QUICK_PLANET, QUICK_SUN, SATURN, SIGNED_HOUR_ANGLE, SUN,
-  SUN_RADIUS_KM, TOPOCENTRIC, TRUE_DISTANCE, UNKNOWN_MAGNITUDE, URANUS, VENUS
+  EARTH_RADIUS_POLAR_KM, FIRST_PLANET, HIGH_PRECISION, INCLINATION_MEAN_LUNAR_EQUATOR, JD_J2000, JUPITER, KM_PER_AU, LAST_PLANET,
+  LIGHT_DAYS_PER_AU, LOW_PRECISION, MARS, MERCURY, MOON, MOON_RADIUS_KM, NEPTUNE, NO_MATCH, NUTATION, PLUTO, QUICK_PLANET, QUICK_SUN,
+  SATURN, SIGNED_HOUR_ANGLE, SUN, SUN_RADIUS_KM, TOPOCENTRIC, TRUE_DISTANCE, UNKNOWN_MAGNITUDE, URANUS, VENUS
 } from './astro-constants';
 import { Ecliptic, NMode } from './ecliptic';
 import { IAstroDataService } from './i-astro-data.service';
@@ -48,14 +48,15 @@ export interface EclipseInfo {
   penumbraRadius: number;
   umbraRadius: number;
   centerSeparation: number;
-  penumbralSeparation: number; // Zero at contact of penumbra and Moon's disc, negative for overlap.
+  penumbralSeparation: number; // zero at contact of penumbra and Moon's disc, negative for overlap
   inPenumbra: boolean;
-  umbralSeparation: number; // Zero at contact of umbra and Moon's disc, negative for overlap.
-  inUmbra: boolean; // If this is true, inPenumbra must also be true
+  umbralSeparation: number; // zero at contact of umbra and Moon's disc, negative for overlap
+  inUmbra: boolean; // if true, inPenumbra must also be true
   total: boolean;
+  totality?: number; // currently only computed for lunar eclipse
   annular: boolean;
   hybrid: boolean;
-  surfaceShadow: ISkyObserver; // Only for solar eclipse, latitude and longitude of shadow's center.
+  surfaceShadow: ISkyObserver; // only for solar eclipse: latitude and longitude of ground shadow's center
 }
 
 export interface RingInfo {
@@ -80,6 +81,13 @@ export interface OrbitalElements {
   C: number;    // equation of center
   v: number;    // true anomaly
   partial: boolean; // true when all other fields not filled in, such as results returned by AdditionalOrbitingObjects.
+}
+
+export interface Libration {
+  l: number; // in degrees
+  b: number; // in degrees
+  d: number; // diameter, in arcseconds
+  D: number; // distance from Earth, in AU
 }
 
   // Orbital elements for mean equinox of date (except Pluto, J2000.0).
@@ -200,7 +208,7 @@ export class SolarSystem {
     const t = time_JDU - JD_J2000;
     const T = t / 36525;
 
-    return mod(280.46061837 + 360.98564736629 * t + 0.000387933 * T * T - T * T * T / 38710000.0, 360.0);
+    return mod(280.46061837 + 360.98564736629 * t + 0.000387933 * T ** 2 - T ** 3 / 38710000.0, 360.0);
   }
 
   static isNominalPlanet(planet: number): boolean {
@@ -319,7 +327,7 @@ export class SolarSystem {
     const y = r * (sin_o * cos_vpo + cos_o * sin_vpo * cos_i);
     const z = r * sin_vpo * sin_i;
 
-    return new SphericalPosition3D(Angle.atan2_nonneg(y, x), Angle.atan2(z, sqrt(x * x + y * y)), r);
+    return new SphericalPosition3D(Angle.atan2_nonneg(y, x), Angle.atan2(z, sqrt(x ** 2 + y ** 2)), r);
   }
 
   // Result in days per revolution.
@@ -478,7 +486,7 @@ export class SolarSystem {
       result = this.moon.getEclipticPosition(time_JDE);
     else if (planet === SUN && (flags & QUICK_SUN) !== 0) {
       const T = (time_JDE - JD_J2000) / 36525.0;
-      const T2 = T * T;
+      const T2 = T ** 2;
       const e = 0.016708634 - 0.000042037 * T - 0.0000001267 * T2;
       const L0 = 280.46646 + 36000.76983 * T + 0.0003032 * T2;
       const M = 357.52911 + 35999.05029 * T - 0.0001537 * T2;
@@ -486,7 +494,7 @@ export class SolarSystem {
               + (0.019993 - 0.000101 * T) * sin_deg(2.0 * M)
               + 0.000289 * sin_deg(3.0 * M);
       const L = mod(L0 + C, 360.0);
-      const R = 1.000001018 * (1.0 - e * e) / (1.0 + e * cos_deg(M + C));
+      const R = 1.000001018 * (1.0 - e ** 2) / (1.0 + e * cos_deg(M + C));
 
       result = new SphericalPosition3D(L, 0.0, R, Unit.DEGREES, Unit.RADIANS);
     }
@@ -664,7 +672,7 @@ export class SolarSystem {
     const r = this.getHeliocentricPosition(planet, time_JDE, LOW_PRECISION).radius;
     const D = this.getEclipticPosition(planet, time_JDE, null, ABERRATION | LOW_PRECISION).radius;
     const R = this.getHeliocentricPosition(EARTH, time_JDE, LOW_PRECISION).radius;
-    const cpa = (r * r + D * D - R * R) / (2.0 * r * D);
+    const cpa = (r ** 2 + D ** 2 - R ** 2) / (2.0 * r * D);
 
     // Rounding error can cause this number to slightly exceed the valid
     // range [-1, 1], returning an invalid argument for the arc cos function.
@@ -717,10 +725,10 @@ export class SolarSystem {
 
   getSaturnRingInfo(time_JDE: number): RingInfo {
     const T = (time_JDE - JD_J2000) / 36525.0;
-    const i = 28.075216 - 0.012998 * T + 0.000004 * T * T;
+    const i = 28.075216 - 0.012998 * T + 0.000004 * T ** 2;
     const sin_i = sin_deg(i);
     const cos_i = cos_deg(i);
-    const Ω = 169.508470 + 1.394681 * T + 0.000412 * T * T;
+    const Ω = 169.508470 + 1.394681 * T + 0.000412 * T ** 2;
     const ri = {} as RingInfo;
 
     const delayedTime = this.getEclipticPosition(SATURN, time_JDE, null, DELAYED_TIME | LOW_PRECISION).radius;
@@ -774,7 +782,7 @@ export class SolarSystem {
     const Δ = this.getEclipticPosition(planet, time_JDE, null, QUICK_SUN | LOW_PRECISION).radius;
 
     const i = this.getPhaseAngle(planet, time_JDE);
-    const i2 = i * i;
+    const i2 = i ** 2;
     const i3 = i2 * i;
     const _5log_rD = 5.0 * log10(r * Δ);
 
@@ -802,7 +810,7 @@ export class SolarSystem {
         // eslint-disable-next-line no-case-declarations
         const sin_B = sin_deg(ri.B);
 
-        return -8.88 + _5log_rD + 0.044 * ri.dU - 2.60 * sin_deg(abs(ri.B)) + 1.25 * sin_B * sin_B;
+        return -8.88 + _5log_rD + 0.044 * ri.dU - 2.60 * sin_deg(abs(ri.B)) + 1.25 * sin_B ** 2;
 
       case URANUS:
         return -7.19 + _5log_rD;
@@ -866,8 +874,30 @@ export class SolarSystem {
     return r * 2.0;
   }
 
+  getLunarLibration(time_JDE: number, observer?: ISkyObserver): Libration {
+    // Adapted from _Astronomical Algorithms, 2nd Ed._ by Jean Meeus, pp. 371-375.
+    const pos = this.getEclipticPosition(MOON, time_JDE, observer, ABERRATION | (observer ? TOPOCENTRIC : 0));
+    // Δψ not needed, since pos is computed without nutation.
+    const T = (time_JDE - JD_J2000) / 36525.0;
+    const F = 93.2720950 + 483202.0175233 * T - 0.0036539 * T ** 2 - T ** 3 / 3526000.0 + T ** 4 / 863310000.0;
+    const Ω = 125.04452 - 1934.136261 * T + 0.0020708 * T ** 2 + T ** 3 / 450000.0;
+    const W = pos.longitude.degrees - Ω;
+    const cosβ = pos.latitude.cos;
+    const sinβ = pos.latitude.sin;
+    const cosI = cos_deg(INCLINATION_MEAN_LUNAR_EQUATOR);
+    const sinI = sin_deg(INCLINATION_MEAN_LUNAR_EQUATOR);
+    const A = atan2_deg(sin_deg(W) * cosβ * cosI - sinβ * sinI, cos_deg(W) * cosβ);
+
+    return {
+      l: mod2(A - F, 360),
+      b: asin_deg(-sin_deg(W) * cosβ * sinI - sinβ * cosI),
+      d: this.getAngularDiameter(MOON, time_JDE, observer),
+      D: pos.radius
+    };
+  }
+
   // I treat the umbra and penumbra of the Earth as imaginary circular objects
-  // directly opposite from the Sun and located at the same distance from the
+  // directly opposite to the Sun and located at the same distance from the
   // Earth as the Moon.
   //
   // If you can imagine the typical diagram of how umbral and penumbral shadows are
@@ -903,8 +933,8 @@ export class SolarSystem {
     ei.inPenumbra          = (ei.penumbralSeparation <= 0.0);
     ei.umbralSeparation    = ei.centerSeparation - ei.radius - ei.umbraRadius;
     ei.inUmbra             = (ei.umbralSeparation <= 0.0);
-    // 0.9844 fudge-factor to loosely account for perspective effects of the curvature of the moon.
-    ei.total               = ((ei.centerSeparation + ei.radius) * 0.9844 <= ei.umbraRadius);
+    ei.total               = (ei.centerSeparation + ei.radius <= ei.umbraRadius);
+    ei.totality            = ei.inUmbra ? min(-ei.umbralSeparation / ei.radius / 2, 1) : 0;
 
     ei.annular             = false;
     ei.hybrid              = false;
@@ -994,11 +1024,11 @@ export class SolarSystem {
       const dy = ys - ym;
       const dz = zs - zm;
 
-      a = dx * dx + dy * dy + dz * dz;
+      a = dx ** 2 + dy ** 2 + dz ** 2;
       b = 2.0 * (xm * dx + ym * dy + zm * dz);
 
-      const c = xm * xm + ym * ym + zm * zm - r * r;
-      const radicand = max(b * b - 4.0 * a * c, 0.0);
+      const c = xm ** 2 + ym ** 2 + zm ** 2 - r ** 2;
+      const radicand = max(b ** 2 - 4.0 * a * c, 0.0);
       const u = (-b + sqrt(radicand)) / 2.0 / a;
       const xh = xm + u * dx;
       const yh = ym + u * dy;
