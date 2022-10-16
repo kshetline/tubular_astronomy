@@ -159,9 +159,9 @@ export class Ecliptic {
     }
 
     const T = (initialEpoch - JD_J2000) / 36525.0;
-    const T2 = T * T;
+    const T2 = T ** 2;
     const t = (finalEpoch - initialEpoch) / 36525.0;
-    const t2 = t * t;
+    const t2 = t ** 2;
     const t3 = t2 * t;
     const RA0 = pos.rightAscension.radians;
     const dec0 = pos.declination.radians;
@@ -189,7 +189,7 @@ export class Ecliptic {
     if (HALF_PI - abs(dec0) > 4.85E-6)
       dec = asin(C);
     else
-      dec = sqrt(A * A + B * B);
+      dec = sqrt(A ** 2 + B ** 2);
 
     return new SphericalPosition(RA, dec);
   }
@@ -213,9 +213,9 @@ export class Ecliptic {
     }
 
     const T = (initialEpoch - JD_J2000) / 36525.0;
-    const T2 = T * T;
+    const T2 = T ** 2;
     const t = (finalEpoch - initialEpoch) / 36525.0;
-    const t2 = t * t;
+    const t2 = t ** 2;
     const t3 = t2 * t;
     const L0 = pos.longitude.radians;
     const B0 = pos.latitude.radians;
@@ -277,7 +277,7 @@ export class Ecliptic {
         result.Δε = new Angle(0);
       }
       else {
-        const T2 = T * T;
+        const T2 = T ** 2;
         const T3 = T2 * T;
 
         // Mean elongation of Moon from Sun

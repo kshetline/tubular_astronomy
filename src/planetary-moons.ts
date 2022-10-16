@@ -162,7 +162,7 @@ export abstract class PlanetaryMoons {
           }
 
           Y1 = pos[i].Y * this.flattening;
-          d  = sqrt(pos[i].X * pos[i].X + Y1 * Y1);
+          d  = sqrt(pos[i].X * pos[i].X + Y1 ** 2);
 
           if (d > 1.0)
             d -= 1.0;

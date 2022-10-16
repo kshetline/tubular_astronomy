@@ -108,6 +108,8 @@ export const OBLIQUITY_J2000       = 23.43929111; // in degrees
 export const K_DEG                 = 0.98560766860142; // Gaussian gravitation in degrees.
 export const K_RAD                 = K_DEG * Math.PI / 180.0; // Gaussian gravitation in radians.
 
+export const INCLINATION_MEAN_LUNAR_EQUATOR = 1.54242;
+
 export const GALACTIC_NORTH_B1950 = new SphericalPosition(192.25, 27.4, Unit.DEGREES, Unit.DEGREES);
 export const GALACTIC_ASCENDING_NODE_B1950 = new Angle(33.0, Unit.DEGREES);
 

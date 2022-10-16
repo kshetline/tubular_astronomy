@@ -156,7 +156,7 @@ export class SaturnMoons extends PlanetaryMoons {
               p1 = 342.7 + 10.057 * t2;
               a1 = 0.000265 * sin_deg(p1) + 0.01 * sin_deg(W4);
               a2 = 0.000265 * cos_deg(p1) + 0.01 * cos_deg(W4);
-              e = sqrt(a1 * a1 + a2 * a2);
+              e = sqrt(a1 ** 2 + a2 ** 2);
               p = atan2_deg(a1, a2);
               N = 345.0 - 10.057 * t2;
               λ1 = 359.244 + 79.69004720 * t1 + 0.086754 * sin_deg(N);
@@ -175,7 +175,7 @@ export class SaturnMoons extends PlanetaryMoons {
               a2 = cos_deg(W7) * sin_deg(i1) - sin_deg(W7) * cos_deg(i1) * cos_deg(Ω1 - W8);
               g0 = 102.8623;
               ψ = atan2_deg(a1, a2);
-              s = sqrt(a1 * a1 + a2 * a2);
+              s = sqrt(a1 ** 2 + a2 ** 2);
               g = W4 - Ω1 - ψ;
 
               for (let k = 0; k < 3; ++k) {
@@ -191,8 +191,8 @@ export class SaturnMoons extends PlanetaryMoons {
               e = e1 + 0.002778797 * e1 * cos_deg(q);
               p = ww + 0.159215 * sin_deg(q);
               u = 2.0 * W5 - 2.0 * θ + ψ;
-              h = 0.9375 * e1 * e1 * sin_deg(q) + 0.1875 * s * s * sin_deg(2.0 * (W5 - θ));
-              λ1 = L - 0.254744 * (e1 * sin_deg(W6) + 0.75 * e1 * e1 * sin_deg(2.0 * W6) + h);
+              h = 0.9375 * e1 ** 2 * sin_deg(q) + 0.1875 * s ** 2 * sin_deg(2.0 * (W5 - θ));
+              λ1 = L - 0.254744 * (e1 * sin_deg(W6) + 0.75 * e1 ** 2 * sin_deg(2.0 * W6) + h);
               i = i1 + 0.031843 * s * cos_deg(u);
               Ω = Ω1 + 0.031843 * s * sin_deg(u) / sin_deg(i1);
               a = 20.216193;
@@ -242,8 +242,8 @@ export class SaturnMoons extends PlanetaryMoons {
               e1 = 0.028298 + 0.001156 * t11;
               ww0 = 352.91 + 11.71 * t11;
               μ = 76.3852 + 4.53795125 * t10;
-              i1 = 18.4602 - 0.9518 * t11 - 0.072 * t11 * t11 + 0.0054 * t11 * t11 * t11;
-              Ω1 = 143.198 - 3.919 * t11 + 0.116 * t11 * t11 + 0.008 * t11 * t11 * t11;
+              i1 = 18.4602 - 0.9518 * t11 - 0.072 * t11 ** 2 + 0.0054 * t11 ** 3;
+              Ω1 = 143.198 - 3.919 * t11 + 0.116 * t11 ** 2 + 0.008 * t11 ** 3;
               l = μ - ww0;
               g = ww0 - Ω1 - ψ;
               g1 = ww0 - Ω1 - φ;
@@ -344,7 +344,7 @@ export class SaturnMoons extends PlanetaryMoons {
         moon.Z = Z[j];
         moon.inferior = (moon.Z <= 0.0);
         Y1 = moon.Y * this.flattening;
-        moon.withinDisc = (sqrt(moon.X * moon.X + Y1 * Y1) < 1.0);
+        moon.withinDisc = (sqrt(moon.X * moon.X + Y1 ** 2) < 1.0);
         moon.inFrontOfDisc = moon.withinDisc && moon.inferior;
         moon.behindDisc = moon.withinDisc && !moon.inferior;
 
@@ -357,7 +357,7 @@ export class SaturnMoons extends PlanetaryMoons {
 
   private static solveOuterMoon(e, M, a, Ω, i, lambda1): OuterMoonInfo {
     const omi = {} as OuterMoonInfo;
-    const e2 = e * e;
+    const e2 = e ** 2;
     const e3 = e2 * e;
     const e4 = e3 * e;
     const e5 = e4 * e;
@@ -373,7 +373,7 @@ export class SaturnMoons extends PlanetaryMoons {
     const a1 = sin_deg(i) * sin_deg(g);
     const a2 = c1 * sin_deg(i) * cos_deg(g) - s1 * cos_deg(i);
 
-    omi.γ = asin_deg(sqrt(a1 * a1 + a2 * a2));
+    omi.γ = asin_deg(sqrt(a1 ** 2 + a2 ** 2));
 
     const u = atan2_deg(a1, a2);
 
