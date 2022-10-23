@@ -80,6 +80,8 @@ export const QUADRATURE              = 306;
 export const ECLIPSE_EVENT_BASE      = 400;
 export const LUNAR_ECLIPSE           = 400;
 export const SOLAR_ECLIPSE           = 401;
+export const LUNAR_ECLIPSE_LOCAL     = 402;
+export const SOLAR_ECLIPSE_LOCAL     = 403;
 
 export const MOONS_EVENT_BASE        = 500;
 export const GALILEAN_MOON_EVENT     = 500;

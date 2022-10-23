@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { DateTime, Timezone } from '@tubular/time';
-import { FIRST_QUARTER, FULL_MOON, GREATEST_ELONGATION, GRS_TRANSIT_EVENT, JUPITER, MOON, RISE_EVENT, SET_EVENT, SOLAR_ECLIPSE, SUN, VENUS } from './astro-constants';
+import { FIRST_QUARTER, FULL_MOON, GREATEST_ELONGATION, GRS_TRANSIT_EVENT, JUPITER, MOON, RISE_EVENT, SET_EVENT, SOLAR_ECLIPSE, SOLAR_ECLIPSE_LOCAL, SUN, VENUS } from './astro-constants';
 import { EventFinder } from './event-finder';
 import { IAstroDataService } from './i-astro-data.service';
 import { JupiterInfo } from './jupiter-info';
@@ -54,7 +54,11 @@ describe('EventFinder', () => {
   const zone = Timezone.from('America/New_York');
   const time = new DateTime({ y: 2018, m: 2, d: 11, hrs: 20, min: 0, sec: 0 }, zone);
   const jdu = DateTime.julianDay(time.utcTimeMillis);
+  // const time2 = new DateTime({ y: 2024, m: 1, d: 1, hrs: 0, min: 0, sec: 0 }, zone);
+  const time2 = new DateTime(null, zone);
+  const jdu2 = DateTime.julianDay(time2.utcTimeMillis);
   const observer = new SkyObserver(-71.48, 42.75);
+  const observer2 = new SkyObserver(-81.22399, 41.28394);
 
   it('should find the next sunrise', () => {
     const event = eventFinder.findEvent(SUN, RISE_EVENT, jdu, observer, zone);
@@ -108,6 +112,13 @@ describe('EventFinder', () => {
     expect(event.eventTime.wallTime.d).to.equal(24);
     expect(event.eventTime.wallTime.hrs).to.equal(17);
     expect(event.eventTime.wallTime.min).to.equal(20);
+  });
+
+  it('should find local solar eclipses', () => {
+    let event = eventFinder.findEvent(SUN, SOLAR_ECLIPSE_LOCAL, jdu2, observer2, zone, null);
+    console.log(event);
+    event = eventFinder.findEvent(SUN, SOLAR_ECLIPSE_LOCAL, event.ut, observer2, zone, null);
+    console.log(event);
   });
 
   it('should resolve the promise for GRS data and find next GRS transit', done => {

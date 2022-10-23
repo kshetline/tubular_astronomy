@@ -1,19 +1,11 @@
-import { DateTimeField, getISOFormatDate, GregorianChange, Calendar, DateTime, Timezone, utToTdt, YMDDate } from '@tubular/time';
-import {
-  abs, Angle, div_rd, floor, FMT_DD, FMT_MINS, max, min, MinMaxFinder, mod, mod2, round, sign, sin_deg, Unit, ZeroFinder
-} from '@tubular/math';
+import { abs, Angle, div_rd, floor, FMT_DD, FMT_MINS, max, min, MinMaxFinder, mod, mod2, round, sign, sin_deg, Unit, ZeroFinder } from '@tubular/math';
+import { Calendar, DateTime, DateTimeField, getISOFormatDate, GregorianChange, Timezone, utToTdt, YMDDate } from '@tubular/time';
 import { flatten, htmlEscape, isNumber, isString } from '@tubular/util';
-import {
-  APHELION, AVG_SUN_MOON_RADIUS, FALL_EQUINOX, FIRST_QUARTER, FULL_MOON, GALILEAN_MOON_EVENT, GREATEST_ELONGATION, GRS_TRANSIT_EVENT, HALF_MINUTE,
-  INFERIOR_CONJUNCTION, LAST_QUARTER, LUNAR_ECLIPSE, MARS, MAX_ALT_FOR_TWILIGHT, MEAN_JUPITER_SYS_II, MEAN_SYNODIC_MONTH, MERCURY, MINUTE, MOON,
-  NAUTICAL_TWILIGHT, NEPTUNE, NEW_MOON, NON_EVENT, OPPOSITION, PERIHELION, PHASE_EVENT_BASE, QUADRATURE, QUICK_PLANET, REFRACTION_AT_HORIZON, RISE_EVENT, SET_EVENT,
-  SET_EVENT_MINUS_1_MIN, SIGNED_HOUR_ANGLE, SOLAR_ECLIPSE, SPRING_EQUINOX, SUMMER_SOLSTICE, SUN, SUPERIOR_CONJUNCTION, TRANSIT_EVENT, TWILIGHT_BEGINS,
-  TWILIGHT_ENDS, UNSEEN_ALL_DAY, URANUS, VENUS, VISIBLE_ALL_DAY, WINTER_SOLSTICE
-} from './astro-constants';
+import { APHELION, AVG_SUN_MOON_RADIUS, FALL_EQUINOX, FIRST_QUARTER, FULL_MOON, GALILEAN_MOON_EVENT, GREATEST_ELONGATION, GRS_TRANSIT_EVENT, HALF_DAY, HALF_MINUTE, INFERIOR_CONJUNCTION, LAST_QUARTER, LUNAR_ECLIPSE, LUNAR_ECLIPSE_LOCAL, MARS, MAX_ALT_FOR_TWILIGHT, MEAN_JUPITER_SYS_II, MEAN_SYNODIC_MONTH, MERCURY, MINUTE, MOON, NAUTICAL_TWILIGHT, NEPTUNE, NEW_MOON, NON_EVENT, OPPOSITION, PERIHELION, PHASE_EVENT_BASE, QUADRATURE, QUICK_PLANET, REFRACTION_AT_HORIZON, RISE_EVENT, SET_EVENT, SET_EVENT_MINUS_1_MIN, SIGNED_HOUR_ANGLE, SOLAR_ECLIPSE, SOLAR_ECLIPSE_LOCAL, SPRING_EQUINOX, SUMMER_SOLSTICE, SUN, SUPERIOR_CONJUNCTION, TRANSIT_EVENT, TWILIGHT_BEGINS, TWILIGHT_ENDS, UNSEEN_ALL_DAY, URANUS, VENUS, VISIBLE_ALL_DAY, WINTER_SOLSTICE } from './astro-constants';
 import { ISkyObserver } from './i-sky-observer';
 import { JupiterInfo } from './jupiter-info';
 import { JupitersMoons } from './jupiter-moons';
-import { EclipseInfo, SolarSystem } from './solar-system';
+import { EclipseInfo, LocalEclipseCircumstances, SolarSystem } from './solar-system';
 
 /* eslint-disable no-case-declarations, yoda */
 
@@ -1104,6 +1096,82 @@ export class EventFinder {
   findEvent(planet: number, eventType: number, originalTime: number,
             observer: ISkyObserver, zone?: Timezone, gregorianChange?: GregorianChange,
             doPrevious = false, argument?: any, maxTries = Number.MAX_SAFE_INTEGER): AstroEvent {
+    let type = eventType;
+    let result: AstroEvent;
+    let testTime = originalTime;
+
+    if (eventType === SOLAR_ECLIPSE_LOCAL)
+      type = SOLAR_ECLIPSE;
+    else if (eventType === LUNAR_ECLIPSE_LOCAL)
+      type = LUNAR_ECLIPSE;
+
+    while (true) {
+      result = this.findEventImpl(planet, type, testTime, observer, zone, gregorianChange, doPrevious, argument, maxTries);
+
+      if (!result || type === eventType)
+        break;
+      else if (eventType === SOLAR_ECLIPSE_LOCAL) {
+        const minMaxFinder = new MinMaxFinder((x: number) => {
+              return this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true);
+            }, 1E-10, 25, result.ut - HALF_DAY, result.ut, result.ut + HALF_DAY);
+        const eventTime = minMaxFinder.getXAtMinMax();
+
+        if (!doPrevious && eventTime <= originalTime + MINUTE)
+          testTime += 2;
+        else if (doPrevious && eventTime >= originalTime - MINUTE)
+          testTime -= 2;
+        else if (minMaxFinder.lastY > 0) {
+          const circumstances =
+            { annular: false, maxEclipse: min(minMaxFinder.lastY * 100, 100), maxTime: eventTime } as LocalEclipseCircumstances;
+          const firstContactFinder = new ZeroFinder((x: number) => {
+            return this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true);
+          }, 1E-10, 25, result.ut - HALF_DAY, eventTime);
+
+          circumstances.firstContact = firstContactFinder.getXAtZero();
+
+          const lastContactFinder = new ZeroFinder((x: number) => {
+            return this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true);
+          }, 1E-10, 25, eventTime, result.ut + HALF_DAY);
+
+          circumstances.lastContact = lastContactFinder.getXAtZero();
+          circumstances.duration = (circumstances.lastContact - circumstances.firstContact) * 86400;
+
+          if (minMaxFinder.lastY > 1) {
+            const startFinder = new ZeroFinder((x: number) => {
+              return this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true) - 1;
+            }, 1E-10, 25, circumstances.firstContact, eventTime);
+
+            circumstances.totalityStarts = startFinder.getXAtZero();
+
+            const endFinder = new ZeroFinder((x: number) => {
+              return this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true) - 1;
+            }, 1E-10, 25, eventTime, circumstances.lastContact);
+
+            circumstances.totalityEnds = endFinder.getXAtZero();
+            circumstances.totalityDuration = (circumstances.totalityEnds - circumstances.totalityStarts) * 86400;
+          }
+          else
+            circumstances.totalityDuration = 0;
+
+          const event = AstroEvent.fromJdu(SOLAR_ECLIPSE_LOCAL, '', eventTime, zone, gregorianChange, minMaxFinder.lastY);
+
+          event.miscInfo = circumstances;
+
+          return event;
+        }
+        else if (doPrevious)
+          testTime -= 2;
+        else
+          testTime += 2;
+      }
+    }
+
+    return result;
+  }
+
+  private findEventImpl(planet: number, eventType: number, originalTime: number,
+            observer: ISkyObserver, zone?: Timezone, gregorianChange?: GregorianChange,
+            doPrevious = false, argument?: any, maxTries = Number.MAX_SAFE_INTEGER): AstroEvent {
     if (!zone)
       zone = Timezone.UT_ZONE;
 
@@ -1132,7 +1200,7 @@ export class EventFinder {
         case TWILIGHT_BEGINS:
         case TWILIGHT_ENDS:
           if (tries >= maxTries)
-            return;
+            return null;
           else if (tries > 0)
             ymd = dateTime.addDaysToDate(δ, ymd);
 

@@ -75,7 +75,7 @@ export interface OrbitalElements {
   e: number;    // eccentricity
   i: number;    // inclination of orbit
   Ω: number;    // longitude of ascending node
-  pi: number;    // longitude of perihelion
+  pi: number;   // longitude of perihelion
   ω: number;    // argument of the perihelion (pi - OMEGA)
   M: number;    // mean anomaly
   C: number;    // equation of center
@@ -88,6 +88,18 @@ export interface Libration {
   b: number; // in degrees
   d: number; // diameter, in arcseconds
   D: number; // distance from Earth, in AU
+}
+
+export interface LocalEclipseCircumstances {
+  annular: boolean;
+  duration: number; // seconds
+  firstContact: number; // JDU
+  lastContact: number; // JDU
+  maxEclipse: number; // percent
+  maxTime: number; // JDU;
+  totalityDuration: number; // seconds
+  totalityEnds?: number; // JDU
+  totalityStarts?: number; // JDU
 }
 
   // Orbital elements for mean equinox of date (except Pluto, J2000.0).
@@ -474,7 +486,9 @@ export class SolarSystem {
     // not pass the topocentric flag into this function.
 
     if ((flags & TOPOCENTRIC) !== 0 && observer != null) {
-      const equPos = this.getEquatorialPosition(planet, time_JDE, observer, flags);
+      let equPos = this.getEquatorialPosition(planet, time_JDE, observer, flags);
+
+      equPos = new SphericalPosition3D(equPos.longitude, equPos.latitude, equPos.radius - EARTH_RADIUS_KM / KM_PER_AU);
 
       return this.ecliptic.equatorialToEcliptic3D(equPos, time_JDE,
         (flags & NUTATION) !== 0 ? NMode.NUTATED : NMode.J2000);
@@ -849,18 +863,18 @@ export class SolarSystem {
     if (planet < SUN || planet === EARTH || planet > MOON)
       return 0.0;
 
-    let Δ;
+    let Δ = (planet === MOON ? KM_PER_AU : 1);
 
     if (observer != null && planet === MOON)
-      Δ = this.getHorizontalPosition(planet, time_JDE, observer).radius;
+      Δ *= this.getHorizontalPosition(planet, time_JDE, observer).radius;
     else
-      Δ = this.getEclipticPosition(planet, time_JDE, null, ABERRATION + QUICK_SUN).radius;
+      Δ *= this.getEclipticPosition(planet, time_JDE, null, ABERRATION + QUICK_SUN).radius;
 
     let r = 0.0;
 
     switch (planet) {
       case SUN:     r = 959.63 / Δ;                      break;
-      case MOON:    r = 358473400 / (Δ * KM_PER_AU);     break;
+      case MOON:    r = acos_deg(sqrt(Δ ** 2 - MOON_RADIUS_KM ** 2) / Δ) * 3600; break;
       case MERCURY: r =   3.36 / Δ;                      break;
       case VENUS:   r =   8.34 / Δ;                      break;
       case MARS:    r =   4.68 / Δ;                      break;
@@ -1042,17 +1056,18 @@ export class SolarSystem {
     return ei;
   }
 
-  getLocalSolarEclipseTotality(time_JDE: number, observer: ISkyObserver): number {
+  getLocalSolarEclipseTotality(time_JDE: number, observer: ISkyObserver, raw = false): number {
     const separation = this.getSolarElongation(MOON, time_JDE, observer);
 
-    if (separation > 1.0)
+    if (separation > 1.0 && !raw)
       return 0.0;
 
     const moonRadius = this.getAngularDiameter(MOON, time_JDE, observer) / 7200.0;
     const sunRadius  = this.getAngularDiameter(SUN,  time_JDE)           / 7200.0;
     const overlap    = sunRadius + moonRadius - separation;
+    const totality   = overlap / sunRadius / 2.0;
 
-    return min(max(overlap / sunRadius / 2.0, 0.0), 1.0);
+    return raw ? totality : min(max(totality, 0.0), 1.0);
   }
 
   getTimeForDegreesOfChange(bodyID: number, startTime_JDE: number, degrees: number, maxTime_JDE: number): number {
