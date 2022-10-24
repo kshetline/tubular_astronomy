@@ -57,8 +57,13 @@ describe('EventFinder', () => {
   // const time2 = new DateTime({ y: 2024, m: 1, d: 1, hrs: 0, min: 0, sec: 0 }, zone);
   const time2 = new DateTime(null, zone);
   const jdu2 = DateTime.julianDay(time2.utcTimeMillis);
-  const observer = new SkyObserver(-71.48, 42.75);
-  const observer2 = new SkyObserver(-81.22399, 41.28394);
+  const time3 = new DateTime('1994-05-10T00:00', zone);
+  const jdu3 = DateTime.julianDay(time3.utcTimeMillis);
+  const time4 = new DateTime('2025-03-28T06:00', zone);
+  const jdu4 = DateTime.julianDay(time4.utcTimeMillis);
+  const observer = new SkyObserver(-71.48, 42.75); // Nashua
+  const observer2 = new SkyObserver(-81.22399, 41.28394); // Mantua
+  const observer3 = new SkyObserver(-71.9833, 43.7833); // Concord
 
   it('should find the next sunrise', () => {
     const event = eventFinder.findEvent(SUN, RISE_EVENT, jdu, observer, zone);
@@ -118,6 +123,10 @@ describe('EventFinder', () => {
     let event = eventFinder.findEvent(SUN, SOLAR_ECLIPSE_LOCAL, jdu2, observer2, zone, null);
     console.log(event);
     event = eventFinder.findEvent(SUN, SOLAR_ECLIPSE_LOCAL, event.ut, observer2, zone, null);
+    console.log(event);
+    event = eventFinder.findEvent(SUN, SOLAR_ECLIPSE_LOCAL, jdu3, observer3, zone, null);
+    console.log(event);
+    event = eventFinder.findEvent(SUN, SOLAR_ECLIPSE_LOCAL, jdu4, observer2, zone, null);
     console.log(event);
   });
 

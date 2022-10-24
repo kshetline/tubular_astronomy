@@ -97,9 +97,9 @@ export interface LocalEclipseCircumstances {
   lastContact: number; // JDU
   maxEclipse: number; // percent
   maxTime: number; // JDU;
-  totalityDuration: number; // seconds
-  totalityEnds?: number; // JDU
-  totalityStarts?: number; // JDU
+  peakDuration: number; // seconds
+  peakEnds?: number; // JDU
+  peakStarts?: number; // JDU
 }
 
   // Orbital elements for mean equinox of date (except Pluto, J2000.0).
@@ -1056,7 +1056,7 @@ export class SolarSystem {
     return ei;
   }
 
-  getLocalSolarEclipseTotality(time_JDE: number, observer: ISkyObserver, raw = false): number {
+  getLocalSolarEclipseTotality(time_JDE: number, observer: ISkyObserver, raw = false, annularity?: number[]): number {
     const separation = this.getSolarElongation(MOON, time_JDE, observer);
 
     if (separation > 1.0 && !raw)
@@ -1066,6 +1066,13 @@ export class SolarSystem {
     const sunRadius  = this.getAngularDiameter(SUN,  time_JDE)           / 7200.0;
     const overlap    = sunRadius + moonRadius - separation;
     const totality   = overlap / sunRadius / 2.0;
+
+    if (annularity) {
+      if (moonRadius < sunRadius)
+        annularity[0] = overlap / moonRadius / 2.0;
+      else
+        annularity[0] = 0;
+    }
 
     return raw ? totality : min(max(totality, 0.0), 1.0);
   }

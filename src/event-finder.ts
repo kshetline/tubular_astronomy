@@ -1111,8 +1111,9 @@ export class EventFinder {
       if (!result || type === eventType)
         break;
       else if (eventType === SOLAR_ECLIPSE_LOCAL) {
+        const annularity = [0];
         const minMaxFinder = new MinMaxFinder((x: number) => {
-              return this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true);
+              return this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true, annularity);
             }, 1E-10, 25, result.ut - HALF_DAY, result.ut, result.ut + HALF_DAY);
         const eventTime = minMaxFinder.getXAtMinMax();
 
@@ -1122,7 +1123,11 @@ export class EventFinder {
           testTime -= 2;
         else if (minMaxFinder.lastY > 0) {
           const circumstances =
-            { annular: false, maxEclipse: min(minMaxFinder.lastY * 100, 100), maxTime: eventTime } as LocalEclipseCircumstances;
+            { maxEclipse: min(minMaxFinder.lastY * 100, 100), maxTime: eventTime } as LocalEclipseCircumstances;
+
+          this.ss.getLocalSolarEclipseTotality(utToTdt(eventTime), observer, true, annularity);
+          circumstances.annular = (annularity[0] > 0);
+
           const firstContactFinder = new ZeroFinder((x: number) => {
             return this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true);
           }, 1E-10, 25, result.ut - HALF_DAY, eventTime);
@@ -1136,33 +1141,47 @@ export class EventFinder {
           circumstances.lastContact = lastContactFinder.getXAtZero();
           circumstances.duration = (circumstances.lastContact - circumstances.firstContact) * 86400;
 
-          if (minMaxFinder.lastY > 1) {
+          if (minMaxFinder.lastY > 1 || annularity[0] > 1) {
             const startFinder = new ZeroFinder((x: number) => {
-              return this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true) - 1;
+              const totality = this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true, annularity);
+
+              if (circumstances.annular)
+                return annularity[0] - 1;
+              else
+                return totality - 1;
             }, 1E-10, 25, circumstances.firstContact, eventTime);
 
-            circumstances.totalityStarts = startFinder.getXAtZero();
+            circumstances.peakStarts = startFinder.getXAtZero();
 
             const endFinder = new ZeroFinder((x: number) => {
-              return this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true) - 1;
+              const totality = this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true, annularity);
+
+              if (circumstances.annular)
+                return annularity[0] - 1;
+              else
+                return totality - 1;
             }, 1E-10, 25, eventTime, circumstances.lastContact);
 
-            circumstances.totalityEnds = endFinder.getXAtZero();
-            circumstances.totalityDuration = (circumstances.totalityEnds - circumstances.totalityStarts) * 86400;
+            circumstances.peakEnds = endFinder.getXAtZero();
+            circumstances.peakDuration = (circumstances.peakEnds - circumstances.peakStarts) * 86400;
+          }
+
+          circumstances.peakDuration = 0;
+
+          if (this.ss.getHorizontalPosition(SUN, circumstances.peakStarts, observer).altitude.degrees > 0 ||
+              this.ss.getHorizontalPosition(SUN, circumstances.peakEnds, observer).altitude.degrees > 0 ||
+              this.ss.getHorizontalPosition(SUN, circumstances.maxTime, observer).altitude.degrees > 0) {
+            const event = AstroEvent.fromJdu(SOLAR_ECLIPSE_LOCAL, '', eventTime, zone, gregorianChange, minMaxFinder.lastY);
+
+            event.miscInfo = circumstances;
+
+            return event;
           }
           else
-            circumstances.totalityDuration = 0;
-
-          const event = AstroEvent.fromJdu(SOLAR_ECLIPSE_LOCAL, '', eventTime, zone, gregorianChange, minMaxFinder.lastY);
-
-          event.miscInfo = circumstances;
-
-          return event;
+            testTime += doPrevious ? -2 : 2;
         }
-        else if (doPrevious)
-          testTime -= 2;
         else
-          testTime += 2;
+          testTime += doPrevious ? -2 : 2;
       }
     }
 
@@ -1491,7 +1510,7 @@ export class EventFinder {
     }
   }
 
-  protected  getEventSearchValue(planet: number, eventType: number, time_JDU: number): number {
+  protected getEventSearchValue(planet: number, eventType: number, time_JDU: number): number {
     const time_JDE = utToTdt(time_JDU);
 
     switch (eventType) {
