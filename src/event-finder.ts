@@ -1093,9 +1093,9 @@ export class EventFinder {
     });
   }
 
-  findEvent(planet: number, eventType: number, originalTime: number,
+  async findEventAsync(planet: number, eventType: number, originalTime: number,
             observer: ISkyObserver, zone?: Timezone, gregorianChange?: GregorianChange,
-            doPrevious = false, argument?: any, maxTries = Number.MAX_SAFE_INTEGER): AstroEvent {
+            doPrevious = false, argument?: any, maxTries = Number.MAX_SAFE_INTEGER): Promise<AstroEvent> {
     let type = eventType;
     let result: AstroEvent;
     let testTime = originalTime;
@@ -1106,7 +1106,7 @@ export class EventFinder {
       type = LUNAR_ECLIPSE;
 
     while (true) {
-      result = this.findEventImpl(planet, type, testTime, observer, zone, gregorianChange, doPrevious, argument, maxTries);
+      result = await this.findEventAsyncImpl(planet, type, testTime, observer, zone, gregorianChange, doPrevious, argument, maxTries);
 
       if (!result || type === eventType)
         break;
@@ -1188,7 +1188,36 @@ export class EventFinder {
     return result;
   }
 
-  private findEventImpl(planet: number, eventType: number, originalTime: number,
+  async findEventAsyncImpl(planet: number, eventType: number, originalTime: number,
+            observer: ISkyObserver, zone?: Timezone, gregorianChange?: GregorianChange,
+            doPrevious = false, argument?: any, maxTries = Number.MAX_SAFE_INTEGER): Promise<AstroEvent> {
+    if (!zone)
+      zone = Timezone.UT_ZONE;
+
+    const δ = (doPrevious ? -1 : 1);
+
+    originalTime += δ * HALF_MINUTE; // Bias time by a half minute towards the event seek direction.
+
+    const dateTime = new DateTime(DateTime.millisFromJulianDay(originalTime), zone, gregorianChange);
+    const ymd: YMDDate = dateTime.wallTime;
+    const testTime = [originalTime];
+    let event: AstroEvent;
+    let tries = 0;
+
+    while (true) {
+      event = await new Promise<AstroEvent>(resolve => {
+        resolve(this.eventSearch(planet, eventType, originalTime, testTime, observer, zone, gregorianChange,
+        doPrevious, argument, tries, maxTries, dateTime, ymd));
+      });
+
+      if (event || event === null)
+        return event;
+
+      ++tries;
+    }
+  }
+
+  findEvent(planet: number, eventType: number, originalTime: number,
             observer: ISkyObserver, zone?: Timezone, gregorianChange?: GregorianChange,
             doPrevious = false, argument?: any, maxTries = Number.MAX_SAFE_INTEGER): AstroEvent {
     if (!zone)
