@@ -1126,7 +1126,7 @@ export class EventFinder {
             { maxEclipse: min(minMaxFinder.lastY * 100, 100), maxTime: eventTime } as LocalEclipseCircumstances;
 
           this.ss.getLocalSolarEclipseTotality(utToTdt(eventTime), observer, true, annularity);
-          circumstances.annular = (annularity[0] > 0);
+          circumstances.annular = (annularity[0] >= 1);
 
           const firstContactFinder = new ZeroFinder((x: number) => {
             return this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true);
@@ -1165,8 +1165,8 @@ export class EventFinder {
             circumstances.peakEnds = endFinder.getXAtZero();
             circumstances.peakDuration = (circumstances.peakEnds - circumstances.peakStarts) * 86400;
           }
-
-          circumstances.peakDuration = 0;
+          else
+            circumstances.peakDuration = 0;
 
           if (this.ss.getHorizontalPosition(SUN, circumstances.peakStarts, observer).altitude.degrees > 0 ||
               this.ss.getHorizontalPosition(SUN, circumstances.peakEnds, observer).altitude.degrees > 0 ||
@@ -1199,315 +1199,329 @@ export class EventFinder {
     originalTime += δ * HALF_MINUTE; // Bias time by a half minute towards the event seek direction.
 
     const dateTime = new DateTime(DateTime.millisFromJulianDay(originalTime), zone, gregorianChange);
-    let ymd: YMDDate = dateTime.wallTime;
+    const ymd: YMDDate = dateTime.wallTime;
+    const testTime = [originalTime];
+    let event: AstroEvent;
+    let tries = 0;
 
-    let testTime = originalTime;
+    while (true) {
+      event = this.eventSearch(planet, eventType, originalTime, testTime, observer, zone, gregorianChange,
+        doPrevious, argument, tries, maxTries, dateTime, ymd);
+
+      if (event || event === null)
+        return event;
+
+      ++tries;
+    }
+  }
+
+  protected eventSearch(planet: number, eventType: number, originalTime: number, testTime: number[],
+                        observer: ISkyObserver, zone: Timezone, gregorianChange: GregorianChange,
+                        doPrevious, argument: any, tries: number, maxTries: number, dateTime: DateTime, ymd: YMDDate): AstroEvent {
     let eventPeriod = 0.0;
     let eventTime: number;
     let events: AstroEvent[];
     let event: AstroEvent;
-    let tries = 0;
     let a: number, b: number;
     let minEventGap = 5.0, eventGap: number;
+    const δ = (doPrevious ? -1 : 1);
 
-    while (true) {
-      switch (eventType) {
-        case RISE_EVENT:
-        case SET_EVENT:
-        case SET_EVENT_MINUS_1_MIN:
-        case TRANSIT_EVENT:
-        case TWILIGHT_BEGINS:
-        case TWILIGHT_ENDS:
-          if (tries >= maxTries)
-            return null;
-          else if (tries > 0)
-            ymd = dateTime.addDaysToDate(δ, ymd);
-
-          let minsBefore = 0;
-          let targetAlt: number;
-
-          if (eventType === TWILIGHT_BEGINS || eventType === TWILIGHT_ENDS) {
-            if (!isNumber(argument))
-              targetAlt = NAUTICAL_TWILIGHT;
-            else if ((argument as number) < 0)
-              targetAlt = argument as number;
-            else
-              minsBefore = (eventType === TWILIGHT_ENDS ? -(argument as number) : argument as number);
-
-            events = this.getRiseAndSetTimes(SUN, ymd.y, ymd.m, ymd.d, observer, zone, gregorianChange, minsBefore, targetAlt, true);
-          }
-          else if (eventType === TRANSIT_EVENT)
-            events = this.getTransitTimes(planet, ymd.y, ymd.m, ymd.d, observer, zone, gregorianChange);
-          else
-            events = this.getRiseAndSetTimes(planet, ymd.y, ymd.m, ymd.d, observer, zone, gregorianChange, eventType === SET_EVENT_MINUS_1_MIN ? 1 : 0);
-          break;
-
-        case SPRING_EQUINOX:
-        case SUMMER_SOLSTICE:
-        case FALL_EQUINOX:
-        case WINTER_SOLSTICE:
-          if (tries === 1)
-            ymd.y += δ;
-          else if (tries > 1)
-            return null;
-
-          events = this.getEquinoxesAndSolsticesForOneYear(ymd.y, zone, gregorianChange);
-          break;
-
-        case NEW_MOON:
-        case FIRST_QUARTER:
-        case FULL_MOON:
-        case LAST_QUARTER:
-          if (tries > 0)
-            ymd = dateTime.addDaysToDate(δ, ymd);
-
-          events = [];
-          event = this.getLunarPhaseEvent(ymd.y, ymd.m, ymd.d, zone, gregorianChange);
-
-          if (event)
-            events.push(event);
-          break;
-
-        case OPPOSITION:
-        case SUPERIOR_CONJUNCTION:
-        case INFERIOR_CONJUNCTION:
-        case GREATEST_ELONGATION:
-        case QUADRATURE:
-          eventPeriod = SolarSystem.getMeanConjunctionPeriod(planet);
-          // Execution intended to fall through to next section...
-        case LUNAR_ECLIPSE:
-        case SOLAR_ECLIPSE:
-        case APHELION:
-        case PERIHELION:
-        case GRS_TRANSIT_EVENT:
-          let resolution = (planet <= MARS ? 1.0 / 24.0 : 1.0); // hours or days
-          const tolerance = 0.0001;
-          let seekMin = false;
-          let seekMax = false;
-          let seekZero = false;
-          let divisions = 10;
-
-          switch (eventType) {
-            case OPPOSITION:
-            case SUPERIOR_CONJUNCTION:
-            case INFERIOR_CONJUNCTION:
-              resolution = 1.0 / 1440.0; // minutes
-              seekZero = true;
-              break;
-
-            case GREATEST_ELONGATION:
-              seekMax = true;
-              break;
-
-            case PERIHELION:
-              eventPeriod = SolarSystem.getMeanOrbitalPeriod(planet) * 1.25;
-
-              if (planet >= URANUS)
-                divisions = 20;
-
-              seekMin = true;
-              break;
-
-            case APHELION:
-              eventPeriod = SolarSystem.getMeanOrbitalPeriod(planet) * 1.25;
-
-              if (planet >= URANUS)
-                divisions = 20;
-
-              seekMax = true;
-              break;
-
-            case LUNAR_ECLIPSE:
-            case SOLAR_ECLIPSE:
-              eventPeriod = MEAN_SYNODIC_MONTH * 1.25;
-              resolution = 1.0 / 1440.0; // minutes
-              divisions = 30;
-              seekMin = true;
-              break;
-
-            case QUADRATURE:
-              resolution = 1.0 / 1440.0; // minutes
-              seekMax = true;
-              break;
-
-            case GRS_TRANSIT_EVENT:
-              eventPeriod = MEAN_JUPITER_SYS_II * 1.25;
-              resolution = 1.0 / 1440.0; // minutes
-              seekZero = true;
-              break;
-          }
-
-          const eventTimes: number[] = [];
-          const eventValues: number[] = [];
-
-          events = [];
-
-          for (let i = 0; i <= divisions; ++i) {
-            eventTimes[i]  = testTime + i * eventPeriod / divisions - eventPeriod / 2.0;
-            eventValues[i] = this.getEventSearchValue(planet, eventType, eventTimes[i]);
-
-            if (!seekZero && i < 2 || i < 1)
-              continue;
-
-            if (seekZero && ((eventValues[i - 1] <= 0.0 && 0.0 <  eventValues[i]) ||
-                             (eventValues[i - 1] >  0.0 && 0.0 >= eventValues[i]))
-            ) {
-              if (abs(eventValues[i - 1] - eventValues[i]) > 180.0)
-                continue;
-
-              const zeroFinder = new ZeroFinder((x: number) => {
-                    return this.getEventSearchValue(planet, eventType, x);
-                  }, tolerance, 10,
-                  eventTimes[i - 1], eventValues[i - 1],
-                  eventTimes[i],     eventValues[i]);
-
-              eventTime = zeroFinder.getXAtZero();
-            }
-            else if (seekMin && eventValues[i - 2] > eventValues[i - 1] && eventValues[i - 1] < eventValues[i] ||
-                  seekMax && eventValues[i - 2] < eventValues[i - 1] && eventValues[i - 1] > eventValues[i]
-            ) {
-              const minMaxFinder = new MinMaxFinder((x: number) => {
-                    return this.getEventSearchValue(planet, eventType, x);
-                  }, 1E-10, 100,
-                  eventTimes[i - 2], eventTimes[i - 1], eventTimes[i]);
-
-              eventTime = minMaxFinder.getXAtMinMax();
-            }
-            else
-              continue;
-
-            if ((planet === MERCURY || planet === VENUS) &&
-               (eventType === SUPERIOR_CONJUNCTION || eventType === INFERIOR_CONJUNCTION)
-            ) {
-              const inferior = this.isInferior(planet, eventTime);
-
-              if (eventType === SUPERIOR_CONJUNCTION && inferior ||
-                  eventType === INFERIOR_CONJUNCTION && !inferior)
-                continue;
-            }
-
-            // Since the min-max finder has a hard time settling down on a consistent
-            // time for the same event when the differences from moment to moment are
-            // very small, we'll do an additional sweep by steps of the current resolution.
-            // Once the differences from moment to moment are less than any real available
-            // precision, producing consistent results when skipping back and forth through
-            // events is what becomes important.
-
-            let testMoment;
-            let testValue: number, bestValue = 0.0;
-
-            // When the resolution is in whole days, center on midnight instead of noon.
-            if (resolution === 1.0)
-              testMoment = floor(eventTime + 0.5) - 0.5;
-            else
-              testMoment = floor(eventTime / resolution - 4.5) * resolution;
-
-            for (let j = -5; j <= 5; ++j) {
-              testValue = this.getEventSearchValue(planet, eventType, testMoment);
-
-              if (j === -5 ||
-                 seekZero && abs(bestValue) > abs(testValue) ||
-                 seekMin && bestValue > testValue ||
-                 seekMax && bestValue < testValue
-              ) {
-                bestValue = testValue;
-                eventTime = testMoment;
-              }
-
-              testMoment += resolution;
-            }
-
-            let ei: EclipseInfo;
-
-            if (eventType === LUNAR_ECLIPSE) {
-              ei = this.ss.getLunarEclipseInfo(utToTdt(eventTime));
-
-              if (!ei.inPenumbra)
-                continue;
-            }
-
-            if (eventType === SOLAR_ECLIPSE) {
-              ei = this.ss.getSolarEclipseInfo(utToTdt(eventTime));
-
-              if (!ei.inPenumbra)
-                continue;
-              else
-                // Since the clock will be rounded up half a minute, we'll get the location
-                // of the fast-moving shadow at that moment.
-                ei = this.ss.getSolarEclipseInfo(utToTdt(eventTime + 0.5 / 1440.0), true);
-            }
-
-            // TODO: Add event text
-            event = AstroEvent.fromJdu(eventType, '', eventTime, zone, gregorianChange, bestValue);
-
-            if (ei)
-              event.miscInfo = ei;
-
-            events.push(event);
-          }
-
-          testTime += eventPeriod * δ * 0.95;
-          break;
-
-        case GALILEAN_MOON_EVENT:
-          minEventGap = 0.49;
-          testTime = floor(testTime * 1440.0) / 1440.0;
-          events = [];
-
-          const mevents = this.jupitersMoons.getMoonEventsForOneMinuteSpan(testTime, true);
-
-          if (mevents.count > 0) {
-            event = AstroEvent.fromJdu(GALILEAN_MOON_EVENT, 'Galilean moon', testTime, zone, gregorianChange, mevents.searchΔT);
-            event.miscInfo = mevents.text;
-            events.push(event);
-          }
-
-          testTime += (δ * mevents.searchΔT + 0.1) / 1440.0;
-          break;
-
-        default:
+    switch (eventType) {
+      case RISE_EVENT:
+      case SET_EVENT:
+      case SET_EVENT_MINUS_1_MIN:
+      case TRANSIT_EVENT:
+      case TWILIGHT_BEGINS:
+      case TWILIGHT_ENDS:
+        if (tries >= maxTries)
           return null;
-      }
+        else if (tries > 0)
+          Object.assign(ymd, dateTime.addDaysToDate(δ, ymd));
 
-      a = 0;
-      b = events.length - 1;
+        let minsBefore = 0;
+        let targetAlt: number;
 
-      if (doPrevious) {
-        a = b;
-        b = 0;
-      }
+        if (eventType === TWILIGHT_BEGINS || eventType === TWILIGHT_ENDS) {
+          if (!isNumber(argument))
+            targetAlt = NAUTICAL_TWILIGHT;
+          else if ((argument as number) < 0)
+            targetAlt = argument as number;
+          else
+            minsBefore = (eventType === TWILIGHT_ENDS ? -(argument as number) : argument as number);
 
-      for (let i = a; i !== b + δ; i += δ) {
-        event = events[i];
-        eventTime = event.ut;
-
-        if (tries === 0)
-          eventGap = 0.49;
+          events = this.getRiseAndSetTimes(SUN, ymd.y, ymd.m, ymd.d, observer, zone, gregorianChange, minsBefore, targetAlt, true);
+        }
+        else if (eventType === TRANSIT_EVENT)
+          events = this.getTransitTimes(planet, ymd.y, ymd.m, ymd.d, observer, zone, gregorianChange);
         else
-          eventGap = minEventGap;
+          events = this.getRiseAndSetTimes(planet, ymd.y, ymd.m, ymd.d, observer, zone, gregorianChange, eventType === SET_EVENT_MINUS_1_MIN ? 1 : 0);
+        break;
 
-        if (event.eventType === eventType && (eventTime - originalTime) * δ >= eventGap / 1440.0) {
-          if (eventType === GREATEST_ELONGATION) {
-            let message: string;
-            const angle = new Angle(event.value, Unit.DEGREES);
-            const angleStr = angle.toString(FMT_DD | FMT_MINS, 0);
+      case SPRING_EQUINOX:
+      case SUMMER_SOLSTICE:
+      case FALL_EQUINOX:
+      case WINTER_SOLSTICE:
+        if (tries === 1)
+          ymd.y += δ;
+        else if (tries > 1)
+          return null;
 
-            if (this.ss.getSolarElongationInLongitude(planet, eventTime) > 0)
-              message = '{0} in evening sky, {1} east of Sun';
-            else
-              message = '{0} in morning sky, {1} west of Sun';
+        events = this.getEquinoxesAndSolsticesForOneYear(ymd.y, zone, gregorianChange);
+        break;
 
-            message = message.replace('{0}', this.ss.getPlanetName(planet));
-            message = message.replace('{1}', angleStr);
-            event.miscInfo = message;
+      case NEW_MOON:
+      case FIRST_QUARTER:
+      case FULL_MOON:
+      case LAST_QUARTER:
+        if (tries > 0)
+          Object.assign(ymd, dateTime.addDaysToDate(δ, ymd));
+
+        events = [];
+        event = this.getLunarPhaseEvent(ymd.y, ymd.m, ymd.d, zone, gregorianChange);
+
+        if (event)
+          events.push(event);
+        break;
+
+      case OPPOSITION:
+      case SUPERIOR_CONJUNCTION:
+      case INFERIOR_CONJUNCTION:
+      case GREATEST_ELONGATION:
+      case QUADRATURE:
+        eventPeriod = SolarSystem.getMeanConjunctionPeriod(planet);
+        // Execution intended to fall through to next section...
+      case LUNAR_ECLIPSE:
+      case SOLAR_ECLIPSE:
+      case APHELION:
+      case PERIHELION:
+      case GRS_TRANSIT_EVENT:
+        let resolution = (planet <= MARS ? 1.0 / 24.0 : 1.0); // hours or days
+        const tolerance = 0.0001;
+        let seekMin = false;
+        let seekMax = false;
+        let seekZero = false;
+        let divisions = 10;
+
+        switch (eventType) {
+          case OPPOSITION:
+          case SUPERIOR_CONJUNCTION:
+          case INFERIOR_CONJUNCTION:
+            resolution = 1.0 / 1440.0; // minutes
+            seekZero = true;
+            break;
+
+          case GREATEST_ELONGATION:
+            seekMax = true;
+            break;
+
+          case PERIHELION:
+            eventPeriod = SolarSystem.getMeanOrbitalPeriod(planet) * 1.25;
+
+            if (planet >= URANUS)
+              divisions = 20;
+
+            seekMin = true;
+            break;
+
+          case APHELION:
+            eventPeriod = SolarSystem.getMeanOrbitalPeriod(planet) * 1.25;
+
+            if (planet >= URANUS)
+              divisions = 20;
+
+            seekMax = true;
+            break;
+
+          case LUNAR_ECLIPSE:
+          case SOLAR_ECLIPSE:
+            eventPeriod = MEAN_SYNODIC_MONTH * 1.25;
+            resolution = 1.0 / 1440.0; // minutes
+            divisions = 30;
+            seekMin = true;
+            break;
+
+          case QUADRATURE:
+            resolution = 1.0 / 1440.0; // minutes
+            seekMax = true;
+            break;
+
+          case GRS_TRANSIT_EVENT:
+            eventPeriod = MEAN_JUPITER_SYS_II * 1.25;
+            resolution = 1.0 / 1440.0; // minutes
+            seekZero = true;
+            break;
+        }
+
+        const eventTimes: number[] = [];
+        const eventValues: number[] = [];
+
+        events = [];
+
+        for (let i = 0; i <= divisions; ++i) {
+          eventTimes[i]  = testTime[0] + i * eventPeriod / divisions - eventPeriod / 2.0;
+          eventValues[i] = this.getEventSearchValue(planet, eventType, eventTimes[i]);
+
+          if (!seekZero && i < 2 || i < 1)
+            continue;
+
+          if (seekZero && ((eventValues[i - 1] <= 0.0 && 0.0 <  eventValues[i]) ||
+                           (eventValues[i - 1] >  0.0 && 0.0 >= eventValues[i]))
+          ) {
+            if (abs(eventValues[i - 1] - eventValues[i]) > 180.0)
+              continue;
+
+            const zeroFinder = new ZeroFinder((x: number) => {
+                  return this.getEventSearchValue(planet, eventType, x);
+                }, tolerance, 10,
+                eventTimes[i - 1], eventValues[i - 1],
+                eventTimes[i],     eventValues[i]);
+
+            eventTime = zeroFinder.getXAtZero();
+          }
+          else if (seekMin && eventValues[i - 2] > eventValues[i - 1] && eventValues[i - 1] < eventValues[i] ||
+                seekMax && eventValues[i - 2] < eventValues[i - 1] && eventValues[i - 1] > eventValues[i]
+          ) {
+            const minMaxFinder = new MinMaxFinder((x: number) => {
+                  return this.getEventSearchValue(planet, eventType, x);
+                }, 1E-10, 100,
+                eventTimes[i - 2], eventTimes[i - 1], eventTimes[i]);
+
+            eventTime = minMaxFinder.getXAtMinMax();
+          }
+          else
+            continue;
+
+          if ((planet === MERCURY || planet === VENUS) &&
+             (eventType === SUPERIOR_CONJUNCTION || eventType === INFERIOR_CONJUNCTION)
+          ) {
+            const inferior = this.isInferior(planet, eventTime);
+
+            if (eventType === SUPERIOR_CONJUNCTION && inferior ||
+                eventType === INFERIOR_CONJUNCTION && !inferior)
+              continue;
           }
 
-          return event;
-        }
-      }
+          // Since the min-max finder has a hard time settling down on a consistent
+          // time for the same event when the differences from moment to moment are
+          // very small, we'll do an additional sweep by steps of the current resolution.
+          // Once the differences from moment to moment are less than any real available
+          // precision, producing consistent results when skipping back and forth through
+          // events is what becomes important.
 
-      ++tries;
+          let testMoment;
+          let testValue: number, bestValue = 0.0;
+
+          // When the resolution is in whole days, center on midnight instead of noon.
+          if (resolution === 1.0)
+            testMoment = floor(eventTime + 0.5) - 0.5;
+          else
+            testMoment = floor(eventTime / resolution - 4.5) * resolution;
+
+          for (let j = -5; j <= 5; ++j) {
+            testValue = this.getEventSearchValue(planet, eventType, testMoment);
+
+            if (j === -5 ||
+               seekZero && abs(bestValue) > abs(testValue) ||
+               seekMin && bestValue > testValue ||
+               seekMax && bestValue < testValue
+            ) {
+              bestValue = testValue;
+              eventTime = testMoment;
+            }
+
+            testMoment += resolution;
+          }
+
+          let ei: EclipseInfo;
+
+          if (eventType === LUNAR_ECLIPSE) {
+            ei = this.ss.getLunarEclipseInfo(utToTdt(eventTime));
+
+            if (!ei.inPenumbra)
+              continue;
+          }
+
+          if (eventType === SOLAR_ECLIPSE) {
+            ei = this.ss.getSolarEclipseInfo(utToTdt(eventTime));
+
+            if (!ei.inPenumbra)
+              continue;
+            else
+              // Since the clock will be rounded up half a minute, we'll get the location
+              // of the fast-moving shadow at that moment.
+              ei = this.ss.getSolarEclipseInfo(utToTdt(eventTime + 0.5 / 1440.0), true);
+          }
+
+          // TODO: Add event text
+          event = AstroEvent.fromJdu(eventType, '', eventTime, zone, gregorianChange, bestValue);
+
+          if (ei)
+            event.miscInfo = ei;
+
+          events.push(event);
+        }
+
+        testTime[0] += eventPeriod * δ * 0.95;
+        break;
+
+      case GALILEAN_MOON_EVENT:
+        minEventGap = 0.49;
+        testTime[0] = floor(testTime[0] * 1440.0) / 1440.0;
+        events = [];
+
+        const mevents = this.jupitersMoons.getMoonEventsForOneMinuteSpan(testTime[0], true);
+
+        if (mevents.count > 0) {
+          event = AstroEvent.fromJdu(GALILEAN_MOON_EVENT, 'Galilean moon', testTime[0], zone, gregorianChange, mevents.searchΔT);
+          event.miscInfo = mevents.text;
+          events.push(event);
+        }
+
+        testTime[0] += (δ * mevents.searchΔT + 0.1) / 1440.0;
+        break;
+
+      default:
+        return null;
     }
+
+    a = 0;
+    b = events.length - 1;
+
+    if (doPrevious) {
+      a = b;
+      b = 0;
+    }
+
+    for (let i = a; i !== b + δ; i += δ) {
+      event = events[i];
+      eventTime = event.ut;
+
+      if (tries === 0)
+        eventGap = 0.49;
+      else
+        eventGap = minEventGap;
+
+      if (event.eventType === eventType && (eventTime - originalTime) * δ >= eventGap / 1440.0) {
+        if (eventType === GREATEST_ELONGATION) {
+          let message: string;
+          const angle = new Angle(event.value, Unit.DEGREES);
+          const angleStr = angle.toString(FMT_DD | FMT_MINS, 0);
+
+          if (this.ss.getSolarElongationInLongitude(planet, eventTime) > 0)
+            message = '{0} in evening sky, {1} east of Sun';
+          else
+            message = '{0} in morning sky, {1} west of Sun';
+
+          message = message.replace('{0}', this.ss.getPlanetName(planet));
+          message = message.replace('{1}', angleStr);
+          event.miscInfo = message;
+        }
+
+        return event;
+      }
+    }
+
+    return undefined;
   }
 
   protected getEventSearchValue(planet: number, eventType: number, time_JDU: number): number {
