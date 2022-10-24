@@ -118,20 +118,22 @@ describe('EventFinder', () => {
     this.slow(2000);
     this.timeout(5000);
 
-    let event = await eventFinder.findEventAsync(SUN, SOLAR_ECLIPSE_LOCAL, time2, mantua, zone, null);
+    expect(() => eventFinder.findEvent(SUN, SOLAR_ECLIPSE_LOCAL, time2, mantua, zone)).to.throw;
+
+    let event = await eventFinder.findEventAsync(SUN, SOLAR_ECLIPSE_LOCAL, time2, mantua, zone);
     expect(event.miscInfo.annular).to.be.false;
     expect(event.miscInfo.duration).to.be.approximately(9549, 10);
     expect(event.miscInfo.peakDuration).to.equal(0);
-    event = await eventFinder.findEventAsync(SUN, SOLAR_ECLIPSE_LOCAL, event.ut, mantua, zone, null);
+    event = await eventFinder.findEventAsync(SUN, SOLAR_ECLIPSE_LOCAL, event.ut, mantua, zone);
     expect(event.miscInfo.annular).to.be.false;
     expect(event.miscInfo.duration).to.be.approximately(8975, 10);
     expect(event.miscInfo.peakDuration).to.be.approximately(181, 10);
-    event = await eventFinder.findEventAsync(SUN, SOLAR_ECLIPSE_LOCAL, time3, concord, zone, null);
+    event = await eventFinder.findEventAsync(SUN, SOLAR_ECLIPSE_LOCAL, time3, concord, zone);
     expect(event.miscInfo.annular).to.be.true;
     expect(event.miscInfo.duration).to.be.approximately(12290, 10);
     expect(event.miscInfo.peakDuration).to.be.approximately(365, 10);
     expect(event.miscInfo.maxTime).to.be.approximately(new DateTime('1994-05-10T13:41:19', zone).wallTime.jdu, 10);
-    event = await eventFinder.findEventAsync(SUN, SOLAR_ECLIPSE_LOCAL, time4, mantua, zone, null);
+    event = await eventFinder.findEventAsync(SUN, SOLAR_ECLIPSE_LOCAL, time4, mantua, zone);
     expect(event.miscInfo.annular).to.be.false;
     expect(event.miscInfo.duration).to.be.approximately(3922, 10);
     expect(event.miscInfo.peakDuration).to.equal(0);

@@ -1220,7 +1220,11 @@ export class EventFinder {
   findEvent(planet: number, eventType: number, originalTime: number,
             observer: ISkyObserver, zone?: Timezone, gregorianChange?: GregorianChange,
             doPrevious = false, argument?: any, maxTries = Number.MAX_SAFE_INTEGER): AstroEvent {
-    if (!zone)
+    if (eventType === LUNAR_ECLIPSE_LOCAL)
+      throw new Error('LUNAR_ECLIPSE_LOCAL requires findEventAsync()');
+    else if (eventType === SOLAR_ECLIPSE_LOCAL)
+      throw new Error('SOLAR_ECLIPSE_LOCAL requires findEventAsync()');
+    else if (!zone)
       zone = Timezone.UT_ZONE;
 
     const δ = (doPrevious ? -1 : 1);
