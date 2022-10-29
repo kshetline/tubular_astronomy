@@ -1,6 +1,9 @@
 import { expect } from 'chai';
 import { DateTime, Timezone } from '@tubular/time';
-import { FIRST_QUARTER, FULL_MOON, GREATEST_ELONGATION, GRS_TRANSIT_EVENT, JUPITER, MOON, RISE_EVENT, SET_EVENT, SOLAR_ECLIPSE, SOLAR_ECLIPSE_LOCAL, SUN, VENUS } from './astro-constants';
+import {
+  FIRST_QUARTER, FULL_MOON, GREATEST_ELONGATION, GRS_TRANSIT_EVENT, JUPITER, LUNAR_ECLIPSE, MOON, RISE_EVENT, SET_EVENT, SOLAR_ECLIPSE,
+  SOLAR_ECLIPSE_LOCAL, SUN, VENUS
+} from './astro-constants';
 import { EventFinder } from './event-finder';
 import { IAstroDataService } from './i-astro-data.service';
 import { JupiterInfo } from './jupiter-info';
@@ -96,6 +99,15 @@ describe('EventFinder', () => {
     expect(event.eventTime.wallTime.min).to.equal(51);
     expect((event.miscInfo as EclipseInfo).surfaceShadow.longitude.degrees).to.be.closeTo(0.80, 1);
     expect((event.miscInfo as EclipseInfo).surfaceShadow.latitude.degrees).to.be.closeTo(-70.95, 1);
+  });
+
+  it('should find the next lunar eclipse', () => {
+    const event = eventFinder.findEvent(SUN, LUNAR_ECLIPSE, time, nashua, zone);
+    expect(event.eventTime.wallTime.y).to.equal(2018);
+    expect(event.eventTime.wallTime.m).to.equal(7);
+    expect(event.eventTime.wallTime.d).to.equal(27);
+    expect(event.eventTime.wallTime.hrs).to.equal(16);
+    expect(event.eventTime.wallTime.min).to.equal(22);
   });
 
   it('should find the next greatest elongation of Venus', () => {

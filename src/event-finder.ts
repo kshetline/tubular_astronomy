@@ -1,6 +1,6 @@
 import { abs, Angle, div_rd, floor, FMT_DD, FMT_MINS, max, min, MinMaxFinder, mod, mod2, round, sign, sin_deg, Unit, ZeroFinder } from '@tubular/math';
 import { Calendar, DateTime, DateTimeField, getISOFormatDate, GregorianChange, Timezone, utToTdt, YMDDate } from '@tubular/time';
-import { flatten, htmlEscape, isNumber, isString } from '@tubular/util';
+import { flatten, htmlEscape, isNumber, isString, processMillis } from '@tubular/util';
 import { APHELION, AVG_SUN_MOON_RADIUS, FALL_EQUINOX, FIRST_QUARTER, FULL_MOON, GALILEAN_MOON_EVENT, GREATEST_ELONGATION, GRS_TRANSIT_EVENT, HALF_DAY, HALF_MINUTE, INFERIOR_CONJUNCTION, LAST_QUARTER, LUNAR_ECLIPSE, LUNAR_ECLIPSE_LOCAL, MARS, MAX_ALT_FOR_TWILIGHT, MEAN_JUPITER_SYS_II, MEAN_SYNODIC_MONTH, MERCURY, MINUTE, MOON, NAUTICAL_TWILIGHT, NEPTUNE, NEW_MOON, NON_EVENT, OPPOSITION, PERIHELION, PHASE_EVENT_BASE, QUADRATURE, QUICK_PLANET, REFRACTION_AT_HORIZON, RISE_EVENT, SET_EVENT, SET_EVENT_MINUS_1_MIN, SIGNED_HOUR_ANGLE, SOLAR_ECLIPSE, SOLAR_ECLIPSE_LOCAL, SPRING_EQUINOX, SUMMER_SOLSTICE, SUN, SUPERIOR_CONJUNCTION, TRANSIT_EVENT, TWILIGHT_BEGINS, TWILIGHT_ENDS, UNSEEN_ALL_DAY, URANUS, VENUS, VISIBLE_ALL_DAY, WINTER_SOLSTICE } from './astro-constants';
 import { ISkyObserver } from './i-sky-observer';
 import { JupiterInfo } from './jupiter-info';
@@ -1182,7 +1182,22 @@ export class EventFinder {
         }
         else
           testTime += doPrevious ? -2 : 2;
+
+        await new Promise<void>(resolve => setTimeout(resolve));
       }
+      // else if (eventType === LUNAR_ECLIPSE_LOCAL) {
+      //   if (this.ss.getHorizontalPosition(MOON, circumstances.peakStarts, observer).altitude.degrees > 0 ||
+      //       this.ss.getHorizontalPosition(MOON, circumstances.peakEnds, observer).altitude.degrees > 0 ||
+      //       this.ss.getHorizontalPosition(MOON, circumstances.maxTime, observer).altitude.degrees > 0) {
+      //     const event = AstroEvent.fromJdu(LUNAR_ECLIPSE_LOCAL, '', eventTime, zone, gregorianChange, minMaxFinder.lastY);
+      //
+      //     event.miscInfo = circumstances;
+      //
+      //     return event;
+      //   }
+      //   else
+      //     testTime += doPrevious ? -2 : 2;
+      //  }
     }
 
     return result;
@@ -1203,6 +1218,7 @@ export class EventFinder {
     const testTime = [originalTime];
     let event: AstroEvent;
     let tries = 0;
+    let processTime = processMillis(), now: number;
 
     while (true) {
       event = await new Promise<AstroEvent>(resolve => {
@@ -1214,6 +1230,12 @@ export class EventFinder {
         return event;
 
       ++tries;
+      now = processMillis();
+
+      if (now > processTime + 100) {
+        processTime = now;
+        await new Promise<void>(resolve => setTimeout(resolve, 10));
+      }
     }
   }
 

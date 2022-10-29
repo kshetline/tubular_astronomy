@@ -926,20 +926,23 @@ export class SolarSystem {
     ei.pos = this.getEclipticPosition(MOON, time_JDE, null, ABERRATION | NUTATION);
 
     const sunPos = this.getEclipticPosition(SUN, time_JDE, null, ABERRATION | NUTATION);
-    const B = sunPos.radius * KM_PER_AU;
-    const A = SUN_RADIUS_KM - EARTH_RADIUS_KM; // For umbral shadow.
-    const b = ei.pos.radius * KM_PER_AU;
-    const a = A * b / B;
-    const umbra = EARTH_RADIUS_KM - a;
 
-    ei.radius = atan_deg(MOON_RADIUS_KM / b) * 3600.0;
-    ei.umbraRadius = atan_deg(umbra / b) * 3600.0;
+    let opp = SUN_RADIUS_KM - EARTH_RADIUS_KM; // For umbral shadow.
+    const adj = sunPos.radius * KM_PER_AU;
+    let tanθ = opp / adj;
+    const adj2 = ei.pos.radius * KM_PER_AU;
+    let opp2 = tanθ * adj2;
+    const umbra = EARTH_RADIUS_KM - opp2;
 
-    const A1 = SUN_RADIUS_KM + EARTH_RADIUS_KM; // For penumbral shadow.
-    const a1 = A1 * b / B;
-    const penumbra = EARTH_RADIUS_KM + a1;
+    ei.radius = atan_deg(MOON_RADIUS_KM / adj2) * 3600.0;
+    ei.umbraRadius = atan_deg(umbra / adj2) * 3600.0;
 
-    ei.penumbraRadius      = atan_deg(penumbra / b) * 3600.0;
+    opp = SUN_RADIUS_KM + EARTH_RADIUS_KM; // For penumbral shadow.
+    tanθ = opp / adj;
+    opp2 = tanθ * adj2;
+    const penumbra = EARTH_RADIUS_KM + opp2;
+
+    ei.penumbraRadius      = atan_deg(penumbra / adj2) * 3600.0;
     ei.shadowPos           = new SphericalPosition(sunPos.longitude.opposite_nonneg(),
                                                    sunPos.latitude.negate());
     ei.centerSeparation    = ei.pos.distanceFrom(ei.shadowPos).getAngle(Unit.ARC_SECONDS);
@@ -1002,12 +1005,12 @@ export class SolarSystem {
     ei.annular             = ei.annular && ei.inUmbra;
     ei.hybrid              = false;
 
-    const umbraFromCenter = max(ei.centerSeparation - ei.umbraRadius, 0.0);
-
     // Taking into account how the curvature of the Earth brings an observer closer
     // to the Moon, there's a possibility of moving out of the anti-umbra into the
     // umbra, resulting in a hybrid eclipse.
     if (ei.annular) {
+      const umbraFromCenter = max(ei.centerSeparation - ei.umbraRadius, 0.0);
+
       if (umbraFromCenter < ei.radius) {
         const earthCurveAdj = EARTH_RADIUS_KM * sin(acos(limitNeg1to1(umbraFromCenter / ei.radius)));
 
@@ -1054,6 +1057,20 @@ export class SolarSystem {
     }
 
     return ei;
+  }
+
+  getLocalLunarEclipseTotality(time_JDE: number, observer: ISkyObserver, raw = false): number {
+    const separation = this.getSolarElongation(MOON, time_JDE, observer);
+
+    if (separation > 1.0 && !raw)
+      return 0.0;
+
+    const earthRadius = this.getAngularDiameter(MOON, time_JDE, observer) / 7200.0 * EARTH_RADIUS_KM / MOON_RADIUS_KM;
+    const sunRadius   = this.getAngularDiameter(SUN,  time_JDE)           / 7200.0;
+    const overlap     = sunRadius + earthRadius - separation;
+    const totality    = overlap / sunRadius / 2.0;
+
+    return raw ? totality : min(max(totality, 0.0), 1.0);
   }
 
   getLocalSolarEclipseTotality(time_JDE: number, observer: ISkyObserver, raw = false, annularity?: number[]): number {

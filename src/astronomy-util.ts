@@ -53,7 +53,7 @@ export function refractedAltitude(trueAltitude: number): number {
 
 function refractedAltitudeAux(h: number): number {
   // Tweaked a little for agreement with standard of 0.5833 degrees at horizon
-  // (Original form was 1.02 / tan_deg(h...
+  // (Original form was 1.02 / tan_deg(h... ))
   return 1.033879 / tan_deg(h + 10.3 / (h + 5.11)) / 60.0;
 }
 
@@ -73,7 +73,7 @@ export function unrefractedAltitude(apparentAltitude: number): number {
 
 function unrefractedAltitudeAux(h0: number): number {
   // Tweaked a little for agreement with standard of 0.5833 degrees at horizon
-  // (Original form was 1.0 / tan_deg(h0...
+  // (Original form was 1.0 / tan_deg(h0... ))
   return 1.015056 / tan_deg(h0 + 7.31 / (h0 + 4.4)) / 60.0;
 }
 
@@ -102,8 +102,8 @@ export function getSkyColor(sunPos: SphericalPosition, skyPos: SphericalPosition
   const altBias  = 1.0 - (sqrt(max(skyAltitude, 0.0))) / 30.0;
   let   eclBias  = 1.0 - 0.8 * eclipseTotality;
 
-  if (eclipseTotality > 0.995)
-    eclBias = 0.0;
+  if (eclipseTotality > 0.99)
+    eclBias = 20.8 * (1 - eclipseTotality);
 
   const r = (sunRed   * sunBias + baseRed * baseBias) * altBias * eclBias;
   const g = (sunGreen * sunBias + baseGreen * baseBias) * altBias * eclBias;

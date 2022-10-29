@@ -45,7 +45,7 @@
   "dependencies": {
     "@tubular/array-buffer-reader": "^3.0.2",
     "@tubular/math": "^3.2.0",
-    "@tubular/time": "^3.8.7",
+    "@tubular/time": "^3.8.8",
     "@tubular/util": "^4.13.1"
   },
   "devDependencies": {
