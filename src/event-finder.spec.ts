@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import { DateTime, Timezone } from '@tubular/time';
 import {
-  FIRST_QUARTER, FULL_MOON, GREATEST_ELONGATION, GRS_TRANSIT_EVENT, JUPITER, LUNAR_ECLIPSE, MOON, RISE_EVENT, SET_EVENT, SOLAR_ECLIPSE,
-  SOLAR_ECLIPSE_LOCAL, SUN, VENUS
+  FIRST_QUARTER, FULL_MOON, GREATEST_ELONGATION, GRS_TRANSIT_EVENT, JUPITER, LUNAR_ECLIPSE, LUNAR_ECLIPSE_LOCAL,
+  MOON, RISE_EVENT, SET_EVENT, SOLAR_ECLIPSE, SOLAR_ECLIPSE_LOCAL, SUN, VENUS
 } from './astro-constants';
 import { EventFinder } from './event-finder';
 import { IAstroDataService } from './i-astro-data.service';
@@ -56,7 +56,7 @@ describe('EventFinder', () => {
   const eventFinder = new EventFinder();
   const zone = Timezone.from('America/New_York');
   const time = new DateTime({ y: 2018, m: 2, d: 11, hrs: 20, min: 0, sec: 0 }, zone).wallTime.jdu;
-  const time2 = new DateTime(null, zone).wallTime.jdu;
+  const time2 = new DateTime('2022-10-01T00:00', zone).wallTime.jdu;
   const time3 = new DateTime('1994-05-10T00:00', zone).wallTime.jdu;
   const time4 = new DateTime('2025-03-28T06:00', zone).wallTime.jdu;
   const nashua = new SkyObserver(-71.48, 42.75);
@@ -127,8 +127,8 @@ describe('EventFinder', () => {
   });
 
   it('should find local solar eclipses', async function () {
-    this.slow(2000);
-    this.timeout(5000);
+    this.slow(5000);
+    this.timeout(15000);
 
     expect(() => eventFinder.findEvent(SUN, SOLAR_ECLIPSE_LOCAL, time2, mantua, zone)).to.throw;
 
@@ -150,6 +150,13 @@ describe('EventFinder', () => {
     expect(event.miscInfo.duration).to.be.approximately(3922, 10);
     expect(event.miscInfo.peakDuration).to.equal(0);
     expect(event.miscInfo.maxTime).to.be.approximately(new DateTime('2026-08-12T13:41:00', zone).wallTime.jdu, 10);
+  });
+
+  it('should find local lunar eclipses', async function () {
+    this.slow(5000);
+    this.timeout(15000);
+
+    console.log(await eventFinder.findEventAsync(MOON, LUNAR_ECLIPSE_LOCAL, time2, mantua, zone));
   });
 
   it('should resolve the promise for GRS data and find next GRS transit', done => {

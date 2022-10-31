@@ -1110,10 +1110,15 @@ export class EventFinder {
 
       if (!result || type === eventType)
         break;
-      else if (eventType === SOLAR_ECLIPSE_LOCAL) {
+      else if (eventType === SOLAR_ECLIPSE_LOCAL || eventType === LUNAR_ECLIPSE_LOCAL) {
+        const isSolar = (eventType === SOLAR_ECLIPSE_LOCAL);
+        const body = isSolar ? SUN : MOON;
         const annularity = [0];
+        const penumbralMagnitude = [0];
         const minMaxFinder = new MinMaxFinder((x: number) => {
-              return this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true, annularity);
+              return isSolar ?
+                this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true, annularity) :
+                this.ss.getLunarEclipseTotality(utToTdt(x), true, penumbralMagnitude);
             }, 1E-10, 25, result.ut - HALF_DAY, result.ut, result.ut + HALF_DAY);
         const eventTime = minMaxFinder.getXAtMinMax();
 
@@ -1129,13 +1134,17 @@ export class EventFinder {
           circumstances.annular = (annularity[0] >= 1);
 
           const firstContactFinder = new ZeroFinder((x: number) => {
-            return this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true);
+              return isSolar ?
+                this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true) :
+                this.ss.getLunarEclipseTotality(utToTdt(x), true);
           }, 1E-10, 25, result.ut - HALF_DAY, eventTime);
 
           circumstances.firstContact = firstContactFinder.getXAtZero();
 
           const lastContactFinder = new ZeroFinder((x: number) => {
-            return this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true);
+              return isSolar ?
+                this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true) :
+                this.ss.getLunarEclipseTotality(utToTdt(x), true);
           }, 1E-10, 25, eventTime, result.ut + HALF_DAY);
 
           circumstances.lastContact = lastContactFinder.getXAtZero();
@@ -1143,7 +1152,9 @@ export class EventFinder {
 
           if (minMaxFinder.lastY > 1 || annularity[0] > 1) {
             const startFinder = new ZeroFinder((x: number) => {
-              const totality = this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true, annularity);
+              const totality = isSolar ?
+                this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true, annularity) :
+                this.ss.getLunarEclipseTotality(utToTdt(x), true);
 
               if (circumstances.annular)
                 return annularity[0] - 1;
@@ -1154,9 +1165,11 @@ export class EventFinder {
             circumstances.peakStarts = startFinder.getXAtZero();
 
             const endFinder = new ZeroFinder((x: number) => {
-              const totality = this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true, annularity);
+              const totality = isSolar ?
+                this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true, annularity) :
+                this.ss.getLunarEclipseTotality(utToTdt(x), true);
 
-              if (circumstances.annular)
+              if (isSolar && circumstances.annular)
                 return annularity[0] - 1;
               else
                 return totality - 1;
@@ -1168,10 +1181,32 @@ export class EventFinder {
           else
             circumstances.peakDuration = 0;
 
-          if (this.ss.getHorizontalPosition(SUN, circumstances.peakStarts, observer).altitude.degrees > 0 ||
-              this.ss.getHorizontalPosition(SUN, circumstances.peakEnds, observer).altitude.degrees > 0 ||
-              this.ss.getHorizontalPosition(SUN, circumstances.maxTime, observer).altitude.degrees > 0) {
-            const event = AstroEvent.fromJdu(SOLAR_ECLIPSE_LOCAL, '', eventTime, zone, gregorianChange, minMaxFinder.lastY);
+          if (!isSolar) {
+            if (penumbralMagnitude[0] > 0) {
+              const firstContactFinder = new ZeroFinder((x: number) => {
+                  // eslint-disable-next-line no-sequences
+                  return this.ss.getLunarEclipseTotality(utToTdt(x), true, penumbralMagnitude), penumbralMagnitude[0];
+              }, 1E-10, 25, result.ut - HALF_DAY, eventTime);
+
+              circumstances.penumbralFirstContact = firstContactFinder.getXAtZero();
+
+              const lastContactFinder = new ZeroFinder((x: number) => {
+                  // eslint-disable-next-line no-sequences
+                  return this.ss.getLunarEclipseTotality(utToTdt(x), true, penumbralMagnitude), penumbralMagnitude[0];
+              }, 1E-10, 25, eventTime, result.ut + HALF_DAY);
+
+              circumstances.penumbralLastContact = lastContactFinder.getXAtZero();
+              circumstances.penumbralDuration = (circumstances.penumbralLastContact - circumstances.penumbralFirstContact) * 86400;
+            }
+            else
+              circumstances.penumbralDuration = 0;
+          }
+
+          if (this.ss.getHorizontalPosition(body, circumstances.peakStarts, observer).altitude.degrees > 0 ||
+              this.ss.getHorizontalPosition(body, circumstances.peakEnds, observer).altitude.degrees > 0 ||
+              this.ss.getHorizontalPosition(body, circumstances.maxTime, observer).altitude.degrees > 0) {
+            const event = AstroEvent.fromJdu(isSolar ? SOLAR_ECLIPSE_LOCAL : LUNAR_ECLIPSE_LOCAL,
+              '', eventTime, zone, gregorianChange, minMaxFinder.lastY);
 
             event.miscInfo = circumstances;
 
@@ -1185,19 +1220,6 @@ export class EventFinder {
 
         await new Promise<void>(resolve => setTimeout(resolve));
       }
-      // else if (eventType === LUNAR_ECLIPSE_LOCAL) {
-      //   if (this.ss.getHorizontalPosition(MOON, circumstances.peakStarts, observer).altitude.degrees > 0 ||
-      //       this.ss.getHorizontalPosition(MOON, circumstances.peakEnds, observer).altitude.degrees > 0 ||
-      //       this.ss.getHorizontalPosition(MOON, circumstances.maxTime, observer).altitude.degrees > 0) {
-      //     const event = AstroEvent.fromJdu(LUNAR_ECLIPSE_LOCAL, '', eventTime, zone, gregorianChange, minMaxFinder.lastY);
-      //
-      //     event.miscInfo = circumstances;
-      //
-      //     return event;
-      //   }
-      //   else
-      //     testTime += doPrevious ? -2 : 2;
-      //  }
     }
 
     return result;

@@ -53,7 +53,8 @@ export interface EclipseInfo {
   umbralSeparation: number; // zero at contact of umbra and Moon's disc, negative for overlap
   inUmbra: boolean; // if true, inPenumbra must also be true
   total: boolean;
-  totality?: number; // currently only computed for lunar eclipse
+  totality?: number;
+  penumbralMagnitude?: number; // Only for lunar eclipses
   annular: boolean;
   hybrid: boolean;
   surfaceShadow: ISkyObserver; // only for solar eclipse: latitude and longitude of ground shadow's center
@@ -100,6 +101,9 @@ export interface LocalEclipseCircumstances {
   peakDuration: number; // seconds
   peakEnds?: number; // JDU
   peakStarts?: number; // JDU
+  penumbralDuration?: number; // seconds
+  penumbralFirstContact?: number; // JDU
+  penumbralLastContact?: number; // JDU
 }
 
   // Orbital elements for mean equinox of date (except Pluto, J2000.0).
@@ -919,7 +923,7 @@ export class SolarSystem {
   // diagram to figure out the size of Moon-distanced cross-sections of the two
   // shadows.
   //
-  getLunarEclipseInfo(time_JDE: number): EclipseInfo {
+  getLunarEclipseInfo(time_JDE: number, raw = false): EclipseInfo {
     const ei = {} as EclipseInfo;
 
     ei.isSolar = false;
@@ -935,14 +939,14 @@ export class SolarSystem {
     const umbra = EARTH_RADIUS_KM - opp2;
 
     ei.radius = atan_deg(MOON_RADIUS_KM / adj2) * 3600.0;
-    ei.umbraRadius = atan_deg(umbra / adj2) * 3600.0;
+    ei.umbraRadius = atan_deg(umbra / adj2) * 3600.0 * 1.01398; // 1.01398 is, admittedly, a fudge factor
 
     opp = SUN_RADIUS_KM + EARTH_RADIUS_KM; // For penumbral shadow.
     tanθ = opp / adj;
     opp2 = tanθ * adj2;
     const penumbra = EARTH_RADIUS_KM + opp2;
 
-    ei.penumbraRadius      = atan_deg(penumbra / adj2) * 3600.0;
+    ei.penumbraRadius      = atan_deg(penumbra / adj2) * 3600.0 * 1.0078; // Another fudge factor;
     ei.shadowPos           = new SphericalPosition(sunPos.longitude.opposite_nonneg(),
                                                    sunPos.latitude.negate());
     ei.centerSeparation    = ei.pos.distanceFrom(ei.shadowPos).getAngle(Unit.ARC_SECONDS);
@@ -951,7 +955,10 @@ export class SolarSystem {
     ei.umbralSeparation    = ei.centerSeparation - ei.radius - ei.umbraRadius;
     ei.inUmbra             = (ei.umbralSeparation <= 0.0);
     ei.total               = (ei.centerSeparation + ei.radius <= ei.umbraRadius);
-    ei.totality            = ei.inUmbra ? min(-ei.umbralSeparation / ei.radius / 2, 1) : 0;
+    const totality = -ei.umbralSeparation / ei.radius / 2;
+    ei.totality            = raw ? totality : ei.inUmbra ? min(totality, 1) : 0;
+    const penumbralMagnitude = -ei.penumbralSeparation / ei.radius / 2;
+    ei.penumbralMagnitude  = raw ? penumbralMagnitude : ei.inPenumbra ? min(penumbralMagnitude, 1) : 0;
 
     ei.annular             = false;
     ei.hybrid              = false;
@@ -1002,6 +1009,7 @@ export class SolarSystem {
     ei.umbralSeparation    = ei.centerSeparation - ei.radius - ei.umbraRadius;
     ei.inUmbra             = (ei.umbralSeparation <= 0.0);
     ei.total               = ei.inUmbra && !ei.annular;
+    ei.totality            = ei.inUmbra ? min(-ei.umbralSeparation / ei.radius / 2, 1) : 0;
     ei.annular             = ei.annular && ei.inUmbra;
     ei.hybrid              = false;
 
@@ -1059,18 +1067,13 @@ export class SolarSystem {
     return ei;
   }
 
-  getLocalLunarEclipseTotality(time_JDE: number, observer: ISkyObserver, raw = false): number {
-    const separation = this.getSolarElongation(MOON, time_JDE, observer);
+  getLunarEclipseTotality(time_JDE: number, raw = false, penumbraMagnitude?: number[]): number {
+    const ei = this.getLunarEclipseInfo(time_JDE, raw);
 
-    if (separation > 1.0 && !raw)
-      return 0.0;
+    if (penumbraMagnitude)
+      penumbraMagnitude[0] = ei.penumbralMagnitude;
 
-    const earthRadius = this.getAngularDiameter(MOON, time_JDE, observer) / 7200.0 * EARTH_RADIUS_KM / MOON_RADIUS_KM;
-    const sunRadius   = this.getAngularDiameter(SUN,  time_JDE)           / 7200.0;
-    const overlap     = sunRadius + earthRadius - separation;
-    const totality    = overlap / sunRadius / 2.0;
-
-    return raw ? totality : min(max(totality, 0.0), 1.0);
+    return raw ? ei.totality : min(max(ei.totality, 0.0), 1.0);
   }
 
   getLocalSolarEclipseTotality(time_JDE: number, observer: ISkyObserver, raw = false, annularity?: number[]): number {
