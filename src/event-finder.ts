@@ -5,7 +5,7 @@ import { APHELION, AVG_SUN_MOON_RADIUS, FALL_EQUINOX, FIRST_QUARTER, FULL_MOON, 
 import { ISkyObserver } from './i-sky-observer';
 import { JupiterInfo } from './jupiter-info';
 import { JupitersMoons } from './jupiter-moons';
-import { EclipseInfo, LocalEclipseCircumstances, SolarSystem } from './solar-system';
+import { EclipseInfo, EclipseCircumstances, SolarSystem, CircumstancesOfEclipse } from './solar-system';
 
 /* eslint-disable no-case-declarations, yoda */
 
@@ -1128,7 +1128,7 @@ export class EventFinder {
           testTime -= 2;
         else if (minMaxFinder.lastY > 0) {
           const circumstances =
-            { maxEclipse: min(minMaxFinder.lastY * 100, 100), maxTime: eventTime } as LocalEclipseCircumstances;
+            { maxEclipse: min(minMaxFinder.lastY * 100, 100), maxTime: eventTime } as EclipseCircumstances;
 
           this.ss.getLocalSolarEclipseTotality(utToTdt(eventTime), observer, true, annularity);
           circumstances.annular = (annularity[0] >= 1);
@@ -1208,7 +1208,7 @@ export class EventFinder {
             const event = AstroEvent.fromJdu(isSolar ? SOLAR_ECLIPSE_LOCAL : LUNAR_ECLIPSE_LOCAL,
               '', eventTime, zone, gregorianChange, minMaxFinder.lastY);
 
-            event.miscInfo = circumstances;
+            event.miscInfo = new CircumstancesOfEclipse(circumstances);
 
             return event;
           }

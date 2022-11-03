@@ -1,8 +1,8 @@
 import {
-  abs, acos, acos_deg, Angle, asin_deg, atan2_deg, atan_deg, cos, cos_deg, exp, limitNeg1to1, log, log10, max, min, mod, mod2, pow,
+  abs, acos, acos_deg, Angle, asin_deg, atan2_deg, atan_deg, cos, cos_deg, exp, floor, limitNeg1to1, log, log10, max, min, mod, mod2, pow, round,
   sin, sin_deg, SphericalPosition, SphericalPosition3D, sqrt, tan, tan_deg, to_radian, TWO_PI, Unit
 } from '@tubular/math';
-import { tdtToUt, utToTdt } from '@tubular/time';
+import { tdtToUt, ttime, utToTdt } from '@tubular/time';
 import { AdditionalOrbitingObjects } from './additional-orbiting-objects';
 import {
   ABERRATION, ASTEROID_BASE, ASTEROID_MAX, ASTROMETRIC, COMET_BASE, COMET_MAX, DEFAULT_FLAGS, DELAYED_TIME, EARTH, EARTH_RADIUS_KM,
@@ -16,6 +16,8 @@ import { ISkyObserver } from './i-sky-observer';
 import { MeeusMoon } from './meeus-moon';
 import { Pluto } from './pluto';
 import { Vsop87Planets } from './vsop87-planets';
+import millisFromJulianDay = ttime.millisFromJulianDay;
+import { padLeft } from '@tubular/util';
 
 export interface AsteroidCometElements {
   e: number;  // eccentricity
@@ -91,7 +93,7 @@ export interface Libration {
   D: number; // distance from Earth, in AU
 }
 
-export interface LocalEclipseCircumstances {
+export interface EclipseCircumstances {
   annular: boolean;
   duration: number; // seconds
   firstContact: number; // JDU
@@ -104,6 +106,79 @@ export interface LocalEclipseCircumstances {
   penumbralDuration?: number; // seconds
   penumbralFirstContact?: number; // JDU
   penumbralLastContact?: number; // JDU
+}
+
+function toDuration(secs: number): string {
+  let result = '';
+  let pad = 1;
+
+  secs = round(secs);
+  const hours = floor(secs / 3600);
+  secs -= hours * 3600;
+  const mins = floor(secs / 60);
+  secs -= mins * 60;
+
+  if (hours) {
+    result += hours + 'h';
+    pad = 2;
+  }
+
+  if (hours || mins) {
+    result += padLeft(mins, pad, '0') + 'm';
+    pad = 2;
+  }
+
+  result += padLeft(secs, pad, '0') + 's';
+
+  return result;
+}
+
+function toUtc(jdu: number): string {
+  return new Date(millisFromJulianDay(jdu) + 500).toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, 'Z');
+}
+
+export function lecToString(lec: EclipseCircumstances): string {
+  let result = '';
+
+  if (lec.penumbralFirstContact != null)
+    result += 'P1: ' + toUtc(lec.penumbralFirstContact) + '\n';
+
+  result += 'U1: ' + toUtc(lec.firstContact) + '\n';
+
+  if (lec.peakDuration) {
+    result += 'U2: ' + toUtc(lec.peakStarts) + (lec.annular ? ' (annular)' : '') + '\n';
+    result += 'U3: ' + toUtc(lec.peakEnds) + ' (duration: ' + toDuration(lec.peakDuration) + ')\n';
+  }
+
+  result += 'U4: ' + toUtc(lec.lastContact) + ' (duration: ' + toDuration(lec.duration) + ')';
+
+  if (lec.penumbralLastContact != null)
+    result += '\nP4: ' + toUtc(lec.penumbralLastContact) + ' (duration: ' + toDuration(lec.penumbralDuration) + ')';
+
+  return result;
+}
+
+export class CircumstancesOfEclipse implements EclipseCircumstances {
+  annular: boolean;
+  duration: number; // seconds
+  firstContact: number; // JDU
+  lastContact: number; // JDU
+  maxEclipse: number; // percent
+  maxTime: number; // JDU;
+  peakDuration: number; // seconds
+  peakEnds?: number; // JDU
+  peakStarts?: number; // JDU
+  penumbralDuration?: number; // seconds
+  penumbralFirstContact?: number; // JDU
+  penumbralLastContact?: number; // JDU
+
+  constructor(ec: EclipseCircumstances) {
+    Object.assign(this, ec);
+  }
+
+  toString(): string {
+    return lecToString(this);
+  }
 }
 
   // Orbital elements for mean equinox of date (except Pluto, J2000.0).
@@ -939,14 +1014,14 @@ export class SolarSystem {
     const umbra = EARTH_RADIUS_KM - opp2;
 
     ei.radius = atan_deg(MOON_RADIUS_KM / adj2) * 3600.0;
-    ei.umbraRadius = atan_deg(umbra / adj2) * 3600.0 * 1.01398; // 1.01398 is, admittedly, a fudge factor
+    ei.umbraRadius = atan_deg(umbra / adj2) * 3600.0 * 1.01398; // 1.01398 for atmospheric effect
 
     opp = SUN_RADIUS_KM + EARTH_RADIUS_KM; // For penumbral shadow.
     tanθ = opp / adj;
     opp2 = tanθ * adj2;
     const penumbra = EARTH_RADIUS_KM + opp2;
 
-    ei.penumbraRadius      = atan_deg(penumbra / adj2) * 3600.0 * 1.0078; // Another fudge factor;
+    ei.penumbraRadius      = atan_deg(penumbra / adj2) * 3600.0 * 1.0078; // 1.0078 for atmospheric effect
     ei.shadowPos           = new SphericalPosition(sunPos.longitude.opposite_nonneg(),
                                                    sunPos.latitude.negate());
     ei.centerSeparation    = ei.pos.distanceFrom(ei.shadowPos).getAngle(Unit.ARC_SECONDS);

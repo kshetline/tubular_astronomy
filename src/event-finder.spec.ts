@@ -153,10 +153,24 @@ describe('EventFinder', () => {
   });
 
   it('should find local lunar eclipses', async function () {
-    this.slow(5000);
-    this.timeout(15000);
+    this.slow(2000);
+    this.timeout(8000);
 
-    console.log(await eventFinder.findEventAsync(MOON, LUNAR_ECLIPSE_LOCAL, time2, mantua, zone));
+    let event = await eventFinder.findEventAsync(MOON, LUNAR_ECLIPSE_LOCAL, time2, mantua, zone);
+    expect(event.miscInfo.annular).to.be.false;
+    expect(event.miscInfo.duration).to.be.approximately(13188, 15);
+    expect(event.miscInfo.peakDuration).to.be.approximately(5099, 15);
+
+    event = await eventFinder.findEventAsync(MOON, LUNAR_ECLIPSE_LOCAL,
+      new DateTime('2025-03-01Z').wallTime.jdu, mantua, zone);
+    expect(event.miscInfo.duration).to.be.approximately(13091, 15);
+    expect(event.miscInfo.peakDuration).to.be.approximately(3918, 15);
+
+    event = await eventFinder.findEventAsync(MOON, LUNAR_ECLIPSE_LOCAL,
+      new DateTime('2026-08-01Z').wallTime.jdu, mantua, zone);
+    expect(event.miscInfo.duration).to.be.approximately(11884, 15);
+    expect(event.miscInfo.peakDuration).to.equal(0);
+    expect(new DateTime({ jdu: event.miscInfo.lastContact }, zone).toIsoString(10)).to.equal('2026-08-28');
   });
 
   it('should resolve the promise for GRS data and find next GRS transit', done => {
