@@ -1093,131 +1093,141 @@ export class EventFinder {
     });
   }
 
+  private resolveLocalCircumstances(result: AstroEvent, eventType: number, originalTime: number, doPrevious: boolean,
+                                    observer: ISkyObserver, zone: Timezone, gregorianChange: GregorianChange): AstroEvent {
+    const isSolar = (eventType === SOLAR_ECLIPSE_LOCAL);
+    const body = isSolar ? SUN : MOON;
+    const annularity = [0];
+    const penumbralMagnitude = [0];
+    const minMaxFinder = new MinMaxFinder((x: number) => {
+          return isSolar ?
+            this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true, annularity) :
+            this.ss.getLunarEclipseTotality(utToTdt(x), true, penumbralMagnitude);
+        }, 1E-10, 25, result.ut - HALF_DAY, result.ut, result.ut + HALF_DAY);
+    const eventTime = minMaxFinder.getXAtMinMax();
+
+    if (!doPrevious && eventTime <= originalTime + MINUTE)
+      return null;
+    else if (doPrevious && eventTime >= originalTime - MINUTE)
+      return null;
+    else if (minMaxFinder.lastY > 0) {
+      const circumstances =
+        { maxEclipse: min(minMaxFinder.lastY * 100, 100), maxTime: eventTime } as EclipseCircumstances;
+
+      this.ss.getLocalSolarEclipseTotality(utToTdt(eventTime), observer, true, annularity);
+      circumstances.annular = (annularity[0] >= 1);
+
+      const firstContactFinder = new ZeroFinder((x: number) => {
+          return isSolar ?
+            this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true) :
+            this.ss.getLunarEclipseTotality(utToTdt(x), true);
+      }, 1E-10, 25, result.ut - HALF_DAY, eventTime);
+
+      circumstances.firstContact = firstContactFinder.getXAtZero();
+
+      const lastContactFinder = new ZeroFinder((x: number) => {
+          return isSolar ?
+            this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true) :
+            this.ss.getLunarEclipseTotality(utToTdt(x), true);
+      }, 1E-10, 25, eventTime, result.ut + HALF_DAY);
+
+      circumstances.lastContact = lastContactFinder.getXAtZero();
+      circumstances.duration = (circumstances.lastContact - circumstances.firstContact) * 86400;
+
+      if (minMaxFinder.lastY > 1 || annularity[0] > 1) {
+        const startFinder = new ZeroFinder((x: number) => {
+          const totality = isSolar ?
+            this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true, annularity) :
+            this.ss.getLunarEclipseTotality(utToTdt(x), true);
+
+          if (circumstances.annular)
+            return annularity[0] - 1;
+          else
+            return totality - 1;
+        }, 1E-10, 25, circumstances.firstContact, eventTime);
+
+        circumstances.peakStarts = startFinder.getXAtZero();
+
+        const endFinder = new ZeroFinder((x: number) => {
+          const totality = isSolar ?
+            this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true, annularity) :
+            this.ss.getLunarEclipseTotality(utToTdt(x), true);
+
+          if (isSolar && circumstances.annular)
+            return annularity[0] - 1;
+          else
+            return totality - 1;
+        }, 1E-10, 25, eventTime, circumstances.lastContact);
+
+        circumstances.peakEnds = endFinder.getXAtZero();
+        circumstances.peakDuration = (circumstances.peakEnds - circumstances.peakStarts) * 86400;
+      }
+      else
+        circumstances.peakDuration = 0;
+
+      if (!isSolar) {
+        if (penumbralMagnitude[0] > 0) {
+          const firstContactFinder = new ZeroFinder((x: number) => {
+              // eslint-disable-next-line no-sequences
+              return this.ss.getLunarEclipseTotality(utToTdt(x), true, penumbralMagnitude), penumbralMagnitude[0];
+          }, 1E-10, 25, result.ut - HALF_DAY, eventTime);
+
+          circumstances.penumbralFirstContact = firstContactFinder.getXAtZero();
+
+          const lastContactFinder = new ZeroFinder((x: number) => {
+              // eslint-disable-next-line no-sequences
+              return this.ss.getLunarEclipseTotality(utToTdt(x), true, penumbralMagnitude), penumbralMagnitude[0];
+          }, 1E-10, 25, eventTime, result.ut + HALF_DAY);
+
+          circumstances.penumbralLastContact = lastContactFinder.getXAtZero();
+          circumstances.penumbralDuration = (circumstances.penumbralLastContact - circumstances.penumbralFirstContact) * 86400;
+        }
+        else
+          circumstances.penumbralDuration = 0;
+      }
+
+      if (this.ss.getHorizontalPosition(body, circumstances.peakStarts, observer).altitude.degrees > 0 ||
+          this.ss.getHorizontalPosition(body, circumstances.peakEnds, observer).altitude.degrees > 0 ||
+          this.ss.getHorizontalPosition(body, circumstances.maxTime, observer).altitude.degrees > 0) {
+        const event = AstroEvent.fromJdu(isSolar ? SOLAR_ECLIPSE_LOCAL : LUNAR_ECLIPSE_LOCAL,
+          '', eventTime, zone, gregorianChange, minMaxFinder.lastY);
+
+        event.miscInfo = new CircumstancesOfEclipse(circumstances);
+
+        return event;
+      }
+    }
+
+    return null;
+  }
+
   async findEventAsync(planet: number, eventType: number, originalTime: number,
             observer: ISkyObserver, zone?: Timezone, gregorianChange?: GregorianChange,
             doPrevious = false, argument?: any, maxTries = Number.MAX_SAFE_INTEGER): Promise<AstroEvent> {
     let type = eventType;
     let result: AstroEvent;
     let testTime = originalTime;
+    let tries = 0;
 
     if (eventType === SOLAR_ECLIPSE_LOCAL)
       type = SOLAR_ECLIPSE;
     else if (eventType === LUNAR_ECLIPSE_LOCAL)
       type = LUNAR_ECLIPSE;
 
-    while (true) {
+    while (tries <= maxTries) {
       result = await this.findEventAsyncImpl(planet, type, testTime, observer, zone, gregorianChange, doPrevious, argument, maxTries);
 
       if (!result || type === eventType)
         break;
       else if (eventType === SOLAR_ECLIPSE_LOCAL || eventType === LUNAR_ECLIPSE_LOCAL) {
-        const isSolar = (eventType === SOLAR_ECLIPSE_LOCAL);
-        const body = isSolar ? SUN : MOON;
-        const annularity = [0];
-        const penumbralMagnitude = [0];
-        const minMaxFinder = new MinMaxFinder((x: number) => {
-              return isSolar ?
-                this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true, annularity) :
-                this.ss.getLunarEclipseTotality(utToTdt(x), true, penumbralMagnitude);
-            }, 1E-10, 25, result.ut - HALF_DAY, result.ut, result.ut + HALF_DAY);
-        const eventTime = minMaxFinder.getXAtMinMax();
+        result = this.resolveLocalCircumstances(result, eventType, originalTime, doPrevious, observer, zone, gregorianChange);
 
-        if (!doPrevious && eventTime <= originalTime + MINUTE)
-          testTime += 2;
-        else if (doPrevious && eventTime >= originalTime - MINUTE)
-          testTime -= 2;
-        else if (minMaxFinder.lastY > 0) {
-          const circumstances =
-            { maxEclipse: min(minMaxFinder.lastY * 100, 100), maxTime: eventTime } as EclipseCircumstances;
-
-          this.ss.getLocalSolarEclipseTotality(utToTdt(eventTime), observer, true, annularity);
-          circumstances.annular = (annularity[0] >= 1);
-
-          const firstContactFinder = new ZeroFinder((x: number) => {
-              return isSolar ?
-                this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true) :
-                this.ss.getLunarEclipseTotality(utToTdt(x), true);
-          }, 1E-10, 25, result.ut - HALF_DAY, eventTime);
-
-          circumstances.firstContact = firstContactFinder.getXAtZero();
-
-          const lastContactFinder = new ZeroFinder((x: number) => {
-              return isSolar ?
-                this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true) :
-                this.ss.getLunarEclipseTotality(utToTdt(x), true);
-          }, 1E-10, 25, eventTime, result.ut + HALF_DAY);
-
-          circumstances.lastContact = lastContactFinder.getXAtZero();
-          circumstances.duration = (circumstances.lastContact - circumstances.firstContact) * 86400;
-
-          if (minMaxFinder.lastY > 1 || annularity[0] > 1) {
-            const startFinder = new ZeroFinder((x: number) => {
-              const totality = isSolar ?
-                this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true, annularity) :
-                this.ss.getLunarEclipseTotality(utToTdt(x), true);
-
-              if (circumstances.annular)
-                return annularity[0] - 1;
-              else
-                return totality - 1;
-            }, 1E-10, 25, circumstances.firstContact, eventTime);
-
-            circumstances.peakStarts = startFinder.getXAtZero();
-
-            const endFinder = new ZeroFinder((x: number) => {
-              const totality = isSolar ?
-                this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true, annularity) :
-                this.ss.getLunarEclipseTotality(utToTdt(x), true);
-
-              if (isSolar && circumstances.annular)
-                return annularity[0] - 1;
-              else
-                return totality - 1;
-            }, 1E-10, 25, eventTime, circumstances.lastContact);
-
-            circumstances.peakEnds = endFinder.getXAtZero();
-            circumstances.peakDuration = (circumstances.peakEnds - circumstances.peakStarts) * 86400;
-          }
-          else
-            circumstances.peakDuration = 0;
-
-          if (!isSolar) {
-            if (penumbralMagnitude[0] > 0) {
-              const firstContactFinder = new ZeroFinder((x: number) => {
-                  // eslint-disable-next-line no-sequences
-                  return this.ss.getLunarEclipseTotality(utToTdt(x), true, penumbralMagnitude), penumbralMagnitude[0];
-              }, 1E-10, 25, result.ut - HALF_DAY, eventTime);
-
-              circumstances.penumbralFirstContact = firstContactFinder.getXAtZero();
-
-              const lastContactFinder = new ZeroFinder((x: number) => {
-                  // eslint-disable-next-line no-sequences
-                  return this.ss.getLunarEclipseTotality(utToTdt(x), true, penumbralMagnitude), penumbralMagnitude[0];
-              }, 1E-10, 25, eventTime, result.ut + HALF_DAY);
-
-              circumstances.penumbralLastContact = lastContactFinder.getXAtZero();
-              circumstances.penumbralDuration = (circumstances.penumbralLastContact - circumstances.penumbralFirstContact) * 86400;
-            }
-            else
-              circumstances.penumbralDuration = 0;
-          }
-
-          if (this.ss.getHorizontalPosition(body, circumstances.peakStarts, observer).altitude.degrees > 0 ||
-              this.ss.getHorizontalPosition(body, circumstances.peakEnds, observer).altitude.degrees > 0 ||
-              this.ss.getHorizontalPosition(body, circumstances.maxTime, observer).altitude.degrees > 0) {
-            const event = AstroEvent.fromJdu(isSolar ? SOLAR_ECLIPSE_LOCAL : LUNAR_ECLIPSE_LOCAL,
-              '', eventTime, zone, gregorianChange, minMaxFinder.lastY);
-
-            event.miscInfo = new CircumstancesOfEclipse(circumstances);
-
-            return event;
-          }
-          else
-            testTime += doPrevious ? -2 : 2;
-        }
+        if (result)
+          break;
         else
           testTime += doPrevious ? -2 : 2;
 
+        ++tries;
         await new Promise<void>(resolve => setTimeout(resolve));
       }
     }
@@ -1264,14 +1274,20 @@ export class EventFinder {
   findEvent(planet: number, eventType: number, originalTime: number,
             observer: ISkyObserver, zone?: Timezone, gregorianChange?: GregorianChange,
             doPrevious = false, argument?: any, maxTries = Number.MAX_SAFE_INTEGER): AstroEvent {
-    if (eventType === LUNAR_ECLIPSE_LOCAL)
-      throw new Error('LUNAR_ECLIPSE_LOCAL requires findEventAsync()');
-    else if (eventType === SOLAR_ECLIPSE_LOCAL)
-      throw new Error('SOLAR_ECLIPSE_LOCAL requires findEventAsync()');
+    if (eventType === LUNAR_ECLIPSE_LOCAL && maxTries > 2)
+      throw new Error('LUNAR_ECLIPSE_LOCAL requires findEventAsync() or maxTries <= 2');
+    else if (eventType === SOLAR_ECLIPSE_LOCAL && maxTries > 2)
+      throw new Error('SOLAR_ECLIPSE_LOCAL requires findEventAsync() or maxTries <= 2');
     else if (!zone)
       zone = Timezone.UT_ZONE;
 
     const δ = (doPrevious ? -1 : 1);
+    let type = eventType;
+
+    if (eventType === SOLAR_ECLIPSE_LOCAL)
+      type = SOLAR_ECLIPSE;
+    else if (eventType === LUNAR_ECLIPSE_LOCAL)
+      type = LUNAR_ECLIPSE;
 
     originalTime += δ * HALF_MINUTE; // Bias time by a half minute towards the event seek direction.
 
@@ -1282,14 +1298,19 @@ export class EventFinder {
     let tries = 0;
 
     while (tries <= maxTries) {
-      event = this.eventSearch(planet, eventType, originalTime, testTime, observer, zone, gregorianChange,
+      event = this.eventSearch(planet, type, originalTime, testTime, observer, zone, gregorianChange,
         doPrevious, argument, tries, dateTime, ymd);
 
       if (event || event === null)
-        return event;
+        break;
 
       ++tries;
     }
+
+    if (event && (eventType === SOLAR_ECLIPSE_LOCAL || eventType === LUNAR_ECLIPSE_LOCAL))
+      event = this.resolveLocalCircumstances(event, eventType, originalTime, doPrevious, observer, zone, gregorianChange);
+
+    return event;
   }
 
   protected eventSearch(planet: number, eventType: number, originalTime: number, testTime: number[],

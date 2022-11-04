@@ -161,16 +161,21 @@ describe('EventFinder', () => {
     expect(event.miscInfo.duration).to.be.approximately(13188, 15);
     expect(event.miscInfo.peakDuration).to.be.approximately(5099, 15);
 
-    event = await eventFinder.findEventAsync(MOON, LUNAR_ECLIPSE_LOCAL,
-      new DateTime('2025-03-01Z').wallTime.jdu, mantua, zone);
+    event = await eventFinder.findEventAsync(MOON, LUNAR_ECLIPSE_LOCAL, new DateTime('2025-03-01Z').wallTime.jdu, mantua);
     expect(event.miscInfo.duration).to.be.approximately(13091, 15);
     expect(event.miscInfo.peakDuration).to.be.approximately(3918, 15);
 
-    event = await eventFinder.findEventAsync(MOON, LUNAR_ECLIPSE_LOCAL,
-      new DateTime('2026-08-01Z').wallTime.jdu, mantua, zone);
+    event = await eventFinder.findEventAsync(MOON, LUNAR_ECLIPSE_LOCAL, new DateTime('2026-08-01Z').wallTime.jdu, mantua);
     expect(event.miscInfo.duration).to.be.approximately(11884, 15);
     expect(event.miscInfo.peakDuration).to.equal(0);
     expect(new DateTime({ jdu: event.miscInfo.lastContact }, zone).toIsoString(10)).to.equal('2026-08-28');
+
+    event = eventFinder.findEvent(MOON, LUNAR_ECLIPSE_LOCAL, new DateTime('2026-08-01T00:00').wallTime.jdu, mantua,
+      zone, null, false, null, 1);
+    expect(event).to.be;
+    event = eventFinder.findEvent(MOON, LUNAR_ECLIPSE_LOCAL, new DateTime('2026-06-01T00:00').wallTime.jdu, mantua,
+      zone, null, false, null, 1);
+    expect(event).to.not.be;
   });
 
   it('should resolve the promise for GRS data and find next GRS transit', done => {

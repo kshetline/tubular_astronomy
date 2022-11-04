@@ -141,19 +141,22 @@ export function lecToString(lec: EclipseCircumstances): string {
   let result = '';
 
   if (lec.penumbralFirstContact != null)
-    result += 'P1: ' + toUtc(lec.penumbralFirstContact) + '\n';
+    result += 'P1 : ' + toUtc(lec.penumbralFirstContact) + '\n';
 
-  result += 'U1: ' + toUtc(lec.firstContact) + '\n';
+  result += 'U1 : ' + toUtc(lec.firstContact) + '\n';
 
-  if (lec.peakDuration) {
-    result += 'U2: ' + toUtc(lec.peakStarts) + (lec.annular ? ' (annular)' : '') + '\n';
-    result += 'U3: ' + toUtc(lec.peakEnds) + ' (duration: ' + toDuration(lec.peakDuration) + ')\n';
-  }
+  if (lec.peakDuration)
+    result += 'U2 : ' + toUtc(lec.peakStarts) + '\n';
 
-  result += 'U4: ' + toUtc(lec.lastContact) + ' (duration: ' + toDuration(lec.duration) + ')';
+  result += `max: ${toUtc(lec.maxTime)}, magnitude: ${(lec.maxEclipse / 100).toFixed(2)}${(lec.annular ? ' (annular)' : '')}\n`;
+
+  if (lec.peakDuration)
+    result += 'U3 : ' + toUtc(lec.peakEnds) + ' (duration: ' + toDuration(lec.peakDuration) + ')\n';
+
+  result += 'U4 : ' + toUtc(lec.lastContact) + ' (duration: ' + toDuration(lec.duration) + ')';
 
   if (lec.penumbralLastContact != null)
-    result += '\nP4: ' + toUtc(lec.penumbralLastContact) + ' (duration: ' + toDuration(lec.penumbralDuration) + ')';
+    result += '\nP4 : ' + toUtc(lec.penumbralLastContact) + ' (duration: ' + toDuration(lec.penumbralDuration) + ')';
 
   return result;
 }
