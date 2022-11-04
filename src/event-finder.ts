@@ -1245,7 +1245,7 @@ export class EventFinder {
     while (true) {
       event = await new Promise<AstroEvent>(resolve => {
         resolve(this.eventSearch(planet, eventType, originalTime, testTime, observer, zone, gregorianChange,
-        doPrevious, argument, tries, maxTries, dateTime, ymd));
+        doPrevious, argument, tries, dateTime, ymd));
       });
 
       if (event || event === null)
@@ -1281,9 +1281,9 @@ export class EventFinder {
     let event: AstroEvent;
     let tries = 0;
 
-    while (true) {
+    while (tries <= maxTries) {
       event = this.eventSearch(planet, eventType, originalTime, testTime, observer, zone, gregorianChange,
-        doPrevious, argument, tries, maxTries, dateTime, ymd);
+        doPrevious, argument, tries, dateTime, ymd);
 
       if (event || event === null)
         return event;
@@ -1294,7 +1294,7 @@ export class EventFinder {
 
   protected eventSearch(planet: number, eventType: number, originalTime: number, testTime: number[],
                         observer: ISkyObserver, zone: Timezone, gregorianChange: GregorianChange,
-                        doPrevious, argument: any, tries: number, maxTries: number, dateTime: DateTime, ymd: YMDDate): AstroEvent {
+                        doPrevious, argument: any, tries: number, dateTime: DateTime, ymd: YMDDate): AstroEvent {
     let eventPeriod = 0.0;
     let eventTime: number;
     let events: AstroEvent[];
@@ -1310,9 +1310,7 @@ export class EventFinder {
       case TRANSIT_EVENT:
       case TWILIGHT_BEGINS:
       case TWILIGHT_ENDS:
-        if (tries >= maxTries)
-          return null;
-        else if (tries > 0)
+        if (tries > 0)
           Object.assign(ymd, dateTime.addDaysToDate(δ, ymd));
 
         let minsBefore = 0;
