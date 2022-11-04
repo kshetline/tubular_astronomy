@@ -1242,7 +1242,7 @@ export class EventFinder {
     let tries = 0;
     let processTime = processMillis(), now: number;
 
-    while (true) {
+    while (tries <= maxTries) {
       event = await new Promise<AstroEvent>(resolve => {
         resolve(this.eventSearch(planet, eventType, originalTime, testTime, observer, zone, gregorianChange,
         doPrevious, argument, tries, dateTime, ymd));
