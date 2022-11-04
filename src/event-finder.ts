@@ -1103,7 +1103,7 @@ export class EventFinder {
           return isSolar ?
             this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true, annularity) :
             this.ss.getLunarEclipseTotality(utToTdt(x), true, penumbralMagnitude);
-        }, 1E-10, 25, result.ut - HALF_DAY, result.ut, result.ut + HALF_DAY);
+        }, 1E-9, 25, result.ut - HALF_DAY, result.ut, result.ut + HALF_DAY);
     const eventTime = minMaxFinder.getXAtMinMax();
 
     if (!doPrevious && eventTime <= originalTime + MINUTE)
@@ -1121,7 +1121,7 @@ export class EventFinder {
           return isSolar ?
             this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true) :
             this.ss.getLunarEclipseTotality(utToTdt(x), true);
-      }, 1E-10, 25, result.ut - HALF_DAY, eventTime);
+      }, 1E-9, 25, result.ut - HALF_DAY, eventTime);
 
       circumstances.firstContact = firstContactFinder.getXAtZero();
 
@@ -1129,7 +1129,7 @@ export class EventFinder {
           return isSolar ?
             this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true) :
             this.ss.getLunarEclipseTotality(utToTdt(x), true);
-      }, 1E-10, 25, eventTime, result.ut + HALF_DAY);
+      }, 1E-9, 25, eventTime, result.ut + HALF_DAY);
 
       circumstances.lastContact = lastContactFinder.getXAtZero();
       circumstances.duration = (circumstances.lastContact - circumstances.firstContact) * 86400;
@@ -1144,7 +1144,7 @@ export class EventFinder {
             return annularity[0] - 1;
           else
             return totality - 1;
-        }, 1E-10, 25, circumstances.firstContact, eventTime);
+        }, 1E-9, 25, circumstances.firstContact, eventTime);
 
         circumstances.peakStarts = startFinder.getXAtZero();
 
@@ -1157,7 +1157,7 @@ export class EventFinder {
             return annularity[0] - 1;
           else
             return totality - 1;
-        }, 1E-10, 25, eventTime, circumstances.lastContact);
+        }, 1E-9, 25, eventTime, circumstances.lastContact);
 
         circumstances.peakEnds = endFinder.getXAtZero();
         circumstances.peakDuration = (circumstances.peakEnds - circumstances.peakStarts) * 86400;
@@ -1170,14 +1170,14 @@ export class EventFinder {
           const firstContactFinder = new ZeroFinder((x: number) => {
               // eslint-disable-next-line no-sequences
               return this.ss.getLunarEclipseTotality(utToTdt(x), true, penumbralMagnitude), penumbralMagnitude[0];
-          }, 1E-10, 25, result.ut - HALF_DAY, eventTime);
+          }, 1E-9, 25, result.ut - HALF_DAY, eventTime);
 
           circumstances.penumbralFirstContact = firstContactFinder.getXAtZero();
 
           const lastContactFinder = new ZeroFinder((x: number) => {
               // eslint-disable-next-line no-sequences
               return this.ss.getLunarEclipseTotality(utToTdt(x), true, penumbralMagnitude), penumbralMagnitude[0];
-          }, 1E-10, 25, eventTime, result.ut + HALF_DAY);
+          }, 1E-9, 25, eventTime, result.ut + HALF_DAY);
 
           circumstances.penumbralLastContact = lastContactFinder.getXAtZero();
           circumstances.penumbralDuration = (circumstances.penumbralLastContact - circumstances.penumbralFirstContact) * 86400;
