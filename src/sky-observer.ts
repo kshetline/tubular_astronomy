@@ -1,5 +1,5 @@
 import {
-  abs, Angle, asin, atan, atan2, cos, HALF_PI, interpolate, limitNeg1to1, mod, PI, sign, sin, SphericalPosition, SphericalPosition3D,
+  abs, Angle, asin, atan, atan2, cos, FMT_MINS, HALF_PI, interpolate, limitNeg1to1, mod, PI, sign, sin, SphericalPosition, SphericalPosition3D,
   sqrt, tan, to_degree, to_radian, TWO_PI, Unit
 } from '@tubular/math';
 import { tdtToUt, utToTdt } from '@tubular/time';
@@ -47,8 +47,8 @@ export class SkyObserver implements ISkyObserver {
     else
       u = atan(peRatio * this._latitude.tan);
 
-    this.ρ_sin_gcl = peRatio * sin(u) + this.elevation / EARTH_RADIUS_KM / 1000.0 * this._latitude.sin;
-    this.ρ_cos_gcl = cos(u) + this.elevation / EARTH_RADIUS_KM / 1000.0 * this._latitude.cos;
+    this.ρ_sin_gcl = peRatio * sin(u) + this.elevation / EARTH_RADIUS_KM / 1000 * this._latitude.sin;
+    this.ρ_cos_gcl = cos(u) + this.elevation / EARTH_RADIUS_KM / 1000 * this._latitude.cos;
   }
 
   constructor(longitudeOrLatLong: number | SphericalPosition | Angle, latitude?: number | Angle) {
@@ -116,7 +116,7 @@ export class SkyObserver implements ISkyObserver {
     const lha      = this.getLocalHourAngle(time_JDU, (flags & NUTATION) !== 0).radians;
     const distance = pos.radius;
     // Sine of parallax, using 8.79412 arc seconds and distance in AU.
-    const sinp = sin(8.79412 / 3600.0 / 180.0 * PI) / distance;
+    const sinp = sin(8.79412 / 3600 / 180 * PI) / distance;
     let   RA   = pos.rightAscension.radians;
     const d    = pos.declination.radians;
     const H    = lha - RA;
@@ -130,7 +130,7 @@ export class SkyObserver implements ISkyObserver {
       RA += ΔRA;
 
       if (abs(d1) > HALF_PI - 4.85E-6) {
-        ΔRA = 0.0;
+        ΔRA = 0;
 
         const rd = HALF_PI - abs(d1);
         const rl = 1.551E-6 * this._latitude.cos;
@@ -171,7 +171,7 @@ export class SkyObserver implements ISkyObserver {
 
       if ((flags & TOPOCENTRIC) !== 0) {
         const earthCtrDistance = EARTH_RADIUS_POLAR_KM +
-                (EARTH_RADIUS_KM - EARTH_RADIUS_POLAR_KM) * this._latitude.cos + this.elevation / 1000.0;
+                (EARTH_RADIUS_KM - EARTH_RADIUS_POLAR_KM) * this._latitude.cos + this.elevation / 1000;
 
         distance -= sin(unrefracted) * earthCtrDistance / KM_PER_AU;
       }
@@ -195,5 +195,9 @@ export class SkyObserver implements ISkyObserver {
                                             this._latitude.cos * cos(altitude) * cos(azimuth)));
 
     return new SphericalPosition(mod(RA, TWO_PI), declination);
+  }
+
+  toString(): string {
+    return `[${this._longitude.toString(FMT_MINS)}, ${this._latitude.toString(FMT_MINS)}, ${this.elevation}]`;
   }
 }

@@ -80,6 +80,8 @@ export const QUADRATURE              = 306;
 export const ECLIPSE_EVENT_BASE      = 400;
 export const LUNAR_ECLIPSE           = 400;
 export const SOLAR_ECLIPSE           = 401;
+export const LUNAR_ECLIPSE_LOCAL     = 402; // must be found using findEventAsync()
+export const SOLAR_ECLIPSE_LOCAL     = 403; // must be found using findEventAsync()
 
 export const MOONS_EVENT_BASE        = 500;
 export const GALILEAN_MOON_EVENT     = 500;
@@ -87,15 +89,15 @@ export const GALILEAN_MOON_EVENT     = 500;
 export const GRS_TRANSIT_EVENT_BASE  = 600;
 export const GRS_TRANSIT_EVENT       = 600;
 
-export const NO_TWILIGHT           =   0.0;
-export const CIVIL_TWILIGHT        =  -6.0;
-export const NAUTICAL_TWILIGHT     = -12.0;
-export const ASTRONOMICAL_TWILIGHT = -18.0;
+export const NO_TWILIGHT           =   0;
+export const CIVIL_TWILIGHT        =  -6;
+export const NAUTICAL_TWILIGHT     = -12;
+export const ASTRONOMICAL_TWILIGHT = -18;
 export const MAX_ALT_FOR_TWILIGHT  = CIVIL_TWILIGHT;
 
 export const EARTH_RADIUS_KM       =   6378.14; // equatorial radius
 export const EARTH_RADIUS_POLAR_KM =   6356.755;
-export const SUN_RADIUS_KM         = 696000.0;
+export const SUN_RADIUS_KM         = 696000;
 export const MOON_RADIUS_KM        =   1737.4;
 export const KM_PER_AU             = 1.49597870691E8;
 export const LIGHT_DAYS_PER_AU     = 0.005775518328;
@@ -103,25 +105,25 @@ export const MEAN_JUPITER_SYS_II   = 0.4137042242;
 export const MEAN_SYNODIC_MONTH    = 29.530589;
 export const REFRACTION_AT_HORIZON = 0.5833; // in degrees
 export const AVG_SUN_MOON_RADIUS   = 0.25; // in degrees
-export const UNKNOWN_MAGNITUDE     = 10000.0;
+export const UNKNOWN_MAGNITUDE     = 10000;
 export const OBLIQUITY_J2000       = 23.43929111; // in degrees
 export const K_DEG                 = 0.98560766860142; // Gaussian gravitation in degrees.
-export const K_RAD                 = K_DEG * Math.PI / 180.0; // Gaussian gravitation in radians.
+export const K_RAD                 = K_DEG * Math.PI / 180; // Gaussian gravitation in radians.
 
 export const INCLINATION_MEAN_LUNAR_EQUATOR = 1.54242;
 
 export const GALACTIC_NORTH_B1950 = new SphericalPosition(192.25, 27.4, Unit.DEGREES, Unit.DEGREES);
-export const GALACTIC_ASCENDING_NODE_B1950 = new Angle(33.0, Unit.DEGREES);
+export const GALACTIC_ASCENDING_NODE_B1950 = new Angle(33, Unit.DEGREES);
 
-export const DAY          = 1.0;
+export const DAY          = 1;
 export const HALF_DAY     = 0.5;
-export const HOUR         = 1.0 / 24.0;
-export const HALF_HOUR    = 1.0 / 48.0;
-export const QUARTER_HOUR = 1.0 / 96.0;
-export const MINUTE       = 1.0 / 1440.0;
-export const HALF_MINUTE  = 1.0 / 2880.0;
-export const SECOND       = 1.0 / 86400.0;
-export const HALF_SECOND  = 1.0 / 172800.0;
+export const HOUR         = 1 / 24;
+export const HALF_HOUR    = 1 / 48;
+export const QUARTER_HOUR = 1 / 96;
+export const MINUTE       = 1 / 1440;
+export const HALF_MINUTE  = 1 / 2880;
+export const SECOND       = 1 / 86400;
+export const HALF_SECOND  = 1 / 172800;
 
 export const JUPITER_FLATTENING = 1.069303;
 

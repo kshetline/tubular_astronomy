@@ -314,7 +314,7 @@ export class StarCatalog {
         if (vmag === 255)
           star.vmag = UNKNOWN_MAGNITUDE;
         else
-          star.vmag = vmag / 10.0 - 2.0;
+          star.vmag = vmag / 10 - 2;
 
         if (state === READING.FK5) {
           star.fk5Num = ++fk5Num;
@@ -732,9 +732,9 @@ export class StarCatalog {
       return this.cachedPositions[starIndex].pos;
 
     const star = this.stars[starIndex];
-    const T = (time_JDE - JD_J2000) / 36525.0;
-    let pos = new SphericalPosition(star.RA + star.pmRA * T / 3600.0,
-                                    star.DE + star.pmDE * T / 3600.0, Unit.HOURS, Unit.DEGREES);
+    const T = (time_JDE - JD_J2000) / 36525;
+    let pos = new SphericalPosition(star.RA + star.pmRA * T / 3600,
+                                    star.DE + star.pmDE * T / 3600, Unit.HOURS, Unit.DEGREES);
 
     if ((flags & NO_PRECESSION) === 0)
       pos = Ecliptic.precessEquatorial(pos, time_JDE);
@@ -750,22 +750,22 @@ export class StarCatalog {
       const T2 = T ** 2;
       const e = 0.016708634 - 0.000042037 * T - 0.0000001267 * T2;
       const pi = to_radian(102.93735 + 1.71946 * T + 0.00046 * T2);
-      const e0 = to_radian(OBLIQUITY_J2000 - (46.8150 * T - 0.00059 * T2 + 0.001813 * T2 * T) / 3600.0);
+      const e0 = to_radian(OBLIQUITY_J2000 - (46.8150 * T - 0.00059 * T2 + 0.001813 * T2 * T) / 3600);
 
       if (time_JDE !== this.sunCacheTime) {
         const L0 = 280.46646 + 36000.76983 * T + 0.0003032 * T2;
         const M = 357.52911 + 35999.05029 * T - 0.0001537 * T2;
         const C = (1.914602 - 0.004817 * T - 0.000014 * T2) * sin_deg(M)
-                  + (0.019993 - 0.000101 * T) * sin_deg(2.0 * M)
-                  + 0.000289 * sin_deg(3.0 * M);
-        this.sunLongitudeCache = to_radian(mod(L0 + C, 360.0));
+                  + (0.019993 - 0.000101 * T) * sin_deg(2 * M)
+                  + 0.000289 * sin_deg(3 * M);
+        this.sunLongitudeCache = to_radian(mod(L0 + C, 360));
       }
 
       const LS   = this.sunLongitudeCache;
       const RA   = pos.rightAscension.radians;
       const dec  = pos.declination.radians;
       const cosd = cos(dec);
-      let   dRA  = 0.0;
+      let   dRA  = 0;
 
       if (cosd !== 0)
         dRA = -StarCatalog.kappa * ((cos(RA) * cos(LS) * cos(e0) + sin(RA) * sin(LS))
