@@ -21,7 +21,7 @@ export class JupiterInfo {
   private static grsTimes: number[] = [];
   private static grsLongs: number[] = [];
 
-  static readonly DEFAULT_GRS_LONG = new Angle(-93.0, Unit.DEGREES);
+  static readonly DEFAULT_GRS_LONG = new Angle(-93, Unit.DEGREES);
 
   protected cacheTime = Number.MAX_VALUE;
   protected fixedGRSLong: Angle;
@@ -100,9 +100,9 @@ export class JupiterInfo {
   }
 
   static grsDataQuality(time_JDU: number): DataQuality {
-    if      (!this.properlyInitialized || time_JDU < this.minGRSTableTime - 730.0 || time_JDU > this.maxGRSTableTime + 730.0)
+    if      (!this.properlyInitialized || time_JDU < this.minGRSTableTime - 730 || time_JDU > this.maxGRSTableTime + 730)
       return DataQuality.POOR;
-    else if (time_JDU < this.minGRSTableTime - 365.0 || time_JDU > this.maxGRSTableTime + 365.0)
+    else if (time_JDU < this.minGRSTableTime - 365 || time_JDU > this.maxGRSTableTime + 365)
       return DataQuality.FAIR;
     else
       return DataQuality.GOOD;
@@ -177,7 +177,7 @@ export class JupiterInfo {
     if (this.fixedGRSLong)
       return this.fixedGRSLong;
     else if (JupiterInfo.properlyInitialized && JupiterInfo.minGRSTableTime === JupiterInfo.maxGRSTableTime &&
-             JupiterInfo.preTableGRSDrift === 0.0 && JupiterInfo.postTableGRSDrift === 0.0)
+             JupiterInfo.preTableGRSDrift === 0 && JupiterInfo.postTableGRSDrift === 0)
       return new Angle(JupiterInfo.grsLongAtMinTime, Unit.DEGREES);
     else
       return JupiterInfo.DEFAULT_GRS_LONG;
@@ -198,16 +198,16 @@ export class JupiterInfo {
     const M = 357.529 + 0.9856003  * d;
     const N =  20.020 + 0.0830853  * d + 0.329 * sin_deg(V);
     const J =  66.115 + 0.9025179  * d - 0.329 * sin_deg(V);
-    const A = 1.915 * sin_deg(M) + 0.020 * sin_deg(2.0 * M);
-    const B = 5.555 * sin_deg(N) + 0.168 * sin_deg(2.0 * N);
+    const A = 1.915 * sin_deg(M) + 0.020 * sin_deg(2 * M);
+    const B = 5.555 * sin_deg(N) + 0.168 * sin_deg(2 * N);
     const K = J + A - B;
-    const R = 1.00014 - 0.01671 * cos_deg(M) - 0.00014 * cos_deg(2.0 * M);
-    const r = 5.20872 - 0.25208 * cos_deg(N) - 0.00611 * cos_deg(2.0 * N);
-    const Δ = sqrt(r ** 2 + R ** 2 - 2.0 * r * R * cos_deg(K));
+    const R = 1.00014 - 0.01671 * cos_deg(M) - 0.00014 * cos_deg(2 * M);
+    const r = 5.20872 - 0.25208 * cos_deg(N) - 0.00611 * cos_deg(2 * N);
+    const Δ = sqrt(r ** 2 + R ** 2 - 2 * r * R * cos_deg(K));
     const ψ = asin_deg(limitNeg1to1(R / Δ * sin_deg(K)));
     const ω1 = 210.98 + 877.8169088 * (d - Δ / 173) + ψ - B;
     const ω2 = 187.23 + 870.1869088 * (d - Δ / 173) + ψ - B;
-    const cfp = 57.3 * squared(sin_deg(ψ / 2.0)) * sign(sin_deg(K));
+    const cfp = 57.3 * squared(sin_deg(ψ / 2)) * sign(sin_deg(K));
     const cm1 = ω1 + cfp;
     const cm2 = ω2 + cfp;
 

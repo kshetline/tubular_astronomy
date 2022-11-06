@@ -198,40 +198,40 @@ export class MeeusMoon {
         return this.cachedPositions[i];
     }
 
-    const T = (time_JDE - JD_J2000) / 36525.0;
+    const T = (time_JDE - JD_J2000) / 36525;
     const T2 = T ** 2;
     const T3 = T2 * T;
     const T4 = T3 * T;
 
     const L1 = 218.3164477 + 481267.88123421 * T - 0.0015786 * T2
-          + T3 / 538841.0 - T4 / 65194000.0
+          + T3 / 538841 - T4 / 65194000
           // Undoing the built-in 0.7' light-time adjustment
           + 0.0001944;
     const D = 297.8501921 + 445267.1114034 * T - 0.0018819 * T2
-            + T3 / 545868.0 - T4 / 113065000.0;
+            + T3 / 545868 - T4 / 113065000;
     const M = 357.5291092 + 35999.0502909 * T - 0.0001536 * T2
-            + T3 / 24490000.0;
+            + T3 / 24490000;
     const M1 = 134.9633964 + 477198.8675055 * T + 0.0087414 * T2
-             + T3 / 69699.0 - T4 / 14712000.0;
+             + T3 / 69699 - T4 / 14712000;
     const F = 93.2720950 + 483202.0175233 * T - 0.0036539 * T2
-            - T3 / 3526000.0 + T4 / 863310000.0;
+            - T3 / 3526000 + T4 / 863310000;
     const A1 = 119.75 + 131.849 * T;
     const A2 = 53.09 + 479264.290 * T;
     const A3 = 313.45 + 481266.484 * T;
-    const E = 1.0 - 0.002516 * T - 0.0000074 * T2;
+    const E = 1 - 0.002516 * T - 0.0000074 * T2;
     const E2 = E ** 2;
 
-    let L = 0.0, B = 0.0, R = 0.0;
+    let L = 0, B = 0, R = 0;
     let arg;
 
     for (const term of termsLR) {
       arg = term.fD * D + term.fM * M + term.fM1 * M1 + term.fF * F;
 
-      if (term.fM === -2.0 || term.fM === 2.0) {
+      if (term.fM === -2 || term.fM === 2) {
         L += term.cs * E2 * sin_deg(arg);
         R += term.cc * E2 * cos_deg(arg);
       }
-      else if (term.fM === -1.0 || term.fM === 1.0) {
+      else if (term.fM === -1 || term.fM === 1) {
         L += term.cs * E * sin_deg(arg);
         R += term.cc * E * cos_deg(arg);
       }
@@ -241,32 +241,32 @@ export class MeeusMoon {
       }
     }
 
-    L +=  3958.0 * sin_deg(A1)
-        + 1962.0 * sin_deg(L1 - F)
-        +  318.0 * sin_deg(A2);
-    L = L1 + L / 1000000.0;
+    L +=  3958 * sin_deg(A1)
+        + 1962 * sin_deg(L1 - F)
+        +  318 * sin_deg(A2);
+    L = L1 + L / 1000000;
 
-    R = 385000.56 + R / 1000.0;
+    R = 385000.56 + R / 1000;
 
     for (const term of termsB) {
       arg = term.fD * D + term.fM * M + term.fM1 * M1 + term.fF * F;
 
-      if (term.fM === -2.0 || term.fM === 2.0)
+      if (term.fM === -2 || term.fM === 2)
         B += term.cs * E2 * sin_deg(arg);
-      else if (term.fM === -1.0 || term.fM === 1.0)
+      else if (term.fM === -1 || term.fM === 1)
         B += term.cs * E * sin_deg(arg);
       else
         B += term.cs * sin_deg(arg);
     }
 
     // eslint-disable-next-line space-unary-ops
-    B += - 2235.0 * sin_deg(L1)
-         +  382.0 * sin_deg(A3)
-         +  175.0 * sin_deg(A1 - F)
-         +  175.0 * sin_deg(A1 + F)
-         +  127.0 * sin_deg(L1 - M1)
-         -  115.0 * sin_deg(L1 + M1);
-    B /= 1000000.0;
+    B += - 2235 * sin_deg(L1)
+         +  382 * sin_deg(A3)
+         +  175 * sin_deg(A1 - F)
+         +  175 * sin_deg(A1 + F)
+         +  127 * sin_deg(L1 - M1)
+         -  115 * sin_deg(L1 + M1);
+    B /= 1000000;
 
     // Convert to AU for consistency with other code
     const pos = new SphericalPosition3D(L, B, R / KM_PER_AU, Unit.DEGREES, Unit.DEGREES);

@@ -129,8 +129,8 @@ export abstract class PlanetaryMoons {
   //
   getMoonEventsForOneMinuteSpan(time_JDU: number, longFormat = false): MoonEvents {
     const events = new MoonEvents();
-    const t0 = utToTdt(time_JDU - 0.5 / 1440.0);
-    const t1 = utToTdt(time_JDU + 0.5 / 1440.0);
+    const t0 = utToTdt(time_JDU - 0.5 / 1440);
+    const t1 = utToTdt(time_JDU + 0.5 / 1440);
     const pos0 = this.getMoonPositions(t0);
     const pos1 = this.getMoonPositions(t1);
     const sunPos0 = this.getMoonPositions(t0, AS_SEEN_FROM_SUN);
@@ -164,10 +164,10 @@ export abstract class PlanetaryMoons {
           Y1 = pos[i].Y * this.flattening;
           d  = sqrt(pos[i].X * pos[i].X + Y1 ** 2);
 
-          if (d > 1.0)
-            d -= 1.0;
+          if (d > 1)
+            d -= 1;
           else
-            d = 1.0 - d;
+            d = 1 - d;
 
           ΔT = max(floor(d / this.v_max[i] * 0.75), 1);
           events.searchΔT = min(ΔT, events.searchΔT);

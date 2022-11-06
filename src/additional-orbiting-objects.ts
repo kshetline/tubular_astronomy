@@ -104,7 +104,7 @@ export class AdditionalOrbitingObjects {
         oi.epoch = DateTime.julianDay_SGC(ymd.y, ymd.m, ymd.d, 0, 0, 0);
         oi.hasMag = asAsteroids;
         oi.asteroid = asAsteroids;
-        oi.a = element.q / (1.0 - element.e);
+        oi.a = element.q / (1 - element.e);
         oi.q = element.q;
         oi.e = element.e;
         oi.i = element.i;
@@ -262,11 +262,11 @@ export class AdditionalOrbitingObjects {
 
         oi.q = interpolate(ta, time_JDE, tb, a.q, b.q);
         oi.e  = interpolate(ta, time_JDE, tb, a.e, b.e);
-        oi.i  = interpolateModular(ta, time_JDE, tb, a.i, b.i, 360.0, true);
-        oi.w  = interpolateModular(ta, time_JDE, tb, a.ω, b.ω, 360.0);
-        oi.L  = interpolateModular(ta, time_JDE, tb, a.L, b.L, 360.0);
+        oi.i  = interpolateModular(ta, time_JDE, tb, a.i, b.i, 360, true);
+        oi.w  = interpolateModular(ta, time_JDE, tb, a.ω, b.ω, 360);
+        oi.L  = interpolateModular(ta, time_JDE, tb, a.L, b.L, 360);
 
-        oi.a = oi.q / (1.0 - oi.e);
+        oi.a = oi.q / (1 - oi.e);
         oi.n = K_DEG / oi.a / sqrt(oi.a);
 
         // Tp (time of perihelion) takes a little extra effort to interpolate because the
@@ -275,12 +275,12 @@ export class AdditionalOrbitingObjects {
         // same orbital period when we interpolate.
 
         let bTp = b.Tp;
-        const daysForFullOrbit = 360.0 / oi.n;
+        const daysForFullOrbit = 360 / oi.n;
 
-        while (bTp >= a.Tp + daysForFullOrbit / 2.0)
+        while (bTp >= a.Tp + daysForFullOrbit / 2)
           bTp -= daysForFullOrbit;
 
-        while (bTp < a.Tp - daysForFullOrbit / 2.0)
+        while (bTp < a.Tp - daysForFullOrbit / 2)
           bTp += daysForFullOrbit;
 
         oi.Tp = interpolate(ta, time_JDE, tb, a.Tp, bTp);
@@ -316,7 +316,7 @@ export class AdditionalOrbitingObjects {
     oe.e = oi.e;
     oe.i = oi.i;
     oe.Ω = mod(oi.L + ΔL, 360);
-    oe.pi = mod(oi.ω + oi.L + ΔL, 360.0);
+    oe.pi = mod(oi.ω + oi.L + ΔL, 360);
     oe.partial = true;
 
     return oe;
@@ -338,7 +338,7 @@ export class AdditionalOrbitingObjects {
     const e = oi.e;
     const a = oi.a;
     const q = oi.q;
-    const meanA = mod(oi.n * t, 360.0);
+    const meanA = mod(oi.n * t, 360);
     let ea: number;
     let ef: number;
     let v: number;
@@ -347,27 +347,27 @@ export class AdditionalOrbitingObjects {
     if (oi.convergenceFails && oi.cfMin <= time_JDE && time_JDE <= oi.cfMax)
       doNotConverge = true;
 
-    if (e === 1.0 || (doNotConverge && abs(e - 1.0) < 0.0001)) { // parabolic orbit
+    if (e === 1 || (doNotConverge && abs(e - 1) < 0.0001)) { // parabolic orbit
       // Adapted from _Astronomical Algorithms, 2nd Ed._ by Jean Meeus, pp. 241-243.
       const W = 0.03649116245 * t / q / sqrt(q);
-      const G = W / 2.0;
-      const Y = pow(G + sqrt(G ** 2 + 1.0), 1.0 / 3.0);
-      const s = Y - 1.0 / Y;
+      const G = W / 2;
+      const Y = pow(G + sqrt(G ** 2 + 1), 1 / 3);
+      const s = Y - 1 / Y;
 
-      r = q * (1.0 + s ** 2);
-      v = 2.0 * atan(s);
+      r = q * (1 + s ** 2);
+      v = 2 * atan(s);
     }
-    else if (e < NEAR_PARABOLIC_E_LOW || (doNotConverge && e < 1.0)) { // elliptical orbit
+    else if (e < NEAR_PARABOLIC_E_LOW || (doNotConverge && e < 1)) { // elliptical orbit
       ea = AdditionalOrbitingObjects.kepler(e, to_radian(meanA));
 
       if (abs(ea) === PI)
         v = PI;
       else {
-        ef = sqrt((1.0 + e) / (1.0 - e));
-        v = 2.0 * atan(ef * tan(ea / 2.0));
+        ef = sqrt((1 + e) / (1 - e));
+        v = 2 * atan(ef * tan(ea / 2));
       }
 
-      r = a * (1.0 - e ** 2) / (1.0 + e * cos(v));
+      r = a * (1 - e ** 2) / (1 + e * cos(v));
     }
     else if (e > NEAR_PARABOLIC_E_HIGH || doNotConverge) { // hyperbolic orbit
       // Adapted from code by Robert D. Miller.
@@ -375,28 +375,28 @@ export class AdditionalOrbitingObjects {
       ea = AdditionalOrbitingObjects.keplerH(e, to_radian(meanA));
       const sinhEA = sinh(ea);
       const coshEA = cosh(ea);
-      ef = sqrt((e + 1.0) / (e - 1.0));
-      v = 2.0 * atan(ef * tan(0.5 * ea));
-      const rsinv = abs(a) * sqrt(e ** 2 - 1.0) * sinhEA;
+      ef = sqrt((e + 1) / (e - 1));
+      v = 2 * atan(ef * tan(0.5 * ea));
+      const rsinv = abs(a) * sqrt(e ** 2 - 1) * sinhEA;
       const rcosv = abs(a) * (e - coshEA);
       r = rsinv ** 2 + rcosv ** 2;
     }
     else { // Near parabolic orbit, eccentricity [0.98, 1.1].
       // Adapted from _Astronomical Algorithms, 2nd Ed._ by Jean Meeus, pp. 245-246.
-      if (t === 0.0) {
+      if (t === 0) {
         r = q;
-        v = 0.0;
+        v = 0;
       }
       else {
-        const q1 = K_RAD * sqrt((1.0 + e) / q) / 2.0 / q;
+        const q1 = K_RAD * sqrt((1 + e) / q) / 2 / q;
         const q2 = q1 * t;
-        let s = 2.0 / 3.0 / abs(q2);
+        let s = 2 / 3 / abs(q2);
 
-        s = 2.0 / tan(2.0 * atan(pow(tan(atan(s) / 2.0), 1.0 / 3.0))) * sign(t);
+        s = 2 / tan(2 * atan(pow(tan(atan(s) / 2), 1 / 3))) * sign(t);
 
         const maxErr = 1E-10;
         const d1 = 10000;
-        const g = (1.0 - e) / (1.0 + e);
+        const g = (1 - e) / (1 + e);
         let L = 0;
         let s0: number, s1: number;
 
@@ -404,7 +404,7 @@ export class AdditionalOrbitingObjects {
           let z = 1;
           const y = s ** 2;
           let g1 = -y * s;
-          let q3 = q2 + 2.0 * g * s * y / 3.0;
+          let q3 = q2 + 2 * g * s * y / 3;
           let z1: number, f: number;
 
           s0 = s;
@@ -412,7 +412,7 @@ export class AdditionalOrbitingObjects {
           do {
             ++z;
             g1 = -g1 * g * y;
-            z1 = (z - (z + 1) * g) / (2.0 * z + 1.0);
+            z1 = (z - (z + 1) * g) / (2 * z + 1);
             f = z1 * g1;
             q3 += f;
 
@@ -439,12 +439,12 @@ export class AdditionalOrbitingObjects {
             }
 
             s1 = s;
-            s = (2.0 * s ** 3 / 3.0 + q3) / (s ** 2 + 1.0);
+            s = (2 * s ** 3 / 3 + q3) / (s ** 2 + 1);
           } while (abs(s - s1) > maxErr);
         } while (abs(s - s0) > maxErr);
 
-        v = 2.0 * atan(s);
-        r = q * (1.0 + e) / (1.0 + e * cos(v));
+        v = 2 * atan(s);
+        r = q * (1 + e) / (1 + e * cos(v));
       }
     }
 
@@ -503,18 +503,18 @@ export class AdditionalOrbitingObjects {
 
     if (meanAnomaly > PI) {
       meanAnomaly = TWO_PI - meanAnomaly;
-      f = -1.0;
+      f = -1;
     }
     else
-      f = 1.0;
+      f = 1;
 
     e0 = HALF_PI;
-    d = PI / 4.0;
+    d = PI / 4;
 
     for (let i = 0; i < 60; ++i) {
       m1 = e0 - ecc * sin(e0);
       e0 = e0 + d * sign(meanAnomaly - m1);
-      d /= 2.0;
+      d /= 2;
     }
 
     return e0 * f;
@@ -527,19 +527,19 @@ export class AdditionalOrbitingObjects {
     let h: number, dh: number, f: number, f1: number, f2: number, sine: number, cose: number;
 
     const meanA = abs(meanAnomaly);
-    h = log(2.0 * meanA / ecc + 1.85);
+    h = log(2 * meanA / ecc + 1.85);
 
     do {
       sine = sinh(h);
       cose = cosh(h);
       f = ecc * sine - h - meanA;
-      f1 = ecc * cose - 1.0;
+      f1 = ecc * cose - 1;
       f2 = ecc * sine;
-      dh = -5.0 * f / (f1 + signZP(f1) * sqrt(abs(16.0 * f1 ** 2 - 20.0 * f * f2)));
+      dh = -5 * f / (f1 + signZP(f1) * sqrt(abs(16 * f1 ** 2 - 20 * f * f2)));
       h = h + dh;
     } while (abs(dh) >= maxError);
 
-    if (meanAnomaly < 0.0)
+    if (meanAnomaly < 0)
       return -h;
     else
       return h;

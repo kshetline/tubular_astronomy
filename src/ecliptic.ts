@@ -158,9 +158,9 @@ export class Ecliptic {
       finalEpoch = initialOrFinalEpoch;
     }
 
-    const T = (initialEpoch - JD_J2000) / 36525.0;
+    const T = (initialEpoch - JD_J2000) / 36525;
     const T2 = T ** 2;
-    const t = (finalEpoch - initialEpoch) / 36525.0;
+    const t = (finalEpoch - initialEpoch) / 36525;
     const t2 = t ** 2;
     const t3 = t2 * t;
     const RA0 = pos.rightAscension.radians;
@@ -174,9 +174,9 @@ export class Ecliptic {
             - (0.42665 + 0.000217 * T) * t2 - 0.041833 * t3;
 
     // For convenience, convert the above arcsecond values to radians.
-    ζ *= PI / 648000.0;
-    z *= PI / 648000.0;
-    θ *= PI / 648000.0;
+    ζ *= PI / 648000;
+    z *= PI / 648000;
+    θ *= PI / 648000;
 
     const A = cos(dec0) * sin(RA0 + ζ);
     const B = cos(θ) * cos(dec0) * cos(RA0 + ζ) - sin(θ) * sin(dec0);
@@ -212,9 +212,9 @@ export class Ecliptic {
       finalEpoch = initialOrFinalEpoch;
     }
 
-    const T = (initialEpoch - JD_J2000) / 36525.0;
+    const T = (initialEpoch - JD_J2000) / 36525;
     const T2 = T ** 2;
-    const t = (finalEpoch - initialEpoch) / 36525.0;
+    const t = (finalEpoch - initialEpoch) / 36525;
     const t2 = t ** 2;
     const t3 = t2 * t;
     const L0 = pos.longitude.radians;
@@ -222,15 +222,15 @@ export class Ecliptic {
 
     let η  = (47.0029 - 0.06603 * T + 0.000598 * T2) * t
            + (-0.03302 + 0.000598 * T) * t2 + 0.000060 * t3;
-    let P1 = (174.876384 * 3600.0) + 3289.4789 * T + 0.60622 * T2
+    let P1 = (174.876384 * 3600) + 3289.4789 * T + 0.60622 * T2
            - (869.8089 + 0.50491 * T) * t + 0.03536 * t2;
     let p  = (5029.0966 + 2.22226 * T - 0.000042 * T2) * t
            + (1.11113 - 0.000042 * T) * t2 - 0.000006 * t3;
 
     // For convenience, convert the above arcsecond values to radians.
-    η  *= PI / 648000.0;
-    P1 *= PI / 648000.0;
-    p  *= PI / 648000.0;
+    η  *= PI / 648000;
+    P1 *= PI / 648000;
+    p  *= PI / 648000;
 
     const A1 = cos(η) * cos(B0) * sin(P1 - L0) - sin(η) * sin(B0);
     const B1 = cos(B0) * cos(P1 - L0);
@@ -253,7 +253,7 @@ export class Ecliptic {
     if (this.cachedTime === time_JDE && this.cachedMode === mode)
       return this.cachedNutation;
 
-    const T = (time_JDE - JD_J2000) / 36525.0;
+    const T = (time_JDE - JD_J2000) / 36525;
     const result = {} as Nutation;
 
     if (mode === NMode.J2000) {
@@ -262,11 +262,11 @@ export class Ecliptic {
       result.ε = new Angle(OBLIQUITY_J2000, Unit.DEGREES);
     }
     else {
-      let U = T / 100.0;
+      let U = T / 100;
       let e = OBLIQUITY_J2000;
 
       for (const coeff of coeffs) {
-        e += coeff * U / 3600.0;
+        e += coeff * U / 3600;
         U *= U;
       }
 
@@ -281,15 +281,15 @@ export class Ecliptic {
         const T3 = T2 * T;
 
         // Mean elongation of Moon from Sun
-        const D = 297.85036 + 445267.111480 * T - 0.0019142 * T2 + T3 / 189474.0;
+        const D = 297.85036 + 445267.111480 * T - 0.0019142 * T2 + T3 / 189474;
         // Mean anomaly of Sun
-        const M = 357.52772 + 35999.050340 * T - 0.0001603 * T2 - T3 / 300000.0;
+        const M = 357.52772 + 35999.050340 * T - 0.0001603 * T2 - T3 / 300000;
         // Mean anomaly of Moon
-        const M1 = 134.96298 + 477198.867398 * T + 0.0086972 * T2 + T3 / 56250.0;
+        const M1 = 134.96298 + 477198.867398 * T + 0.0086972 * T2 + T3 / 56250;
         // Moon's argument of latitude
-        const F = 93.27191 + 483202.017538 * T + 0.0036825 * T2 + T3 / 327270.0;
+        const F = 93.27191 + 483202.017538 * T + 0.0036825 * T2 + T3 / 327270;
         // Longitude of ascending node of Moon's mean orbit
-        const Q = 125.04452 - 1934.136261 * T + 0.0020708 * T2 + T3 / 450000.0;
+        const Q = 125.04452 - 1934.136261 * T + 0.0020708 * T2 + T3 / 450000;
 
         let arg;
         let Δψ = 0;
@@ -301,8 +301,8 @@ export class Ecliptic {
           Δε += cos_deg(arg) * (term.cc0 + term.cc1 * T);
         }
 
-        result.Δψ = new Angle(Δψ / 10000.0, Unit.ARC_SECONDS);
-        result.Δε = new Angle(Δε / 10000.0, Unit.ARC_SECONDS);
+        result.Δψ = new Angle(Δψ / 10000, Unit.ARC_SECONDS);
+        result.Δε = new Angle(Δε / 10000, Unit.ARC_SECONDS);
         result.ε = result.ε.add(result.Δε);
       }
     }

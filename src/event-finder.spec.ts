@@ -13,13 +13,13 @@ import { processMillis } from '@tubular/util';
 
 const grsTestData = new Uint8ClampedArray(
 `3.9
-13.0
-366.0
-2017-01-01,261.0
-2017-04-01,267.0
-2017-07-01,274.0
+13
+366
+2017-01-01,261
+2017-04-01,267
+2017-07-01,274
 2017-10-01,278.5
-2018-01-01,285.0`.split('').map(c => c.charCodeAt(0))).buffer;
+2018-01-01,285`.split('').map(c => c.charCodeAt(0))).buffer;
 
 let promiseHelper;
 

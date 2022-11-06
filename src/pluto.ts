@@ -95,7 +95,7 @@ export class Pluto {
     if (this.cachedTime === time_JDE && this.cachedPosition !== null)
       return this.cachedPosition;
 
-    const T = (time_JDE - JD_J2000) / 36525.0;
+    const T = (time_JDE - JD_J2000) / 36525;
     const J = to_radian(34.35 + 3034.9057 * T);
     const S = to_radian(50.08 + 1222.1138 * T);
     const P = to_radian(238.96 + 144.9600 * T);

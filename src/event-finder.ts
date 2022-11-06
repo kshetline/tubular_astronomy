@@ -121,14 +121,14 @@ export class EventFinder {
     let phaseIndex = -1;
 
     // Make sure lowPhase < highPhase when 0-degree point is in between the two.
-    if (lowPhase > 315.0)
-      lowPhase -= 360.0;
-    if (highPhase > 315.0)
-      highPhase -= 360.0;
+    if (lowPhase > 315)
+      lowPhase -= 360;
+    if (highPhase > 315)
+      highPhase -= 360;
 
     do {
       ++phaseIndex;
-      angle = phaseIndex * 90.0;
+      angle = phaseIndex * 90;
 
       // Does the magic moment of one of the enumerated phases occur
       // between the start and end of this day?
@@ -136,12 +136,12 @@ export class EventFinder {
         gotEvent = true;
 
         const zeroFinder = new ZeroFinder((x: number) => {
-            return mod2(this.ss.getLunarPhase(x) - angle, 360.0);
+            return mod2(this.ss.getLunarPhase(x) - angle, 360);
           }, 0.0001, 6,
           startOfDay, lowPhase - angle,
           endOfDay,   highPhase - angle);
 
-        eventTime = (zeroFinder.getXAtZero() - startOfDay) * 24.0;
+        eventTime = (zeroFinder.getXAtZero() - startOfDay) * 24;
       }
     } while (phaseIndex < 3 && !gotEvent);
 
@@ -381,19 +381,19 @@ export class EventFinder {
     let lowLongitude  = this.ss.getEclipticPosition(SUN, startOfDay).longitude.degrees;
     let highLongitude = this.ss.getEclipticPosition(SUN,   endOfDay).longitude.degrees;
     let angle: number;
-    let eventTime = 0.0;
+    let eventTime = 0;
     let gotEvent = false;
     let eventIndex = -1;
 
     // Make sure lowLongitude < highLongitude when 0-degree point is in between the two.
-    if (lowLongitude > 315.0)
-      lowLongitude -= 360.0;
-    if (highLongitude > 315.0)
-      highLongitude -= 360.0;
+    if (lowLongitude > 315)
+      lowLongitude -= 360;
+    if (highLongitude > 315)
+      highLongitude -= 360;
 
     do {
       ++eventIndex;
-      angle = eventIndex * 90.0;
+      angle = eventIndex * 90;
 
       // Does the magic moment of one of the equinoxes or solstices occur
       // between the start and end of this day?
@@ -401,12 +401,12 @@ export class EventFinder {
         gotEvent = true;
 
         const zeroFinder = new ZeroFinder((x: number) => {
-            return mod2(this.ss.getEclipticPosition(SUN, x).longitude.degrees - angle, 360.0);
+            return mod2(this.ss.getEclipticPosition(SUN, x).longitude.degrees - angle, 360);
           }, 0.00001, 6,
           startOfDay, lowLongitude - angle,
           endOfDay,   highLongitude - angle);
 
-        eventTime = (zeroFinder.getXAtZero() - startOfDay) * 24.0;
+        eventTime = (zeroFinder.getXAtZero() - startOfDay) * 24;
       }
     } while (eventIndex < 3 && !gotEvent);
 
@@ -586,24 +586,24 @@ export class EventFinder {
     if (minutesInDay === 0)
       return results;
 
-    const dayLength = minutesInDay / 1440.0;
+    const dayLength = minutesInDay / 1440;
     let segments = 6;
     let subsegments: number;
 
     if (body === MOON)
       segments *= 2;
 
-    if (abs(observer.latitude.degrees) > 60.0)
+    if (abs(observer.latitude.degrees) > 60)
       segments *= 2;
 
-    startOfDay += minutesBefore / 1440.0;
+    startOfDay += minutesBefore / 1440;
 
     let startTime = startOfDay;
     let startAltitude = this.ss.getHorizontalPosition(body, startTime, observer).altitude.degrees;
     let endTime: number;
     let endAltitude: number;
     let savedEndAltitude: number;
-    let middayAltitude = -90.0;
+    let middayAltitude = -90;
     let eventTime: number;
     let eventType: number;
     let eventText: string;
@@ -619,9 +619,9 @@ export class EventFinder {
       // If the body seems to be skimming the horizon (or other target altitude)
       // we'll need to break this segment into subsegments.
 
-      if ((abs(startAltitude - targetAltitude) < 1.0 ||
-           abs(endAltitude   - targetAltitude) < 1.0) &&
-          abs(startAltitude - endAltitude) < 2.0)
+      if ((abs(startAltitude - targetAltitude) < 1 ||
+           abs(endAltitude   - targetAltitude) < 1) &&
+          abs(startAltitude - endAltitude) < 2)
         subsegments = 10;
       else
         subsegments = 1;
@@ -629,7 +629,7 @@ export class EventFinder {
       for (let j = 1; j <= subsegments; ++j) {
         if (subsegments > 1) {
           if (j < subsegments) {
-            endTime = startOfDay + ((i - 1.0) + j / subsegments) / segments * dayLength;
+            endTime = startOfDay + ((i - 1) + j / subsegments) / segments * dayLength;
             endAltitude = this.ss.getHorizontalPosition(body, endTime, observer).altitude.degrees;
           }
           else {
@@ -660,7 +660,7 @@ export class EventFinder {
 
           eventTime = zeroFinder.getXAtZero();
 
-          const rsTime = (eventTime - startOfDay) * 24.0;
+          const rsTime = (eventTime - startOfDay) * 24;
 
           results.push(new AstroEvent(eventType, eventText, year, month, day, rsTime, zone, gregorianChange));
         }
@@ -672,9 +672,9 @@ export class EventFinder {
 
     if (!doTwilight && results.length === 0) {
       if (middayAltitude > targetAltitude)
-        results.push(new AstroEvent(VISIBLE_ALL_DAY, 'visible all day', year, month, day, 0.0, zone, gregorianChange));
+        results.push(new AstroEvent(VISIBLE_ALL_DAY, 'visible all day', year, month, day, 0, zone, gregorianChange));
       else
-        results.push(new AstroEvent(UNSEEN_ALL_DAY, 'unseen all day', year, month, day, 0.0, zone, gregorianChange));
+        results.push(new AstroEvent(UNSEEN_ALL_DAY, 'unseen all day', year, month, day, 0, zone, gregorianChange));
     }
 
     return results;
@@ -698,7 +698,7 @@ export class EventFinder {
     if (body === SUN || body === MOON)
       minAltitude = -0.8333;
 
-    const dayLength = minutesInDay / 1440.0;
+    const dayLength = minutesInDay / 1440;
     const segments = 5;
     let startTime = startOfDay;
     let startAngle = this.ss.getHourAngle(body, startTime, observer, SIGNED_HOUR_ANGLE).radians;
@@ -715,7 +715,7 @@ export class EventFinder {
         break;
 
       // Is an hour angle of zero between the start and end angles?
-      if (startAngle <= 0.0 && 0.0 < endAngle) {
+      if (startAngle <= 0 && 0 < endAngle) {
         const zeroFinder = new ZeroFinder((x: number) => {
             return this.ss.getHourAngle(body, x, observer, SIGNED_HOUR_ANGLE).radians;
           }, 0.0001, 8,
@@ -726,7 +726,7 @@ export class EventFinder {
 
         // Accept the event only if the object is above the horizon at the time
         if (this.ss.getHorizontalPosition(body, eventTime, observer).altitude.degrees >= minAltitude) {
-          const transitTime = (eventTime - startOfDay) * 24.0;
+          const transitTime = (eventTime - startOfDay) * 24;
 
           results.push(new AstroEvent(TRANSIT_EVENT, 'transit', year, month, day, transitTime, zone, gregorianChange));
         }
@@ -1022,7 +1022,7 @@ export class EventFinder {
   getGalileanMoonEvents(startJdu: number, endJdu: number, includeGrsTransits: boolean, zone?: Timezone, gregorianChange?: GregorianChange): Promise<AstroEvent[]> {
     const results: AstroEvent[] = [];
 
-    let t = floor(startJdu * 1440.0) / 1440.0;
+    let t = floor(startJdu * 1440) / 1440;
 
     const calculate = (): void => {
       const startTick = Date.now();
@@ -1032,13 +1032,13 @@ export class EventFinder {
 
         if (mEvents.count > 0) {
           // Round event time to nearest minute by adding half a minute.
-          const event = AstroEvent.fromJdu(GALILEAN_MOON_EVENT, mEvents.text, t + 1 / 2880.0, zone, gregorianChange, mEvents.searchΔT);
+          const event = AstroEvent.fromJdu(GALILEAN_MOON_EVENT, mEvents.text, t + 1 / 2880, zone, gregorianChange, mEvents.searchΔT);
 
           event.miscInfo = mEvents;
           results.push(event);
         }
 
-        t += mEvents.searchΔT / 1440.0;
+        t += mEvents.searchΔT / 1440;
       } while (t < endJdu && Date.now() < startTick + 50);
     };
 
@@ -1322,12 +1322,12 @@ export class EventFinder {
   protected eventSearch(planet: number, eventType: number, originalTime: number, testTime: number[],
                         observer: ISkyObserver, zone: Timezone, gregorianChange: GregorianChange,
                         doPrevious, argument: any, tries: number, dateTime: DateTime, ymd: YMDDate): AstroEvent {
-    let eventPeriod = 0.0;
+    let eventPeriod = 0;
     let eventTime: number;
     let events: AstroEvent[];
     let event: AstroEvent;
     let a: number, b: number;
-    let minEventGap = 5.0, eventGap: number;
+    let minEventGap = 5, eventGap: number;
     let minuteRounding = true;
     const δ = (doPrevious ? -1 : 1);
 
@@ -1402,7 +1402,7 @@ export class EventFinder {
       case APHELION:
       case PERIHELION:
       case GRS_TRANSIT_EVENT:
-        let resolution = (planet <= MARS ? 1.0 / 24.0 : 1.0); // hours or days
+        let resolution = (planet <= MARS ? 1 / 24 : 1); // hours or days
         const tolerance = 0.0001;
         let seekMin = false;
         let seekMax = false;
@@ -1413,7 +1413,7 @@ export class EventFinder {
           case OPPOSITION:
           case SUPERIOR_CONJUNCTION:
           case INFERIOR_CONJUNCTION:
-            resolution = 1.0 / 1440.0; // minutes
+            resolution = 1 / 1440; // minutes
             seekZero = true;
             break;
 
@@ -1442,19 +1442,19 @@ export class EventFinder {
           case LUNAR_ECLIPSE:
           case SOLAR_ECLIPSE:
             eventPeriod = MEAN_SYNODIC_MONTH * 1.25;
-            resolution = 1.0 / (minuteRounding ? 1440 : 86400); // minutes or seconds
+            resolution = 1 / (minuteRounding ? 1440 : 86400); // minutes or seconds
             divisions = 30;
             seekMin = true;
             break;
 
           case QUADRATURE:
-            resolution = 1.0 / 1440; // minutes
+            resolution = 1 / 1440; // minutes
             seekMax = true;
             break;
 
           case GRS_TRANSIT_EVENT:
             eventPeriod = MEAN_JUPITER_SYS_II * 1.25;
-            resolution = 1.0 / 1440; // minutes
+            resolution = 1 / 1440; // minutes
             seekZero = true;
             break;
         }
@@ -1465,16 +1465,16 @@ export class EventFinder {
         events = [];
 
         for (let i = 0; i <= divisions; ++i) {
-          eventTimes[i]  = testTime[0] + i * eventPeriod / divisions - eventPeriod / 2.0;
+          eventTimes[i]  = testTime[0] + i * eventPeriod / divisions - eventPeriod / 2;
           eventValues[i] = this.getEventSearchValue(planet, eventType, eventTimes[i]);
 
           if (!seekZero && i < 2 || i < 1)
             continue;
 
-          if (seekZero && ((eventValues[i - 1] <= 0.0 && 0.0 <  eventValues[i]) ||
-                           (eventValues[i - 1] >  0.0 && 0.0 >= eventValues[i]))
+          if (seekZero && ((eventValues[i - 1] <= 0 && 0 <  eventValues[i]) ||
+                           (eventValues[i - 1] >  0 && 0 >= eventValues[i]))
           ) {
-            if (abs(eventValues[i - 1] - eventValues[i]) > 180.0)
+            if (abs(eventValues[i - 1] - eventValues[i]) > 180)
               continue;
 
             const zeroFinder = new ZeroFinder((x: number) => {
@@ -1516,10 +1516,10 @@ export class EventFinder {
           // events is what becomes important.
 
           let testMoment;
-          let testValue: number, bestValue = 0.0;
+          let testValue: number, bestValue = 0;
 
           // When the resolution is in whole days, center on midnight instead of noon.
-          if (resolution === 1.0)
+          if (resolution === 1)
             testMoment = floor(eventTime + 0.5) - 0.5;
           else
             testMoment = floor(eventTime / resolution - 4.5) * resolution;
@@ -1572,7 +1572,7 @@ export class EventFinder {
 
       case GALILEAN_MOON_EVENT:
         minEventGap = 0.49;
-        testTime[0] = floor(testTime[0] * 1440.0) / 1440.0;
+        testTime[0] = floor(testTime[0] * 1440) / 1440;
         events = [];
 
         const mevents = this.jupitersMoons.getMoonEventsForOneMinuteSpan(testTime[0], true);
@@ -1583,7 +1583,7 @@ export class EventFinder {
           events.push(event);
         }
 
-        testTime[0] += (δ * mevents.searchΔT + 0.1) / 1440.0;
+        testTime[0] += (δ * mevents.searchΔT + 0.1) / 1440;
         break;
 
       default:
@@ -1607,7 +1607,7 @@ export class EventFinder {
       else
         eventGap = minEventGap;
 
-      if (event.eventType === eventType && (eventTime - originalTime) * δ >= eventGap / 1440.0) {
+      if (event.eventType === eventType && (eventTime - originalTime) * δ >= eventGap / 1440) {
         if (eventType === GREATEST_ELONGATION) {
           let message: string;
           const angle = new Angle(event.value, Unit.DEGREES);
@@ -1635,11 +1635,11 @@ export class EventFinder {
 
     switch (eventType) {
       case OPPOSITION:
-        return mod2(this.ss.getSolarElongationInLongitude(planet, time_JDE) + 180.0, 360.0);
+        return mod2(this.ss.getSolarElongationInLongitude(planet, time_JDE) + 180, 360);
 
       case SUPERIOR_CONJUNCTION:
       case INFERIOR_CONJUNCTION:
-        return mod2(this.ss.getSolarElongationInLongitude(planet, time_JDE), 360.0);
+        return mod2(this.ss.getSolarElongationInLongitude(planet, time_JDE), 360);
 
       case GREATEST_ELONGATION:
         return this.ss.getSolarElongation(planet, time_JDE);
@@ -1664,7 +1664,7 @@ export class EventFinder {
           return this.jupiterInfo.getGRSCMOffset(time_JDE).degrees;
       // Falls through
       default:
-        return 0.0;
+        return 0;
     }
   }
 
