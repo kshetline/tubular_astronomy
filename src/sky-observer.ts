@@ -1,5 +1,5 @@
 import {
-  abs, Angle, asin, atan, atan2, cos, HALF_PI, interpolate, limitNeg1to1, mod, PI, sign, sin, SphericalPosition, SphericalPosition3D,
+  abs, Angle, asin, atan, atan2, cos, FMT_MINS, HALF_PI, interpolate, limitNeg1to1, mod, PI, sign, sin, SphericalPosition, SphericalPosition3D,
   sqrt, tan, to_degree, to_radian, TWO_PI, Unit
 } from '@tubular/math';
 import { tdtToUt, utToTdt } from '@tubular/time';
@@ -195,5 +195,9 @@ export class SkyObserver implements ISkyObserver {
                                             this._latitude.cos * cos(altitude) * cos(azimuth)));
 
     return new SphericalPosition(mod(RA, TWO_PI), declination);
+  }
+
+  toString(): string {
+    return `[${this._longitude.toString(FMT_MINS)}, ${this._latitude.toString(FMT_MINS)}, ${this.elevation}]`;
   }
 }

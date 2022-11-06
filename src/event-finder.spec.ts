@@ -144,12 +144,14 @@ describe('EventFinder', () => {
     expect(event.miscInfo.annular).to.be.true;
     expect(event.miscInfo.duration).to.be.approximately(12290, 10);
     expect(event.miscInfo.peakDuration).to.be.approximately(365, 10);
-    expect(event.miscInfo.maxTime).to.be.approximately(new DateTime('1994-05-10T13:41:19', zone).wallTime.jdu, 10);
+    expect(event.miscInfo.maxTime).to.be.approximately(new DateTime('1994-05-10T13:41:19', zone).wallTime.jdu, 2 / 1440);
+    event = await eventFinder.findEventAsync(SUN, SOLAR_ECLIPSE_LOCAL, time3, concord, zone, null, false, true);
+    console.log((event.jdu - event.ut) * 86400);
     event = await eventFinder.findEventAsync(SUN, SOLAR_ECLIPSE_LOCAL, time4, mantua, zone);
     expect(event.miscInfo.annular).to.be.false;
     expect(event.miscInfo.duration).to.be.approximately(3922, 10);
     expect(event.miscInfo.peakDuration).to.equal(0);
-    expect(event.miscInfo.maxTime).to.be.approximately(new DateTime('2026-08-12T13:41:00', zone).wallTime.jdu, 10);
+    expect(event.miscInfo.maxTime).to.be.approximately(new DateTime('2026-08-12T13:41:00', zone).wallTime.jdu, 2 / 1400);
   });
 
   it('should find local lunar eclipses', async function () {

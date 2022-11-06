@@ -1,3 +1,5 @@
+// noinspection CommaExpressionJS
+
 import { abs, Angle, div_rd, floor, FMT_DD, FMT_MINS, max, min, MinMaxFinder, mod, mod2, round, sign, sin_deg, Unit, ZeroFinder } from '@tubular/math';
 import { Calendar, DateTime, DateTimeField, getISOFormatDate, GregorianChange, Timezone, utToTdt, YMDDate } from '@tubular/time';
 import { flatten, htmlEscape, isNumber, isString, processMillis } from '@tubular/util';
@@ -10,6 +12,8 @@ import { EclipseInfo, EclipseCircumstances, SolarSystem, CircumstancesOfEclipse 
 /* eslint-disable no-case-declarations, yoda */
 
 export class AstroEvent {
+  private readonly _jdu: number | undefined;
+
   readonly _eventType: number;
   readonly _eventText: string;
   readonly _value: number;
@@ -28,6 +32,7 @@ export class AstroEvent {
     const minutesInDay = round(this.eventTime.getMinutesInDay(year, month, day));
     const minutesIntoDay = min(max(floor(hourOffset * 60), 0), minutesInDay - 1);
 
+    this._jdu = this.eventTime.wallTime.jdu + hourOffset / 24;
     this.eventTime.add(DateTimeField.MINUTE, minutesIntoDay);
   }
 
@@ -44,6 +49,7 @@ export class AstroEvent {
   get eventText(): string { return this._eventText; }
   get value(): number { return this._value; }
   get ut(): number { return DateTime.julianDay(this.eventTime.utcTimeMillis); }
+  get jdu(): number { return this._jdu ?? this.ut; }
 
   toString(): string {
     return this._eventType + '; ' + this._eventText + '; ' + this.eventTime.toYMDhmString() +
@@ -1103,7 +1109,7 @@ export class EventFinder {
           return isSolar ?
             this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true, annularity) :
             this.ss.getLunarEclipseTotality(utToTdt(x), true, penumbralMagnitude);
-        }, 1E-9, 25, result.ut - HALF_DAY, result.ut, result.ut + HALF_DAY);
+        }, 1E-11, 50, result.ut - HALF_DAY, result.ut, result.ut + HALF_DAY);
     const eventTime = minMaxFinder.getXAtMinMax();
 
     if (!doPrevious && eventTime <= originalTime + MINUTE)
@@ -1121,7 +1127,7 @@ export class EventFinder {
           return isSolar ?
             this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true) :
             this.ss.getLunarEclipseTotality(utToTdt(x), true);
-      }, 1E-9, 25, result.ut - HALF_DAY, eventTime);
+      }, 1E-11, 50, result.ut - HALF_DAY, eventTime);
 
       circumstances.firstContact = firstContactFinder.getXAtZero();
 
@@ -1129,7 +1135,7 @@ export class EventFinder {
           return isSolar ?
             this.ss.getLocalSolarEclipseTotality(utToTdt(x), observer, true) :
             this.ss.getLunarEclipseTotality(utToTdt(x), true);
-      }, 1E-9, 25, eventTime, result.ut + HALF_DAY);
+      }, 1E-11, 50, eventTime, result.ut + HALF_DAY);
 
       circumstances.lastContact = lastContactFinder.getXAtZero();
       circumstances.duration = (circumstances.lastContact - circumstances.firstContact) * 86400;
@@ -1144,7 +1150,7 @@ export class EventFinder {
             return annularity[0] - 1;
           else
             return totality - 1;
-        }, 1E-9, 25, circumstances.firstContact, eventTime);
+        }, 1E-11, 50, circumstances.firstContact, eventTime);
 
         circumstances.peakStarts = startFinder.getXAtZero();
 
@@ -1157,7 +1163,7 @@ export class EventFinder {
             return annularity[0] - 1;
           else
             return totality - 1;
-        }, 1E-9, 25, eventTime, circumstances.lastContact);
+        }, 1E-11, 50, eventTime, circumstances.lastContact);
 
         circumstances.peakEnds = endFinder.getXAtZero();
         circumstances.peakDuration = (circumstances.peakEnds - circumstances.peakStarts) * 86400;
@@ -1170,14 +1176,14 @@ export class EventFinder {
           const firstContactFinder = new ZeroFinder((x: number) => {
               // eslint-disable-next-line no-sequences
               return this.ss.getLunarEclipseTotality(utToTdt(x), true, penumbralMagnitude), penumbralMagnitude[0];
-          }, 1E-9, 25, result.ut - HALF_DAY, eventTime);
+          }, 1E-11, 50, result.ut - HALF_DAY, eventTime);
 
           circumstances.penumbralFirstContact = firstContactFinder.getXAtZero();
 
           const lastContactFinder = new ZeroFinder((x: number) => {
               // eslint-disable-next-line no-sequences
               return this.ss.getLunarEclipseTotality(utToTdt(x), true, penumbralMagnitude), penumbralMagnitude[0];
-          }, 1E-9, 25, eventTime, result.ut + HALF_DAY);
+          }, 1E-11, 50, eventTime, result.ut + HALF_DAY);
 
           circumstances.penumbralLastContact = lastContactFinder.getXAtZero();
           circumstances.penumbralDuration = (circumstances.penumbralLastContact - circumstances.penumbralFirstContact) * 86400;
@@ -1322,7 +1328,12 @@ export class EventFinder {
     let event: AstroEvent;
     let a: number, b: number;
     let minEventGap = 5.0, eventGap: number;
+    let minuteRounding = true;
     const δ = (doPrevious ? -1 : 1);
+
+    // argument must be boolean true, not just truthy
+    if (argument === true && [LUNAR_ECLIPSE, SOLAR_ECLIPSE].includes(eventType))
+      minuteRounding = false;
 
     switch (eventType) {
       case RISE_EVENT:
@@ -1431,19 +1442,19 @@ export class EventFinder {
           case LUNAR_ECLIPSE:
           case SOLAR_ECLIPSE:
             eventPeriod = MEAN_SYNODIC_MONTH * 1.25;
-            resolution = 1.0 / 1440.0; // minutes
+            resolution = 1.0 / (minuteRounding ? 1440 : 86400); // minutes or seconds
             divisions = 30;
             seekMin = true;
             break;
 
           case QUADRATURE:
-            resolution = 1.0 / 1440.0; // minutes
+            resolution = 1.0 / 1440; // minutes
             seekMax = true;
             break;
 
           case GRS_TRANSIT_EVENT:
             eventPeriod = MEAN_JUPITER_SYS_II * 1.25;
-            resolution = 1.0 / 1440.0; // minutes
+            resolution = 1.0 / 1440; // minutes
             seekZero = true;
             break;
         }
@@ -1479,7 +1490,7 @@ export class EventFinder {
           ) {
             const minMaxFinder = new MinMaxFinder((x: number) => {
                   return this.getEventSearchValue(planet, eventType, x);
-                }, 1E-10, 100,
+                }, 1E-11, 100,
                 eventTimes[i - 2], eventTimes[i - 1], eventTimes[i]);
 
             eventTime = minMaxFinder.getXAtMinMax();
@@ -1543,9 +1554,8 @@ export class EventFinder {
             if (!ei.inPenumbra)
               continue;
             else
-              // Since the clock will be rounded up half a minute, we'll get the location
-              // of the fast-moving shadow at that moment.
-              ei = this.ss.getSolarEclipseInfo(utToTdt(eventTime + 0.5 / 1440.0), true);
+              // Since the clock will be rounded up, we'll get the location of the fast-moving shadow at that moment.
+              ei = this.ss.getSolarEclipseInfo(utToTdt(eventTime + 0.5 / (minuteRounding ? 1440 : 86400)), true);
           }
 
           // TODO: Add event text
@@ -1590,7 +1600,7 @@ export class EventFinder {
 
     for (let i = a; i !== b + δ; i += δ) {
       event = events[i];
-      eventTime = event.ut;
+      eventTime = (minuteRounding ? event.ut : event.jdu);
 
       if (tries === 0)
         eventGap = 0.49;

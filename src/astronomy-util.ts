@@ -36,8 +36,8 @@ const TWILIGHT_MOON_BLENDS: string[][] = [];
   }
 })();
 
-const h_adj  = refractedAltitudeAux(90.0);
-const h0_adj = unrefractedAltitudeAux(90.0);
+const h_adj  = refractedAltitudeAux(90);
+const h0_adj = unrefractedAltitudeAux(90);
 
 export function refractedAltitude(trueAltitude: number): number {
   if (trueAltitude < -4.0)

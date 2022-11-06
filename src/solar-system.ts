@@ -738,7 +738,7 @@ export class SolarSystem {
     const pos = this.getEquatorialPosition(planet, utToTdt(time_JDU), observer, flags);
     const hourAngle = this.getHourAngle(planet, time_JDU, observer, flags);
     const numerator = hourAngle.sin;
-    const denominator = observer.latitude.tan * pos.declination.cos - pos.declination.sin * hourAngle.cos;
+    const denominator = (observer && observer.latitude.tan * pos.declination.cos - pos.declination.sin * hourAngle.cos) ?? 0;
 
     if (denominator === 0.0)
       return null;
