@@ -91,7 +91,7 @@ describe('EventFinder', () => {
   });
 
   it('should find the next solar eclipse', () => {
-    const event = eventFinder.findEvent(SUN, SOLAR_ECLIPSE, time, nashua, zone);
+    let event = eventFinder.findEvent(SUN, SOLAR_ECLIPSE, time, nashua, zone);
     expect(event.eventTime.wallTime.y).to.equal(2018);
     expect(event.eventTime.wallTime.m).to.equal(2);
     expect(event.eventTime.wallTime.d).to.equal(15);
@@ -99,6 +99,9 @@ describe('EventFinder', () => {
     expect(event.eventTime.wallTime.min).to.equal(51);
     expect((event.miscInfo as EclipseInfo).surfaceShadow.longitude.degrees).to.be.closeTo(0.80, 1);
     expect((event.miscInfo as EclipseInfo).surfaceShadow.latitude.degrees).to.be.closeTo(-70.95, 1);
+
+    event = eventFinder.findEvent(SUN, SOLAR_ECLIPSE, time3, concord, null, null, false, true);
+    expect(new DateTime({ jdu: event.jdu }, 'UTC').toIsoString(19)).to.equal('1994-05-10T17:11:27');
   });
 
   it('should find the next lunar eclipse', () => {
@@ -145,8 +148,6 @@ describe('EventFinder', () => {
     expect(event.miscInfo.duration).to.be.approximately(12290, 10);
     expect(event.miscInfo.peakDuration).to.be.approximately(365, 10);
     expect(event.miscInfo.maxTime).to.be.approximately(new DateTime('1994-05-10T13:41:19', zone).wallTime.jdu, 2 / 1440);
-    event = await eventFinder.findEventAsync(SUN, SOLAR_ECLIPSE_LOCAL, time3, concord, zone, null, false, true);
-    console.log((event.jdu - event.ut) * 86400);
     event = await eventFinder.findEventAsync(SUN, SOLAR_ECLIPSE_LOCAL, time4, mantua, zone);
     expect(event.miscInfo.annular).to.be.false;
     expect(event.miscInfo.duration).to.be.approximately(3922, 10);
