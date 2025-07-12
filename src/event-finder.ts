@@ -1,4 +1,5 @@
 // noinspection CommaExpressionJS
+/* eslint-disable @typescript-eslint/unbound-method,yoda */
 
 import { abs, Angle, div_rd, floor, FMT_DD, FMT_MINS, max, min, MinMaxFinder, mod, mod2, round, sign, sin_deg, Unit, ZeroFinder } from '@tubular/math';
 import { Calendar, DateTime, DateTimeField, getISOFormatDate, GregorianChange, Timezone, utToTdt, YMDDate } from '@tubular/time';
@@ -8,8 +9,6 @@ import { ISkyObserver } from './i-sky-observer';
 import { JupiterInfo } from './jupiter-info';
 import { JupitersMoons } from './jupiter-moons';
 import { EclipseInfo, EclipseCircumstances, SolarSystem, CircumstancesOfEclipse } from './solar-system';
-
-/* eslint-disable no-case-declarations, yoda */
 
 export class AstroEvent {
   private readonly _jdu: number | undefined;
@@ -93,7 +92,6 @@ export class EventFinder {
   private ss = new SolarSystem();
   private jupitersMoons = new JupitersMoons();
 
-  // eslint-disable-next-line no-useless-constructor
   constructor(private jupiterInfo?: JupiterInfo) {
   }
 
@@ -199,7 +197,7 @@ export class EventFinder {
       }
     };
 
-    return new Promise<AstroEvent[]>((resolve) => {
+    return new Promise<AstroEvent[]>(resolve => {
       const loop = (): void => {
         calculate();
 
@@ -274,7 +272,6 @@ export class EventFinder {
         const year = event.eventTime.wallTime.y;
         const formattedDate = formatDateTime(event);
 
-        // eslint-disable-next-line no-unmodified-loop-condition
         while (col > 0 && year > lastYear) {
           results.push('<td>&nbsp;</td>');
 
@@ -483,7 +480,7 @@ export class EventFinder {
       }
     };
 
-    return new Promise<AstroEvent[]>((resolve) => {
+    return new Promise<AstroEvent[]>(resolve => {
       const loop = (): void => {
         calculate();
 
@@ -858,7 +855,7 @@ export class EventFinder {
       }
     };
 
-    return new Promise<AstroEvent[][]>((resolve) => {
+    return new Promise<AstroEvent[][]>(resolve => {
       const loop = (): void => {
         calculate();
 
@@ -962,12 +959,10 @@ export class EventFinder {
             case TWILIGHT_BEGINS: col = 0; break;
             case UNSEEN_ALL_DAY:
               text = unseenAllDay;
-            // eslint-disable-next-line no-fallthrough
             case RISE_EVENT:      col = 1; break;
             case TRANSIT_EVENT:   col = 2; break;
             case VISIBLE_ALL_DAY:
               text = visibleAllDay;
-            // eslint-disable-next-line no-fallthrough
             case SET_EVENT:       col = 3; break;
             case TWILIGHT_ENDS:   col = 4; break;
           }
@@ -1042,7 +1037,7 @@ export class EventFinder {
       } while (t < endJdu && Date.now() < startTick + 50);
     };
 
-    return new Promise<AstroEvent[]>((resolve) => {
+    return new Promise<AstroEvent[]>(resolve => {
       const loop = (): void => {
         calculate();
 
@@ -1174,14 +1169,12 @@ export class EventFinder {
       if (!isSolar) {
         if (penumbralMagnitude[0] > 0) {
           const firstContactFinder = new ZeroFinder((x: number) => {
-              // eslint-disable-next-line no-sequences
               return this.ss.getLunarEclipseTotality(utToTdt(x), true, penumbralMagnitude), penumbralMagnitude[0];
           }, 1E-11, 50, result.ut - HALF_DAY, eventTime);
 
           circumstances.penumbralFirstContact = firstContactFinder.getXAtZero();
 
           const lastContactFinder = new ZeroFinder((x: number) => {
-              // eslint-disable-next-line no-sequences
               return this.ss.getLunarEclipseTotality(utToTdt(x), true, penumbralMagnitude), penumbralMagnitude[0];
           }, 1E-11, 50, eventTime, result.ut + HALF_DAY);
 
@@ -1351,10 +1344,10 @@ export class EventFinder {
         if (eventType === TWILIGHT_BEGINS || eventType === TWILIGHT_ENDS) {
           if (!isNumber(argument))
             targetAlt = NAUTICAL_TWILIGHT;
-          else if ((argument as number) < 0)
-            targetAlt = argument as number;
+          else if (argument < 0)
+            targetAlt = argument;
           else
-            minsBefore = (eventType === TWILIGHT_ENDS ? -(argument as number) : argument as number);
+            minsBefore = (eventType === TWILIGHT_ENDS ? -argument : argument);
 
           events = this.getRiseAndSetTimes(SUN, ymd.y, ymd.m, ymd.d, observer, zone, gregorianChange, minsBefore, targetAlt, true);
         }

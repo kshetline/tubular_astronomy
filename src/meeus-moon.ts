@@ -6,8 +6,7 @@
 import { cos_deg, sin_deg, SphericalPosition3D, Unit } from '@tubular/math';
 import { JD_J2000, KM_PER_AU } from './astro-constants';
 
-interface LongitudeTerm
-{
+interface LongitudeTerm {
   fD: number;
   fM: number;
   fM1: number;
@@ -16,8 +15,7 @@ interface LongitudeTerm
   cc: number;
 }
 
-interface LatitudeTerm
-{
+interface LatitudeTerm {
   fD: number;
   fM: number;
   fM1: number;
@@ -259,7 +257,7 @@ export class MeeusMoon {
         B += term.cs * sin_deg(arg);
     }
 
-    // eslint-disable-next-line space-unary-ops
+    // eslint-disable-next-line @stylistic/space-unary-ops
     B += - 2235 * sin_deg(L1)
          +  382 * sin_deg(A3)
          +  175 * sin_deg(A1 - F)

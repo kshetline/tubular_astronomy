@@ -56,19 +56,19 @@ export class SkyObserver implements ISkyObserver {
       SkyObserver.solarSystem = new SolarSystem();
 
     if (longitudeOrLatLong instanceof SphericalPosition) {
-      this._longitude = (longitudeOrLatLong as SphericalPosition).longitude;
-      this._latitude = (longitudeOrLatLong as SphericalPosition).latitude;
+      this._longitude = longitudeOrLatLong.longitude;
+      this._latitude = longitudeOrLatLong.latitude;
     }
     else {
       if (isNumber(longitudeOrLatLong))
-        this._longitude = new Angle(longitudeOrLatLong as number, Unit.DEGREES);
+        this._longitude = new Angle(longitudeOrLatLong, Unit.DEGREES);
       else
-        this._longitude = longitudeOrLatLong as Angle;
+        this._longitude = longitudeOrLatLong;
 
       if (isNumber(latitude))
-        this._latitude = new Angle(latitude as number, Unit.DEGREES);
+        this._latitude = new Angle(latitude, Unit.DEGREES);
       else
-        this._latitude = latitude as Angle;
+        this._latitude = latitude;
     }
 
     this.computeGeocentricValues();
@@ -167,7 +167,7 @@ export class SkyObserver implements ISkyObserver {
       altitude = to_radian(refractedAltitude(to_degree(altitude)));
 
     if (pos instanceof SphericalPosition3D) {
-      let distance = (pos as SphericalPosition3D).radius;
+      let distance = pos.radius;
 
       if ((flags & TOPOCENTRIC) !== 0) {
         const earthCtrDistance = EARTH_RADIUS_POLAR_KM +

@@ -5,9 +5,9 @@ import { SkyObserver } from './sky-observer';
 import { StarCatalog } from './star-catalog';
 
 describe('StarCatalog', () => {
-  it('should create StarCatalog', (done) => {
+  it('should create StarCatalog', done => {
     const observer = new SkyObserver(-71.5, 42.5);
-    const sc = new StarCatalog('src/resources/stars.dat', (initialized) => {
+    const sc = new StarCatalog('src/resources/stars.dat', initialized => {
       expect(initialized).to.be.true;
       expect(sc.isProperlyInitialized()).to.be.true;
       expect(sc.getStarCount()).to.be.greaterThan(7000);

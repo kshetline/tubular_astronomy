@@ -34,8 +34,8 @@ export class ObjectInfo {
   convergenceFails: boolean;
   cfMin = Number.MAX_VALUE;
   cfMax = -Number.MAX_VALUE;
-  prev: ObjectInfo; // eslint-disable-line no-use-before-define
-  next: ObjectInfo; // eslint-disable-line no-use-before-define
+  prev: ObjectInfo;
+  next: ObjectInfo;
 
   toString(): string {
     const tEpoch = new DateTime(DateTime.millisFromJulianDay(this.epoch), Timezone.UT_ZONE);
@@ -53,7 +53,7 @@ export class AdditionalOrbitingObjects {
   private static properlyInitialized: boolean = undefined;
   private static lastAsteroidId = ASTEROID_BASE;
   private static lastCometId = COMET_BASE;
-  private static objects: {[id: number]: ObjectInfo[]} = {};
+  private static objects: { [id: number]: ObjectInfo[] } = {};
   private static objectIds: number[] = [];
 
   static getAdditionalOrbitingObjects(astroDataService: IAstroDataService): Promise<AdditionalOrbitingObjects> {
@@ -326,13 +326,13 @@ export class AdditionalOrbitingObjects {
     let oi: ObjectInfo;
 
     if (isNumber(objectInfoOrBodyId)) {
-      oi = this.getObjectInfo(objectInfoOrBodyId as number, time_JDE);
+      oi = this.getObjectInfo(objectInfoOrBodyId, time_JDE);
 
       if (oi == null)
         return null;
     }
     else
-      oi = <ObjectInfo> objectInfoOrBodyId;
+      oi = objectInfoOrBodyId;
 
     const t = time_JDE - oi.Tp;
     const e = oi.e;

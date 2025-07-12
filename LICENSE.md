@@ -1,6 +1,6 @@
 ## @tubular/astronomy
 
-Copyright © 2017-2021 Kerry Shetline, kerry@shetline.com
+Copyright © 2017-2025 Kerry Shetline, kerry@shetline.com
 
 ### Licensing
 

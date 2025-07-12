@@ -12,16 +12,15 @@ let _readFile: (path: string, callback: (err: (NodeJS.ErrnoException | null), da
 
 try {
   _Buffer = typeof Buffer !== undefined && Buffer;
-  // eslint-disable-next-line no-new-func
+  // eslint-disable-next-line @typescript-eslint/no-implied-eval
   _readFile = !!_Buffer && (new Function('req', 'return req("fs").readFile'))(typeof require !== 'undefined' && require);
 }
 catch {}
 
-enum READING { FK5, BSC, HIP, /* DSO */ }
+enum READING { FK5, BSC, HIP /* , DSO */ }
 enum MARKER { INC_FK5 = 0xFF, NEW_STATE = 0xFE, DBL_PREC  = 0xFD, SNG_PREC = 0xFC }
 
-export interface StarInfo
-{
+export interface StarInfo {
   bayerRank: number;
   bscNum: number;
   catalogIndex: number;
@@ -49,8 +48,7 @@ export interface ConstellationInfo {
   starList: number[];
 }
 
-interface CacheEntry
-{
+interface CacheEntry {
   flags: number;
   pos: SphericalPosition;
   time: number;
@@ -264,7 +262,7 @@ export class StarCatalog {
     let state = READING.FK5;
     let doDouble = false;
     let fk5Num = 0;
-    const namesInUse: {[name: string]: boolean} = {};
+    const namesInUse: { [name: string]: boolean } = {};
 
     try {
       while (true) {

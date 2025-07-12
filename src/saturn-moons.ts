@@ -143,7 +143,6 @@ export class SaturnMoons extends PlanetaryMoons {
         case 5:
         case 6:
         case 7:
-          /* eslint-disable no-case-declarations */
           let p1: number, a1: number, a2: number, N: number, i1: number, Ω1: number;
           let g0: number, ψ: number, s: number, g: number, ww = 0, e1: number, q: number;
           let b1, b2, θ, h;

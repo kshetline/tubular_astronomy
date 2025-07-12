@@ -14,7 +14,7 @@ function makeRequest(url: string, responseType: XMLHttpRequestResponseType): Pro
         resolve(xhr.response);
       }
       else {
-        // eslint-disable-next-line prefer-promise-reject-errors
+        // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
         reject({
           status: this.status,
           statusText: xhr.statusText
@@ -23,7 +23,7 @@ function makeRequest(url: string, responseType: XMLHttpRequestResponseType): Pro
     };
 
     xhr.onerror = function (): void {
-      // eslint-disable-next-line prefer-promise-reject-errors
+      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
       reject({
         status: this.status,
         statusText: xhr.statusText
@@ -35,9 +35,7 @@ function makeRequest(url: string, responseType: XMLHttpRequestResponseType): Pro
 }
 
 export class SimpleAstroDataService implements IAstroDataService {
-  // eslint-disable-next-line no-useless-constructor
-  constructor(private baseUrl: string) {
-  }
+  constructor(private baseUrl: string) {}
 
   getStars(): Promise<ArrayBuffer> {
     return <Promise<ArrayBuffer>> makeRequest(this.baseUrl + 'stars.dat', 'arraybuffer');
