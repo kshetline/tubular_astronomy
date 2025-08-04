@@ -459,8 +459,8 @@ export class EventFinder {
         const year = div_rd(monthYear, 12);
         const month = mod(monthYear, 12) + 1;
 
-        // Over a safe range of years even under the Julian calendar the equinoxes and solstices will
-        // stay in months divisible by three.
+        // Over a safe range of years, even under the Julian calendar, the equinoxes and solstices will
+        // remain in months divisible by three.
         if (-500 <= year && year <= 2700 && month % 3 !== 0)
           continue;
 
@@ -1242,7 +1242,7 @@ export class EventFinder {
 
     const δ = (doPrevious ? -1 : 1);
 
-    originalTime += δ * HALF_MINUTE; // Bias time by a half minute towards the event seek direction.
+    originalTime += δ * HALF_MINUTE; // Bias time by a half-minute towards the event seek direction.
 
     const dateTime = new DateTime(DateTime.millisFromJulianDay(originalTime), zone, gregorianChange);
     const ymd: YMDDate = dateTime.wallTime;
@@ -1288,7 +1288,7 @@ export class EventFinder {
     else if (eventType === LUNAR_ECLIPSE_LOCAL)
       type = LUNAR_ECLIPSE;
 
-    originalTime += δ * HALF_MINUTE; // Bias time by a half minute towards the event seek direction.
+    originalTime += δ * HALF_MINUTE; // Bias time by a half-minute towards the event seek direction.
 
     const dateTime = new DateTime(DateTime.millisFromJulianDay(originalTime), zone, gregorianChange);
     const ymd: YMDDate = dateTime.wallTime;
