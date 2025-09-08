@@ -1,6 +1,6 @@
 {
   "name": "@tubular/astronomy",
-  "version": "3.5.4",
+  "version": "3.5.5",
   "description": "Astronomical calculations for planetary positions, moon phases, eclipses, rise, transit, and set times, and more.",
   "module": "dist/index.min.mjs",
   "main": "dist/index.min.cjs",
@@ -13,7 +13,8 @@
       "import": "./dist/index.min.mjs",
       "require": "./dist/index.min.cjs",
       "browser": "./dist/index.min.js",
-      "default": "./dist/index.min.cjs"
+      "default": "./dist/index.min.cjs",
+      "types": "./dist/index.d.ts"
     },
     "./dist/cjs/index.js": "./dist/index.min.cjs",
     "./dist/fesm2015/index.js": "./dist/index.min.mjs",
@@ -49,10 +50,10 @@
   "author": "Kerry Shetline <kerry@shetline.com>",
   "license": "MIT",
   "dependencies": {
-    "@tubular/array-buffer-reader": "^3.0.3",
-    "@tubular/math": "^3.4.0",
-    "@tubular/time": "^3.10.3",
-    "@tubular/util": "^4.18.1"
+    "@tubular/array-buffer-reader": "^3.0.4",
+    "@tubular/math": "^3.4.1",
+    "@tubular/time": "^3.10.4",
+    "@tubular/util": "^4.18.2"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.1",
