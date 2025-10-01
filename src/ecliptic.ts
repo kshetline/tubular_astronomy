@@ -16,10 +16,12 @@ export interface Nutation {
   ε: Angle;
 }
 
-export enum NMode { NUTATED,        // Return nutation in longitude, and nutation-adjusted true obliquity.
-                    MEAN_OBLIQUITY, // Return no nutation, only non-nutated mean obliquity.
-                    J2000,          // Return no nutation, simply fixed obliquity of the J2000.0 ecliptic.
-                    ANTI_NUTATED }  // Remove nutation from an already-nutated set of coordinates.
+export enum NMode {
+  NUTATED,        // Return nutation in longitude, and nutation-adjusted true obliquity.
+  MEAN_OBLIQUITY, // Return no nutation, only non-nutated mean obliquity.
+  J2000,          // Return no nutation, simply fixed obliquity of the J2000.0 ecliptic.
+  ANTI_NUTATED    // Remove nutation from an already-nutated set of coordinates.
+}
 
 interface NutationTerm {
   fD: number;

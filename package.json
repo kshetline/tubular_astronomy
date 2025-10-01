@@ -1,27 +1,34 @@
 {
   "name": "@tubular/astronomy",
-  "version": "3.5.0",
+  "version": "3.5.6",
   "description": "Astronomical calculations for planetary positions, moon phases, eclipses, rise, transit, and set times, and more.",
-  "main": "dist/cjs/index.js",
-  "module": "dist/fesm2015/index.js",
-  "esm2015": "dist/index.js",
-  "fesm2015": "dist/fesm2015/index.js",
+  "module": "dist/index.min.mjs",
+  "main": "dist/index.min.cjs",
+  "browser": "dist/index.min.js",
+  "umd:main": "dist/index.min.js",
   "typings": "dist/index",
   "sideEffects": false,
   "exports": {
-    "import": "./dist/fesm2015/index.js",
-    "require": "./dist/cjs/index.js",
-    "script": "./dist/umd/index.js",
-    "default": "./dist/cjs/index.js"
+    ".": {
+      "import": "./dist/index.min.mjs",
+      "require": "./dist/index.min.cjs",
+      "browser": "./dist/index.min.js",
+      "default": "./dist/index.min.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./dist/cjs/index.js": "./dist/index.min.cjs",
+    "./dist/fesm2015/index.js": "./dist/index.min.mjs",
+    "./dist/umd/index.js": "./dist/index.min.js"
   },
   "engines": {
     "node": ">=10.24.1"
   },
   "scripts": {
-    "build": "rimraf dist/ && tsc && rollup -c -m && webpack && npm run resources",
-    "prepack": "npm run build",
-    "lint": "eslint 'src/**/*.ts' '**/*.cjs'",
-    "test": "nyc --reporter=html mocha --require ts-node/register src/**/*.spec.ts",
+    "build": "rimraf dist/ && rollup -c && npm run resources",
+    "coverage": "nyc report --reporter=text-lcov > coverage/lcov.info",
+    "prepack": "npm run lint && npm run test && npm run build",
+    "lint": "eslint --ext .ts 'src/**/*.ts'",
+    "test": "nyc --reporter=text --reporter=html mocha --require ts-node/register src/**/*.spec.ts && npm run coverage",
     "resources": "cp -R src/resources/ dist/resources/"
   },
   "keywords": [
@@ -43,41 +50,46 @@
   "author": "Kerry Shetline <kerry@shetline.com>",
   "license": "MIT",
   "dependencies": {
-    "@tubular/array-buffer-reader": "^3.0.2",
-    "@tubular/math": "^3.3.0",
-    "@tubular/time": "^3.8.8",
-    "@tubular/util": "^4.13.1"
+    "@tubular/array-buffer-reader": "^3.0.4",
+    "@tubular/math": "^3.4.2",
+    "@tubular/time": "^3.10.5",
+    "@tubular/util": "^4.18.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.19.3",
-    "@babel/preset-env": "^7.19.4",
-    "@babel/register": "^7.18.9",
-    "@rollup/plugin-typescript": "^9.0.1",
-    "@types/chai": "^4.3.3",
-    "@types/mocha": "^10.0.0",
-    "@types/node": "^15.14.9",
-    "@typescript-eslint/eslint-plugin": "^5.40.0",
-    "@typescript-eslint/parser": "^5.40.0",
-    "babel-loader": "^8.2.5",
-    "chai": "^4.3.6",
-    "eslint": "^8.25.0",
-    "eslint-config-standard": "^17.0.0",
-    "eslint-plugin-chai-friendly": "^0.7.2",
-    "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^6.1.0",
-    "mocha": "^10.1.0",
-    "nyc": "^15.1.0",
-    "rimraf": "^3.0.2",
-    "rollup": "^2.79.1",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^12.1.2",
+    "@stylistic/eslint-plugin": "^4.4.1",
+    "@types/chai": "^4.3.16",
+    "@types/chai-as-promised": "^7.1.8",
+    "@types/mocha": "^9.1.1",
+    "@types/node": "^22.15.31",
+    "@typescript-eslint/eslint-plugin": "^8.34.0",
+    "@typescript-eslint/parser": "^8.34.0",
+    "chai": "^4.4.1",
+    "eslint": "^9.29.0",
+    "eslint-plugin-chai-friendly": "^1.1.0",
+    "mocha": "^10.8.2",
+    "nyc": "^17.1.0",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.43.0",
     "rollup-plugin-sourcemaps": "^0.6.3",
-    "rollup-plugin-terser": "^7.0.2",
-    "terser-webpack-plugin": "^5.3.6",
-    "ts-node": "^10.9.1",
-    "typescript": "^4.8.4",
-    "webpack": "^5.74.0",
-    "webpack-cli": "^4.10.0",
-    "webpack-node-externals": "^3.0.0"
+    "ts-node": "^10.9.2",
+    "tslib": "^2.8.1",
+    "typescript": "^5.8.3"
   },
-  "repository": "github:kshetline/tubular_astronomy"
+  "nyc": {
+    "exclude": [
+      "**/*.spec.ts"
+    ]
+  },
+  "overrides": {
+    "@rollup/pluginutils": {
+      "rollup": "$rollup"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kshetline/tubular_astronomy.git"
+  }
 }

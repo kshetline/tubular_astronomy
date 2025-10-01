@@ -16,7 +16,7 @@ interface VsopTerm {
   C: number;
 }
 
-/* eslint-disable comma-spacing, object-curly-spacing, @typescript-eslint/indent */
+/* eslint-disable  @stylistic/comma-spacing,@stylistic/object-curly-spacing,@stylistic/indent */
 const terms: VsopTerm[][][][] = [
   // Mercury
 [[[

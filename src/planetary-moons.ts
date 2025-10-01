@@ -9,14 +9,15 @@ export const AS_SEEN_FROM_SUN   = true;
 export const MOON_ITSELF        = false;
 export const MOON_SHADOW        = true;
 
-export enum MoonEvent { TR_I = 1, // Transit Ingress - begins transit
-                        TR_E,     // Transit Egress  - ends transit
-                        OC_D,     // Occultation Disappears - becomes occulted
-                        OC_R,     // Occultation Reappears  - emerges from occultation
-                        EC_D,     // Eclipse Disappears - becomes eclipsed
-                        EC_R,     // Eclipse Reappears  - emerges from eclipse
-                        SH_I,     // Shadow Ingress - shadow of moon appears
-                        SH_E      // Shadow Egress  - shadow of moon ends
+export enum MoonEvent {
+  TR_I = 1, // Transit Ingress - begins transit
+  TR_E,     // Transit Egress  - ends transit
+  OC_D,     // Occultation Disappears - becomes occulted
+  OC_R,     // Occultation Reappears  - emerges from occultation
+  EC_D,     // Eclipse Disappears - becomes eclipsed
+  EC_R,     // Eclipse Reappears  - emerges from eclipse
+  SH_I,     // Shadow Ingress - shadow of moon appears
+  SH_E      // Shadow Egress  - shadow of moon ends
 }
 
 const moonNumbers = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X',

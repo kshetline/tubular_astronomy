@@ -481,6 +481,7 @@ export class SolarSystem {
 
       return this.sharedAdditionalsPendingPromise;
     }
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     else if (this.sharedAdditionalsPendingPromise)
       return this.sharedAdditionalsPendingPromise;
     else
@@ -901,9 +902,7 @@ export class SolarSystem {
         return -9.40 + _5log_rD + 0.005 * i;
 
       case SATURN:
-        // eslint-disable-next-line no-case-declarations
         const ri = this.getSaturnRingInfo(time_JDE);
-        // eslint-disable-next-line no-case-declarations
         const sin_B = sin_deg(ri.B);
 
         return -8.88 + _5log_rD + 0.044 * ri.dU - 2.60 * sin_deg(abs(ri.B)) + 1.25 * sin_B ** 2;

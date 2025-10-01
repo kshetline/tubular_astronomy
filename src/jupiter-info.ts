@@ -76,7 +76,7 @@ export class JupiterInfo {
       this.grsLongAtMaxTimeAngle = new Angle(this.grsLongAtMaxTime, Unit.DEGREES);
       this.properlyInitialized = true;
     }
-    catch (error) {
+    catch {
       this.properlyInitialized = false;
     }
   }
@@ -162,9 +162,9 @@ export class JupiterInfo {
 
   setFixedGRSLongitude(longitude: number | Angle): void {
     if (typeof longitude === 'number')
-      this.fixedGRSLong = new Angle(longitude as number, Unit.DEGREES);
+      this.fixedGRSLong = new Angle(longitude, Unit.DEGREES);
     else
-      this.fixedGRSLong = longitude as Angle;
+      this.fixedGRSLong = longitude;
 
     this.cacheTime = Number.MAX_VALUE;
   }

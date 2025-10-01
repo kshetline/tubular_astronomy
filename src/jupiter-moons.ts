@@ -81,7 +81,7 @@ export class JupitersMoons extends PlanetaryMoons {
     for (let j = 0; j < nmoons; ++j) {
       switch (j) {
         case 0: // I, Io
-          // eslint-disable-next-line space-unary-ops
+          // eslint-disable-next-line @stylistic/space-unary-ops
           S = + 0.47259 * sin_deg(2 * (l1 - l2))
               - 0.03478 * sin_deg(π3 - π4)
               + 0.01081 * sin_deg(l2 - 2 * l3 + π3)
@@ -107,7 +107,7 @@ export class JupitersMoons extends PlanetaryMoons {
           L = l1 + S;
 
           B = atan_deg(
-              // eslint-disable-next-line space-unary-ops
+              // eslint-disable-next-line @stylistic/space-unary-ops
             + 0.0006393 * sin_deg(L - ω1)
             + 0.0001825 * sin_deg(L - ω2)
             + 0.0000329 * sin_deg(L - ω3)
@@ -129,7 +129,7 @@ export class JupitersMoons extends PlanetaryMoons {
           break;
 
         case 1: // II, Europa
-          // eslint-disable-next-line space-unary-ops
+          // eslint-disable-next-line @stylistic/space-unary-ops
           S = + 1.06476 * sin_deg(2 * (l2 - l3))
               + 0.04256 * sin_deg(l1 - 2 * l2 + π3)
               + 0.03581 * sin_deg(l2 - π3)
@@ -171,7 +171,7 @@ export class JupitersMoons extends PlanetaryMoons {
           L = l2 + S;
 
           B = atan_deg(
-            // eslint-disable-next-line space-unary-ops
+            // eslint-disable-next-line @stylistic/space-unary-ops
             + 0.0081004 * sin_deg(L - ω2)
             + 0.0004512 * sin_deg(L - ω3)
             - 0.0003284 * sin_deg(L - ψ)
@@ -199,7 +199,7 @@ export class JupitersMoons extends PlanetaryMoons {
           break;
 
         case 2: // III, Ganymede
-          // eslint-disable-next-line space-unary-ops
+          // eslint-disable-next-line @stylistic/space-unary-ops
           S = + 0.16490 * sin_deg(l3 - π3)
               + 0.09081 * sin_deg(l3 - π4)
               - 0.06907 * sin_deg(l2 - l3)
@@ -247,7 +247,7 @@ export class JupitersMoons extends PlanetaryMoons {
           L = l3 + S;
 
           B = atan_deg(
-            // eslint-disable-next-line space-unary-ops
+            // eslint-disable-next-line @stylistic/space-unary-ops
             + 0.0032402 * sin_deg(L - ω3)
             - 0.0016911 * sin_deg(L - ψ)
             + 0.0006847 * sin_deg(L - ω4)
@@ -276,7 +276,7 @@ export class JupitersMoons extends PlanetaryMoons {
           break;
 
         case 3: // IV, Callisto
-          // eslint-disable-next-line space-unary-ops
+          // eslint-disable-next-line @stylistic/space-unary-ops
           S = + 0.84287 * sin_deg(l4 - π4)
               + 0.03431 * sin_deg(π4 - π3)
               - 0.03305 * sin_deg(2 * (ψ - Πj))
@@ -331,7 +331,7 @@ export class JupitersMoons extends PlanetaryMoons {
           L = l4 + S;
 
           B = atan_deg(
-            // eslint-disable-next-line space-unary-ops
+            // eslint-disable-next-line @stylistic/space-unary-ops
             - 0.0076579 * sin_deg(L - ψ)
             + 0.0044134 * sin_deg(L - ω4)
             - 0.0005112 * sin_deg(L - ω3)
